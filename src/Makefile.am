@@ -64,6 +64,7 @@ libgdbm_la_SOURCES = \
  flatfile.c\
  global.c\
  hash.c\
+ lock.c\
  mmap.c\
  update.c\
  version.c

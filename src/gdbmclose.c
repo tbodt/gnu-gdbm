@@ -41,7 +41,7 @@ gdbm_close (gdbm_file_info *dbf)
 #endif
   if (dbf->file_locking)
     {
-      UNLOCK_FILE(dbf);
+      _gdbm_unlock_file (dbf);
     }
   close (dbf->desc);
   free (dbf->name);

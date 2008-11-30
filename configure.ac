@@ -69,7 +69,7 @@ AC_CHECK_HEADERS([stdlib.h string.h sys/file.h unistd.h fcntl.h sys/types.h memo
 
 AC_CHECK_LIB(dbm, main)
 AC_CHECK_LIB(ndbm, main)
-AC_CHECK_FUNCS([rename ftruncate flock fsync])
+AC_CHECK_FUNCS([rename ftruncate flock lockf fsync])
 
 if test x$mapped_io = xyes
 then

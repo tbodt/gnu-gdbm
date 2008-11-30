@@ -74,7 +74,7 @@ am_libgdbm_la_OBJECTS = gdbmopen.lo gdbmdelete.lo gdbmfetch.lo \
 	gdbmstore.lo gdbmclose.lo gdbmreorg.lo gdbmseq.lo gdbmsync.lo \
 	gdbmerrno.lo gdbmexists.lo gdbmfdesc.lo gdbmsetopt.lo \
 	bucket.lo falloc.lo findkey.lo flatfile.lo global.lo hash.lo \
-	mmap.lo update.lo version.lo
+	lock.lo mmap.lo update.lo version.lo
 libgdbm_la_OBJECTS = $(am_libgdbm_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -96,8 +96,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/gdbmsetopt.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/gdbmstore.Plo ./$(DEPDIR)/gdbmsync.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/global.Plo ./$(DEPDIR)/hash.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/mmap.Plo ./$(DEPDIR)/testgdbm.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/update.Plo ./$(DEPDIR)/version.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/lock.Plo ./$(DEPDIR)/mmap.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/testgdbm.Po ./$(DEPDIR)/update.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/version.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) \
@@ -261,6 +262,7 @@ libgdbm_la_SOURCES = \
  flatfile.c\
  global.c\
  hash.c\
+ lock.c\
  mmap.c\
  update.c\
  version.c
@@ -386,6 +388,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gdbmsync.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/global.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hash.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mmap.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/testgdbm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/update.Plo@am__quote@

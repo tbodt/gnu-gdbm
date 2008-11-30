@@ -43,12 +43,16 @@ void _gdbm_fatal	(gdbm_file_info *, const char *);
 int _gdbm_init_cache	(gdbm_file_info *, int);
 
 /* From mmap.c */
-int _gdbm_mapped_init (gdbm_file_info *dbf);
-void _gdbm_mapped_unmap (gdbm_file_info *dbf);
-ssize_t _gdbm_mapped_read(gdbm_file_info *dbf, void *buffer, size_t len);
-ssize_t _gdbm_mapped_write(gdbm_file_info *dbf, void *buffer, size_t len);
-off_t _gdbm_mapped_lseek(gdbm_file_info *dbf, off_t offset, int whence);
-int _gdbm_mapped_sync(gdbm_file_info *dbf);
+int _gdbm_mapped_init	(gdbm_file_info *);
+void _gdbm_mapped_unmap	(gdbm_file_info *);
+ssize_t _gdbm_mapped_read	(gdbm_file_info *, void *, size_t);
+ssize_t _gdbm_mapped_write	(gdbm_file_info *, void *, size_t);
+off_t _gdbm_mapped_lseek	(gdbm_file_info *, off_t, int);
+int _gdbm_mapped_sync	(gdbm_file_info *);
+
+/* From lock.c */
+void _gdbm_unlock_file	(gdbm_file_info *);
+int _gdbm_lock_file	(gdbm_file_info *);
 
 /* The user callable routines.... */
 void  gdbm_close	(gdbm_file_info *);
@@ -63,3 +67,6 @@ int   gdbm_exists	(gdbm_file_info *, datum);
 void  gdbm_sync		(gdbm_file_info *);
 int   gdbm_setopt	(gdbm_file_info *, int, int *, int);
 int   gdbm_fdesc	(gdbm_file_info *);
+int   gdbm_export	(gdbm_file_info *, const char *, int, int);
+int   gdbm_import	(gdbm_file_info *, const char *, int);
+

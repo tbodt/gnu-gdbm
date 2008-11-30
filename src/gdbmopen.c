@@ -159,42 +159,34 @@ gdbm_open (char *file, int block_size, int flags, int mode,
   /* Get the status of the file. */
   fstat (dbf->desc, &file_stat);
 
-  /* Lock the file in the approprate way. */
-  if ((flags & GDBM_OPENMASK) == GDBM_READER)
-    {
-      if (file_stat.st_size == 0)
-	{
-	  close (dbf->desc);
-	  free (dbf->name);
-	  free (dbf);
-	  gdbm_errno = GDBM_EMPTY_DATABASE;
-	  return NULL;
-	}
-      if (dbf->file_locking)
-	{
-          /* Sets lock_val to 0 for success.  See systems.h. */
-          READLOCK_FILE(dbf);
-	}
-    }
-  else if (dbf->file_locking)
-    {
-      /* Sets lock_val to 0 for success.  See systems.h. */
-      WRITELOCK_FILE(dbf);
-    }
-  if (dbf->file_locking && (lock_val != 0))
+  /* Zero-length file can't be a reader... */
+  if (((flags & GDBM_OPENMASK) == GDBM_READER) && (file_stat.st_size == 0))
     {
       close (dbf->desc);
       free (dbf->name);
       free (dbf);
-      if ((flags & GDBM_OPENMASK) == GDBM_READER)
-	gdbm_errno = GDBM_CANT_BE_READER;
-      else
-	gdbm_errno = GDBM_CANT_BE_WRITER;
+      gdbm_errno = GDBM_EMPTY_DATABASE;
       return NULL;
     }
 
   /* Record the kind of user. */
   dbf->read_write = (flags & GDBM_OPENMASK);
+
+  /* Lock the file in the appropriate way. */
+  if (dbf->file_locking)
+    {
+      if (_gdbm_lock_file (dbf) == -1)
+	{
+	  close (dbf->desc);
+	  free (dbf->name);
+	  free (dbf);
+	  if ((flags & GDBM_OPENMASK) == GDBM_READER)
+	    gdbm_errno = GDBM_CANT_BE_READER;
+	  else
+	    gdbm_errno = GDBM_CANT_BE_WRITER;
+	  return NULL;
+	}
+    }
 
   /* If we do have a write lock and it was a GDBM_NEWDB, it is 
      now time to truncate the file. */

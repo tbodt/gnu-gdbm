@@ -161,7 +161,7 @@ gdbm_reorganize (gdbm_file_info *dbf)
   /* Fix up DBF to have the correct information for the new file. */
   if (dbf->file_locking)
     {
-      UNLOCK_FILE(dbf);
+      _gdbm_unlock_file (dbf);
     }
   close (dbf->desc);
   free (dbf->header);

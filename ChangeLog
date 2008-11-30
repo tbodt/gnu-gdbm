@@ -1,3 +1,14 @@
+Sat Nov 29 23:22:24 PST 2008	Jason Downs (downsj@downsj.com)
+	* configure.ac: Add test for lockf.
+
+	* src/lock.c: New file, adds _gdbm_unlock_file() and
+		_gdbm_lock_file() routines.  These attempt to use flock(),
+		lockf(), and fcntl() locking.
+	* src/proto.h: Add new prototypes.
+	* src/systems.h: Remove file locking macros.
+	* src/gdbmopen.c: Rewrite locking code, use _gdbm_lock_file().
+	* src/gdbmclose.c, src/gdbmreorg.c: Use _gdbm_unlock_file().
+
 Sat Nov 29 21:19:32 PST 2008	Jason Downs (downsj@downsj.com)
 	* configure.ac: Add test for sys/termios.h
 
