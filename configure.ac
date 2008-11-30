@@ -65,7 +65,7 @@ dnl AC_PROG_RANLIB
 dnl AC_C_BIGENDIAN([])
 AC_C_CONST
 
-AC_CHECK_HEADERS([stdlib.h string.h sys/file.h unistd.h fcntl.h sys/types.h memory.h])
+AC_CHECK_HEADERS([stdlib.h string.h sys/file.h unistd.h fcntl.h sys/types.h memory.h sys/termios.h])
 
 AC_CHECK_LIB(dbm, main)
 AC_CHECK_LIB(ndbm, main)

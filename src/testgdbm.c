@@ -26,8 +26,12 @@
 #include "extern.h"
 
 #include <errno.h>
+#include <ctype.h>
 #include <signal.h>
 #include <sys/ioctl.h>
+#ifdef HAVE_SYS_TERMIOS_H
+#include <sys/termios.h>
+#endif
 #include <stdarg.h>
 
 extern const char *gdbm_version;
@@ -154,6 +158,7 @@ usage ()
   printf ("  -c SIZE            set cache size\n");
   printf ("  -g FILE            operate on FILE instead of `junk.gdbm'\n");
   printf ("  -h                 print this help summary\n");
+  printf ("  -l                 disable file locking\n");
   printf ("  -n                 create database\n");
   printf ("  -r                 open database in read-only mode\n");
   printf ("  -s                 synchronize to the disk after each write\n");
@@ -249,6 +254,7 @@ read_from_file (const char *name, int replace)
 int
 get_screen_lines ()
 {
+#ifdef TIOCGWINSZ
   if (isatty (1))
     {
       struct winsize ws;
@@ -262,6 +268,11 @@ get_screen_lines ()
 	}
       return ws.ws_row;
     }
+#else
+  const char *lines = getenv ("LINES");
+  if (lines)
+    return strtol (lines, NULL, 10);
+#endif
   return -1;
 }
 
@@ -771,7 +782,7 @@ main (int argc, char *argv[])
   int opt;
   char reader = FALSE;
   char newdb = FALSE;
-  int fast = 0;
+  int flags = 0;
 
   progname = strrchr (argv[0], '/');
   if (progname)
@@ -781,29 +792,36 @@ main (int argc, char *argv[])
   
   /* Argument checking. */
   opterr = 0;
-  while ((opt = getopt (argc, argv, "srnc:b:g:hv")) != -1)
+  while ((opt = getopt (argc, argv, "lsrnc:b:g:hv")) != -1)
     switch (opt)
       {
       case 'h':
 	usage ();
 	exit (0);
 
+      case 'l':
+	flags = flags | GDBM_NOLOCK;
+	break;
+
       case 's':
-	fast = GDBM_SYNC;
 	if (reader)
 	  error (2, "-s is incompatible with -r");
+
+	flags = flags | GDBM_SYNC;
 	break;
 	
       case 'r':
-	reader = TRUE;
 	if (newdb)
 	  error (2, "-r is incompatible with -n");
+
+	reader = TRUE;
 	break;
 	
       case 'n':
-	newdb = TRUE;
 	if (reader)
 	  error (2, "-n is incompatible with -r");
+
+	newdb = TRUE;
 	break;
 	
       case 'c':
@@ -839,12 +857,12 @@ main (int argc, char *argv[])
   else if (newdb)
     {
       gdbm_file =
-	gdbm_open (file_name, block_size, GDBM_NEWDB | fast, 00664, NULL);
+	gdbm_open (file_name, block_size, GDBM_NEWDB | flags, 00664, NULL);
     }
   else
     {
       gdbm_file =
-	gdbm_open (file_name, block_size, GDBM_WRCREAT | fast, 00664, NULL);
+	gdbm_open (file_name, block_size, GDBM_WRCREAT | flags, 00664, NULL);
     }
   if (gdbm_file == NULL)
     error (2, "gdbm_open failed: %s", gdbm_strerror (gdbm_errno));

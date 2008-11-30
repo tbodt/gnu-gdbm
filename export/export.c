@@ -55,13 +55,18 @@ main(int argc, char *argv[])
 {
   int c;
   GDBM_FILE dbf;
+  int flags = 0;
 
-  while ((c = getopt (argc, argv, "hv")) != -1)
+  while ((c = getopt (argc, argv, "hlv")) != -1)
     switch (c)
       {
       case 'h':
 	usage (argv[0]);
 	exit (0);
+
+      case 'l':
+	flags = GDBM_NOLOCK;
+	break;
 
       case 'v':
 	version ();
@@ -78,7 +83,7 @@ main(int argc, char *argv[])
       exit (1);
     }
 
-  dbf = gdbm_open (argv[1], 0, GDBM_READER, 0600, NULL);
+  dbf = gdbm_open (argv[1], 0, GDBM_READER | flags, 0600, NULL);
   if (dbf == NULL)
     {
       fprintf (stderr, "%s: couldn't open database, %s\n", argv[0],
@@ -86,7 +91,7 @@ main(int argc, char *argv[])
       exit (1);
     }
 
-  if (gdbm_export (dbf, argv[2], GDBM_WRCREAT, 0600) == -1)
+  if (gdbm_export (dbf, argv[2], GDBM_WRCREAT | flags, 0600) == -1)
     {
       fprintf (stderr, "%s: export failed, %s\n",
 	       argv[0], gdbm_strerror (gdbm_errno));

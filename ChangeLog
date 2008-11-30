@@ -1,3 +1,12 @@
+Sat Nov 29 21:19:32 PST 2008	Jason Downs (downsj@downsj.com)
+	* configure.ac: Add test for sys/termios.h
+
+	* src/systems.h: Add macros for Solaris-style 64bit fcntl locks.
+	* src/testgdbm.c: Add support for opening files without locking.
+		Add sys/termios.h include and add check for TIOCWINSZ.
+
+	* export/export.c: Add support for opening files without locking.
+
 Mon Oct 29 15:14:53 EET 2007    Sergey Poznyakoff (gray@gnu.org.ua)
 
 	* configure.ac (AC_INIT): Add bug-reporting email.

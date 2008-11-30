@@ -77,6 +77,32 @@
 
 /* Assume it is done like System V. */
 
+#if defined(F_SETLK64) && (defined(_LARGE_FILES) || _FILE_OFFSET_BITS == 64)
+#define UNLOCK_FILE(dbf) \
+	{					\
+	  struct flock64 flock;			\
+	  flock.l_type = F_UNLCK;		\
+	  flock.l_whence = SEEK_SET;		\
+	  flock.l_start = flock.l_len = 0L;	\
+	  fcntl (dbf->desc, F_SETLK64, &flock);	\
+	}
+#define READLOCK_FILE(dbf) \
+	{					\
+	  struct flock64 flock;			\
+	  flock.l_type = F_RDLCK;		\
+	  flock.l_whence = SEEK_SET;			\
+	  flock.l_start = flock.l_len = 0L;	\
+	  lock_val = fcntl (dbf->desc, F_SETLK64, &flock);	\
+	}
+#define WRITELOCK_FILE(dbf) \
+	{					\
+	  struct flock64 flock;			\
+	  flock.l_type = F_WRLCK;		\
+	  flock.l_whence = SEEK_SET;			\
+	  flock.l_start = flock.l_len = 0L;	\
+	  lock_val = fcntl (dbf->desc, F_SETLK64, &flock);	\
+	}
+#else
 #define UNLOCK_FILE(dbf) \
 	{					\
 	  struct flock flock;			\
@@ -101,6 +127,8 @@
 	  flock.l_start = flock.l_len = 0L;	\
 	  lock_val = fcntl (dbf->desc, F_SETLK, &flock);	\
 	}
+#endif
+
 #endif
 
 /* Default block size.  Some systems do not have blocksize in their
