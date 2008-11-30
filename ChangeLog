@@ -1,3 +1,7 @@
+2008-11-30  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/lock.c: Remove flock/flock64 distinction.
+
 Sat Nov 29 23:22:24 PST 2008	Jason Downs (downsj@downsj.com)
 	* configure.ac: Add test for lockf.
 

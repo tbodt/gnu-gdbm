@@ -48,14 +48,6 @@
 #define HAVE_FCNTL_LOCK 0
 #endif
 
-#if defined(F_SETLK64) && (defined(_LARGE_FILES) || _FILE_OFFSET_BITS == 64)
-#define _FLOCK flock64
-#define _SETLK F_SETLK64
-#else
-#define _FLOCK flock
-#define _SETLK F_SETLK
-#endif
-
 #define LOCKING_NONE	0
 #define LOCKING_FLOCK	1
 #define LOCKING_LOCKF	2
@@ -67,7 +59,7 @@ void
 _gdbm_unlock_file (gdbm_file_info *dbf)
 {
 #if HAVE_FCNTL_LOCK
-  struct _FLOCK flock;
+  struct flock fl;
 #endif
 
   switch (_gdbm_lock_type)
@@ -86,10 +78,10 @@ _gdbm_unlock_file (gdbm_file_info *dbf)
 
       case LOCKING_FCNTL:
 #if HAVE_FCNTL_LOCK
-	flock.l_type = F_UNLCK;
-	flock.l_whence = SEEK_SET;
-	flock.l_start = flock.l_len = (off_t)0L;
-	fcntl (dbf->desc, _SETLK, &flock);
+	fl.l_type = F_UNLCK;
+	fl.l_whence = SEEK_SET;
+	fl.l_start = fl.l_len = (off_t)0L;
+	fcntl (dbf->desc, F_SETLK, &fl);
 #endif
 	break;
     }
@@ -100,7 +92,7 @@ int
 _gdbm_lock_file (gdbm_file_info *dbf)
 {
 #if HAVE_FCNTL_LOCK
-  struct _FLOCK flock;
+  struct flock fl;
 #endif
   int lock_val = -1;
 
@@ -130,12 +122,12 @@ _gdbm_lock_file (gdbm_file_info *dbf)
 #if HAVE_FCNTL_LOCK
   /* If we're still here, try fcntl. */
   if (dbf->read_write == GDBM_READER)
-    flock.l_type = F_RDLCK;
+    fl.l_type = F_RDLCK;
   else
-    flock.l_type = F_WRLCK;
-  flock.l_whence = SEEK_SET;
-  flock.l_start = flock.l_len = (off_t)0L;
-  lock_val = fcntl (dbf->desc, _SETLK, &flock);
+    fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = fl.l_len = (off_t)0L;
+  lock_val = fcntl (dbf->desc, F_SETLK, &fl);
   if (lock_val != -1)
     _gdbm_lock_type = LOCKING_FCNTL;
 #endif
