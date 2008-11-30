@@ -3,6 +3,7 @@ Sat Nov 29 21:19:32 PST 2008	Jason Downs (downsj@downsj.com)
 
 	* src/systems.h: Add macros for Solaris-style 64bit fcntl locks.
 	* src/testgdbm.c: Add support for opening files without locking.
+		Add support for opening files without mmap.
 		Add sys/termios.h include and add check for TIOCWINSZ.
 
 	* export/export.c: Add support for opening files without locking.

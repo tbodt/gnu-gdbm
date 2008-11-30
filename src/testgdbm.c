@@ -159,6 +159,7 @@ usage ()
   printf ("  -g FILE            operate on FILE instead of `junk.gdbm'\n");
   printf ("  -h                 print this help summary\n");
   printf ("  -l                 disable file locking\n");
+  printf ("  -m                 disable file mmap\n");
   printf ("  -n                 create database\n");
   printf ("  -r                 open database in read-only mode\n");
   printf ("  -s                 synchronize to the disk after each write\n");
@@ -792,7 +793,7 @@ main (int argc, char *argv[])
   
   /* Argument checking. */
   opterr = 0;
-  while ((opt = getopt (argc, argv, "lsrnc:b:g:hv")) != -1)
+  while ((opt = getopt (argc, argv, "lmsrnc:b:g:hv")) != -1)
     switch (opt)
       {
       case 'h':
@@ -801,6 +802,10 @@ main (int argc, char *argv[])
 
       case 'l':
 	flags = flags | GDBM_NOLOCK;
+	break;
+
+      case 'm':
+	flags = flags | GDBM_NOMMAP;
 	break;
 
       case 's':
