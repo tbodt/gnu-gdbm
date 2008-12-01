@@ -24,6 +24,8 @@
 #include "gdbmerrno.h"
 #include "extern.h"
 
+#include <errno.h>
+
 #if HAVE_FLOCK
 #ifndef LOCK_SH
 #define LOCK_SH 1
@@ -42,18 +44,17 @@
 #endif
 #endif
 
-#if (defined(F_SETLK) || defined(F_SETLK64)) && defined(F_RDLCK) && defined(F_WRLCK)
+#if defined(F_SETLK) && defined(F_RDLCK) && defined(F_WRLCK)
 #define HAVE_FCNTL_LOCK 1
 #else
 #define HAVE_FCNTL_LOCK 0
 #endif
 
-#define LOCKING_NONE	0
-#define LOCKING_FLOCK	1
-#define LOCKING_LOCKF	2
-#define LOCKING_FCNTL	3
-
-static int _gdbm_lock_type = LOCKING_NONE;
+int
+gdbm_locked (gdbm_file_info *dbf)
+{
+  return (dbf->lock_type != LOCKING_NONE);
+}
 
 void
 _gdbm_unlock_file (gdbm_file_info *dbf)
@@ -62,7 +63,7 @@ _gdbm_unlock_file (gdbm_file_info *dbf)
   struct flock fl;
 #endif
 
-  switch (_gdbm_lock_type)
+  switch (dbf->lock_type)
     {
       case LOCKING_FLOCK:
 #if HAVE_FLOCK
@@ -85,6 +86,8 @@ _gdbm_unlock_file (gdbm_file_info *dbf)
 #endif
 	break;
     }
+
+  dbf->lock_type = LOCKING_NONE;
 }
 
 /* Try each supported locking mechanism. */
@@ -102,9 +105,14 @@ _gdbm_lock_file (gdbm_file_info *dbf)
   else
     lock_val = flock (dbf->desc, LOCK_EX + LOCK_NB);
 
-  if (lock_val != -1)
+  if ((lock_val == -1) && (errno == EWOULDBLOCK))
     {
-      _gdbm_lock_type = LOCKING_FLOCK;
+      dbf->lock_type = LOCKING_NONE;
+      return lock_val;
+    }
+  else if (lock_val != -1)
+    {
+      dbf->lock_type = LOCKING_FLOCK;
       return lock_val;
     }
 #endif
@@ -112,9 +120,14 @@ _gdbm_lock_file (gdbm_file_info *dbf)
 #if HAVE_LOCKF
   /* Mask doesn't matter for lockf. */
   lock_val = lockf (dbf->desc, F_LOCK, (off_t)0L);
-  if (lock_val != -1)
+  if ((lock_val == -1) && (errno == EDEADLK))
     {
-      _gdbm_lock_type = LOCKING_LOCKF;
+      dbf->lock_type = LOCKING_NONE;
+      return lock_val;
+    }
+  else if (lock_val != -1)
+    {
+      dbf->lock_type = LOCKING_LOCKF;
       return lock_val;
     }
 #endif
@@ -128,11 +141,12 @@ _gdbm_lock_file (gdbm_file_info *dbf)
   fl.l_whence = SEEK_SET;
   fl.l_start = fl.l_len = (off_t)0L;
   lock_val = fcntl (dbf->desc, F_SETLK, &fl);
+
   if (lock_val != -1)
-    _gdbm_lock_type = LOCKING_FCNTL;
+    dbf->lock_type = LOCKING_FCNTL;
 #endif
 
   if (lock_val == -1)
-    _gdbm_lock_type = LOCKING_NONE;
+    dbf->lock_type = LOCKING_NONE;
   return lock_val;
 }

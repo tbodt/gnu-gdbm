@@ -51,6 +51,7 @@ off_t _gdbm_mapped_lseek	(gdbm_file_info *, off_t, int);
 int _gdbm_mapped_sync	(gdbm_file_info *);
 
 /* From lock.c */
+int gdbm_locked		(gdbm_file_info *);
 void _gdbm_unlock_file	(gdbm_file_info *);
 int _gdbm_lock_file	(gdbm_file_info *);
 

@@ -161,6 +161,10 @@ typedef struct {
 	/* Whether or not we're allowing mmap() use. */
 	unsigned allow_mmap :1;
 
+	/* Type of file locking in use. */
+	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,
+		LOCKING_FCNTL } lock_type;
+
 	/* The fatal error handling routine. */
 	void (*fatal_err) (const char *);
 

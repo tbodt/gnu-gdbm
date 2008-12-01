@@ -1,3 +1,11 @@
+Sun Nov 30 16:48:29 PST 2008	Jason Downs (downsj@downsj.com)
+
+	* src/lock.c: Check errno to see if a lock failed because it's already
+		locked.  Add external gdbm_locked() routine to return the
+		status of locking.  Move lock type to the dbf.
+	* src/gdbmdefs.h: Move lock type to the dbf.
+	* src/gdbm.proto: Add gdbm_export(), gdbm_import(), and gdbm_locked().
+
 2008-11-30  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* src/lock.c: Remove flock/flock64 distinction.
