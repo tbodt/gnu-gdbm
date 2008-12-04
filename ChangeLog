@@ -1,3 +1,8 @@
+Wed Dec  3 19:29:25 PST 2008	Jason Downs (downsj@downsj.com)
+
+	* src/lock.c, src/gdbm.proto, src/proto.h: Disabled/removed
+		gdbm_locked() for now, it's not needed.
+
 Sun Nov 30 16:48:29 PST 2008	Jason Downs (downsj@downsj.com)
 
 	* src/lock.c: Check errno to see if a lock failed because it's already

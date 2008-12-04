@@ -50,11 +50,13 @@
 #define HAVE_FCNTL_LOCK 0
 #endif
 
+#if 0
 int
 gdbm_locked (gdbm_file_info *dbf)
 {
   return (dbf->lock_type != LOCKING_NONE);
 }
+#endif
 
 void
 _gdbm_unlock_file (gdbm_file_info *dbf)
