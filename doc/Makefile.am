@@ -18,4 +18,4 @@
 
 info_TEXINFOS = gdbm.texinfo
 man_MANS   = gdbm.3
-EXTRA_DIST = $(man_MANS)
+EXTRA_DIST = $(man_MANS) fdl.texi
