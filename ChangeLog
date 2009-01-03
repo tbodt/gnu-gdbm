@@ -1,3 +1,9 @@
+2009-01-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Update bug-reporting address.
+	* doc/gdbm.texinfo: Likewise.
+	* INSTALL, doc/version.texi: Remove automatically generated files.
+	
 Wed Dec  3 19:29:25 PST 2008	Jason Downs (downsj@downsj.com)
 
 	* src/lock.c, src/gdbm.proto, src/proto.h: Disabled/removed

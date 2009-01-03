@@ -18,7 +18,7 @@
 @ifinfo
 This file documents the GNU dbm utility.
 
-Copyright (C) 1989-1999, 2007-2008 Free Software Foundation, Inc.
+Copyright (C) 1989-1999, 2007, 2008, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1001,7 +1001,8 @@ send us the input file and the exact results @code{gdbm} gave you. Also
 say what you expected to occur; this will help us decide whether the
 problem was really in the documentation.
 
-Once you've got a precise problem, send e-mail to the maintainers.
+Once you've got a precise problem, send e-mail to
+@email{bug-gdbm@@gnu.org}.
 
 Please include the version number of GNU @code{dbm} you are using. You can get
 this information by printing the variable @code{gdbm_version} (see Variables).

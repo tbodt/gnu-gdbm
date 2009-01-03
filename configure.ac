@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- autoconf -*-
-# Copyright (C) 2007 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
-AC_INIT([gdbm], [1.9.0], [bug-gnu-utils@gnu.org])
+AC_INIT([gdbm], [1.9.0], [bug-gdbm@gnu.org])
 AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR([src/gdbmdefs.h])
 AC_CONFIG_AUX_DIR([build-aux])
