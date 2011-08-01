@@ -22,7 +22,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 #include "extern.h"
 
 /* Initialize ndbm system.  FILE is a pointer to the file name.  In
