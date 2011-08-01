@@ -1,4 +1,4 @@
-/* gdbm.h  -  The include file for dbm users.  */
+/* gdbm.h  -  The include file for dbm users.  -*- c -*- */
 
 /*  This file is part of GDBM, the GNU data base manager, by Philip A. Nelson.
     Copyright (C) 1990, 1991, 1993  Free Software Foundation, Inc.
@@ -61,7 +61,7 @@ typedef struct {
 
 
 /* The file information header. This is good enough for most applications. */
-typedef struct {int dummy[10];} *GDBM_FILE;
+typedef struct gdbm_file_info *GDBM_FILE;
 
 /* Determine if the C(++) compiler requires complete function prototype  */
 #ifndef __P
