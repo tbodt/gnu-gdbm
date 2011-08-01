@@ -1,5 +1,10 @@
 2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* src/testgdbm.c (main): Support --help and --version for
+	the sake of make distcheck.
+
+2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	* src/gdbm.proto: Remove the legacy __P stuff.
 
 2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
