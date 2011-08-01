@@ -19,43 +19,51 @@ AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR([src/gdbmdefs.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([autoconf.h])
-AM_INIT_AUTOMAKE
+AC_CONFIG_MACRO_DIR([m4])
+AM_INIT_AUTOMAKE([1.8.5 std-options])
+
 AC_ARG_ENABLE([memory-mapped-io],
   AC_HELP_STRING(
     [--enable-memory-mapped-io]
     [Use mmap(2) for disk I/O. (Default is YES.)]),
     [mapped_io=$enableval],
     [mapped_io=yes])
+
 AC_ARG_ENABLE([libgdbm-compat],
   AC_HELP_STRING(
     [--enable-libgdbm-compat]
     [Build and install libgdbm_compat. (Default is NO.)]),
     [want_compat=$enableval],
     [want_compat=no])
+
 AC_ARG_ENABLE([gdbm-export],
   AC_HELP_STRING(
     [--enable-gdbm-export],
     [Build and install gdbmexport with specified gdbm 1.8 library. (Default is NO.)]),
     [want_export=$enableval],
     [want_export=no])
+
 AC_ARG_WITH([gdbm183-library],
   AC_HELP_STRING(
     [--with-gdbm183-library],
     [Build gdbmexport with specified (static) library.]),
     [GDBM183_LIBRARY=$withval],
     [GDBM183_LIBRARY="-lgdbm"])
+
 AC_ARG_WITH([gdbm183-libdir],
   AC_HELP_STRING(
     [--with-gdbm183-libdir],
     [Build gdbmexport with the gdbm library in the specified directory.]),
     [GDBM183_LIBDIR=$withval],
     [GDBM183_LIBDIR="/usr/local/lib"])
+
 AC_ARG_WITH([gdbm183-includedir],
   AC_HELP_STRING(
     [--with-gdbm183-includedir],
     [Build gdbmexport with gdbm.h in the specified directory.]),
     [GDBM183_INCLUDEDIR=$withval],
     [GDBM183_INCLUDEDIR="/usr/local/include"])
+
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
