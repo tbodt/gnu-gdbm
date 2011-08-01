@@ -1,5 +1,9 @@
 2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* src/gdbm.proto: Remove the legacy __P stuff.
+
+2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	* Makefile.am (ACLOCAL_AMFLAGS): New variable.
 	* configure.ac: Use AM_INIT_AUTOMAKE with arguments.
 

@@ -63,18 +63,6 @@ typedef struct {
 /* The file information header. This is good enough for most applications. */
 typedef struct gdbm_file_info *GDBM_FILE;
 
-/* Determine if the C(++) compiler requires complete function prototype  */
-#ifndef __P
-#if defined(__STDC__) || defined(__cplusplus) || defined(c_plusplus)
-#define __P(x) x
-#else
-#define __P(x) ()
-#ifndef const
-#define const	/* */
-#endif
-#endif
-#endif
-
 /* External variable, the gdbm build release string. */
 extern const char *gdbm_version;	
 
@@ -86,21 +74,21 @@ extern "C" {
 
 /* GDBM external functions. */
 
-extern GDBM_FILE gdbm_open __P((const char *, int, int, int,
-				void (*)(const char *)));
-extern void gdbm_close __P((GDBM_FILE));
-extern int gdbm_store __P((GDBM_FILE, datum, datum, int));
-extern datum gdbm_fetch __P((GDBM_FILE, datum));
-extern int gdbm_delete __P((GDBM_FILE, datum));
-extern datum gdbm_firstkey __P((GDBM_FILE));
-extern datum gdbm_nextkey __P((GDBM_FILE, datum));
-extern int gdbm_reorganize __P((GDBM_FILE));
-extern void gdbm_sync __P((GDBM_FILE));
-extern int gdbm_exists __P((GDBM_FILE, datum));
-extern int gdbm_setopt __P((GDBM_FILE, int, int *, int));
-extern int gdbm_fdesc __P((GDBM_FILE));
-extern int gdbm_export __P((GDBM_FILE, const char *, int, int));
-extern int gdbm_import __P((GDBM_FILE, const char *, int));
+extern GDBM_FILE gdbm_open (const char *, int, int, int,
+			    void (*)(const char *));
+extern void gdbm_close (GDBM_FILE);
+extern int gdbm_store (GDBM_FILE, datum, datum, int);
+extern datum gdbm_fetch (GDBM_FILE, datum);
+extern int gdbm_delete (GDBM_FILE, datum);
+extern datum gdbm_firstkey (GDBM_FILE);
+extern datum gdbm_nextkey (GDBM_FILE, datum);
+extern int gdbm_reorganize (GDBM_FILE);
+extern void gdbm_sync (GDBM_FILE);
+extern int gdbm_exists (GDBM_FILE, datum);
+extern int gdbm_setopt (GDBM_FILE, int, int *, int);
+extern int gdbm_fdesc (GDBM_FILE);
+extern int gdbm_export (GDBM_FILE, const char *, int, int);
+extern int gdbm_import (GDBM_FILE, const char *, int);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
