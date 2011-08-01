@@ -21,7 +21,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* Determine our native magic number and bail if we can't. */
 #if SIZEOF_OFF_T == 4
@@ -52,11 +51,11 @@
    returned. */
    
 
-gdbm_file_info *
-gdbm_open (char *file, int block_size, int flags, int mode,
+GDBM_FILE 
+gdbm_open (const char *file, int block_size, int flags, int mode,
      	   void (*fatal_func) (const char *))
 {
-  gdbm_file_info *dbf;		/* The record to return. */
+  GDBM_FILE dbf;		/* The record to return. */
   struct stat file_stat;	/* Space for the stat information. */
   int         len;		/* Length of the file name. */
   int         num_bytes;	/* Used in reading and writing. */
@@ -71,7 +70,7 @@ gdbm_open (char *file, int block_size, int flags, int mode,
   gdbm_errno = GDBM_NO_ERROR;
 
   /* Allocate new info structure. */
-  dbf = (gdbm_file_info *) malloc (sizeof (gdbm_file_info));
+  dbf = (GDBM_FILE) malloc (sizeof (*dbf));
   if (dbf == NULL)
     {
       gdbm_errno = GDBM_MALLOC_ERROR;
@@ -426,7 +425,7 @@ gdbm_open (char *file, int block_size, int flags, int mode,
 
 /* Initialize the bucket cache. */
 int
-_gdbm_init_cache(gdbm_file_info *dbf, int size)
+_gdbm_init_cache(GDBM_FILE dbf, int size)
 {
   int index;
 
