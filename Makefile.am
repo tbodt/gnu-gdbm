@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
-AUTOMAKE_OPTIONS = 1.8.5 std-options
+ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = NOTE-WARNING
 if COMPAT_OPT
   MAYBE_COMPAT = compat
