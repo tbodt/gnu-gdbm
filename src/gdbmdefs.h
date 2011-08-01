@@ -19,16 +19,9 @@
 
 #include "systems.h"
 #include "gdbmconst.h"
+#include "gdbm.h"
 
 /* The type definitions are next.  */
-
-/* The data and key structure.  This structure is defined for compatibility. */
-
-typedef struct {
-	char *dptr;
-	int   dsize;
-      } datum;
-
 
 /* The available file space is stored in an "avail" table.  The one with
    most activity is contained in the file header. (See below.)  When that
@@ -137,7 +130,7 @@ typedef struct {
    a gdbm file.  This allows multiple gdbm files to be opened at the same
    time by one program. */
 
-typedef struct {
+struct gdbm_file_info {
 	/* Global variables and pointers to dynamic variables used by gdbm.  */
 
   	/* The file name. */
@@ -209,7 +202,7 @@ typedef struct {
 				  _gdbm_mapped_{write|read} will remap the
 				  region according to the above fields. */
 	
-      } gdbm_file_info;
+      };
 
 /* Now define all the routines in use. */
 #include "proto.h"
