@@ -21,14 +21,13 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* Remove the KEYed item and the KEY from the database DBF.  The file on disk
    is updated to reflect the structure of the new database before returning
    from this procedure.  */
 
 int
-gdbm_delete (gdbm_file_info *dbf, datum key)
+gdbm_delete (GDBM_FILE dbf, datum key)
 {
   int elem_loc;		/* The location in the current hash bucket. */
   int last_loc;		/* Last location emptied by the delete.  */

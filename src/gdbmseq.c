@@ -21,10 +21,9 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* Special extern for this file. */
-extern char *_gdbm_read_entry (gdbm_file_info *, int);
+extern char *_gdbm_read_entry (GDBM_FILE , int);
 
 
 /* Find and read the next entry in the hash structure for DBF starting
@@ -32,7 +31,7 @@ extern char *_gdbm_read_entry (gdbm_file_info *, int);
    put the data that is found. */
 
 static void
-get_next_key (gdbm_file_info *dbf, int elem_loc, datum *return_val)
+get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
 {
   int   found;			/* Have we found the next key. */
   char  *find_data;		/* Data pointer returned by find_key. */
@@ -80,7 +79,7 @@ get_next_key (gdbm_file_info *dbf, int elem_loc, datum *return_val)
    hash order, not in any sorted order.  */
 
 datum
-gdbm_firstkey (gdbm_file_info *dbf)
+gdbm_firstkey (GDBM_FILE dbf)
 {
   datum return_val;		/* To return the first key. */
 
@@ -103,7 +102,7 @@ gdbm_firstkey (gdbm_file_info *dbf)
 /* Continue visiting all keys.  The next key following KEY is returned. */
 
 datum
-gdbm_nextkey (gdbm_file_info *dbf, datum key)
+gdbm_nextkey (GDBM_FILE dbf, datum key)
 {
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */

@@ -21,13 +21,12 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* This is nothing more than a wrapper around _gdbm_findkey().  The
    point?  It doesn't alloate any memory. */
 
 int
-gdbm_exists (gdbm_file_info *dbf, datum key)
+gdbm_exists (GDBM_FILE dbf, datum key)
 {
   char *find_data;		/* Dummy */
   int hash_val;			/* Dummy */

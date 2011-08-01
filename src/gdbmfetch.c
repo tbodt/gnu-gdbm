@@ -21,14 +21,13 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* Look up a given KEY and return the information associated with that KEY.
    The pointer in the structure that is  returned is a pointer to dynamically
    allocated memory block.  */
 
 datum
-gdbm_fetch (gdbm_file_info *dbf, datum key)
+gdbm_fetch (GDBM_FILE dbf, datum key)
 {
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */

@@ -23,13 +23,12 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 #include "extern.h"
 
 extern const char * gdbm_version;
 
 int
-gdbm_export (gdbm_file_info *dbf, const char *exportfile, int flags, int mode)
+gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
 #else
 int
 gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
@@ -117,7 +116,7 @@ write_fail:
 #ifndef _GDBMEXPORT_
 
 int
-gdbm_import (gdbm_file_info *dbf, const char *importfile, int flag)
+gdbm_import (GDBM_FILE dbf, const char *importfile, int flag)
 {
   int ifd, seenbang, seennewline, rsize, size, kbufsize, dbufsize, rret;
   char c, *kbuffer, *dbuffer;

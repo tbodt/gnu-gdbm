@@ -21,13 +21,12 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* operate on an already open descriptor. */
 
 /* ARGSUSED */
 int
-gdbm_setopt(gdbm_file_info *dbf, int optflag, int *optval, int optlen)
+gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
 {
   switch(optflag)
     {

@@ -22,12 +22,12 @@
 
 #include "gdbmdefs.h"
 
-static void write_header (gdbm_file_info *);
+static void write_header (GDBM_FILE);
 
 /* This procedure writes the header back to the file described by DBF. */
 
 static void
-write_header (gdbm_file_info *dbf)
+write_header (GDBM_FILE dbf)
 {
   int  num_bytes;	/* Return value for write. */
   off_t file_pos;	/* Return value for lseek. */
@@ -47,7 +47,7 @@ write_header (gdbm_file_info *dbf)
 /* After all changes have been made in memory, we now write them
    all to disk. */
 void
-_gdbm_end_update (gdbm_file_info *dbf)
+_gdbm_end_update (GDBM_FILE dbf)
 {
   int  num_bytes;	/* Return value for write. */
   off_t file_pos;	/* Return value for lseek. */
@@ -103,7 +103,7 @@ _gdbm_end_update (gdbm_file_info *dbf)
    error occured. */
 
 void
-_gdbm_fatal (gdbm_file_info *dbf, const char *val)
+_gdbm_fatal (GDBM_FILE dbf, const char *val)
 {
   if ((dbf != NULL) && (dbf->fatal_err != NULL))
     (*dbf->fatal_err) (val);

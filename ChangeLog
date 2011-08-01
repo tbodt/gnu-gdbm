@@ -1,3 +1,48 @@
+2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): New variable.
+	* configure.ac: Use AM_INIT_AUTOMAKE with arguments.
+
+	* src/gdbm.proto (GDBM_FILE): Change typedef.
+	* src/gdbmdefs.h: Include gdbm.h
+	(datum): Remove duplicate declaration.
+	(gdbm_file_info): Change to struct gdbm_file_info
+	
+	* src/proto.h:	Use GDBM_FILE instead of gdbm_file_info *.
+	Remove duplicate declarations.
+	
+	* src/gdbmopen.c: Use GDBM_FILE instead of gdbm_file_info *.
+	(gdbm_open): Fix signature to match global declaration.
+
+	* compat/dbmclose.c: Use GDBM_FILE instead of gdbm_file_info *.
+	* compat/dbmdirfno.c: Likewise.
+	* compat/dbmfetch.c: Likewise.
+	* compat/dbmopen.c: Likewise.
+	* compat/dbmpagfno.c: Likewise.
+	* compat/dbmrdonly.c: Likewise.
+	* compat/dbmseq.c: Likewise.
+	* compat/dbmstore.c: Likewise.
+	* src/bucket.c: Likewise.
+	* src/extern.h: Likewise.
+	* src/falloc.c: Likewise.
+	* src/findkey.c: Likewise.
+	* src/flatfile.c: Likewise.
+	* src/gdbmclose.c: Likewise.
+	* src/gdbmdelete.c: Likewise.
+	* src/gdbmexists.c: Likewise.
+	* src/gdbmfdesc.c: Likewise.
+	* src/gdbmfetch.c: Likewise.
+	* src/gdbmreorg.c: Likewise.
+	* src/gdbmseq.c: Likewise.
+	* src/gdbmsetopt.c: Likewise.
+	* src/gdbmstore.c: Likewise.
+	* src/gdbmsync.c: Likewise.
+	* src/global.c: Likewise.
+	* src/lock.c: Likewise.
+	* src/mmap.c: Likewise.
+	* src/testgdbm.c: Likewise.
+	* src/update.c: Likewise.
+
 2009-01-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Update bug-reporting address.

@@ -21,7 +21,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 
 /* Add a new element to the database.  CONTENT is keyed by KEY.  The
@@ -37,7 +36,7 @@
    the database. */
 
 int
-gdbm_store (gdbm_file_info *dbf, datum key, datum content, int flags)
+gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 {
   int  new_hash_val;		/* The new hash value. */
   int  elem_loc;		/* The location in hash bucket. */

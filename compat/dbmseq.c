@@ -30,7 +30,7 @@
    information pointer. */
 
 datum
-dbm_firstkey (gdbm_file_info *dbf)
+dbm_firstkey (GDBM_FILE dbf)
 {
   datum ret_val;
 
@@ -49,7 +49,7 @@ dbm_firstkey (gdbm_file_info *dbf)
    DBF is the file information pointer. */
 
 datum
-dbm_nextkey (gdbm_file_info *dbf)
+dbm_nextkey (GDBM_FILE dbf)
 {
   datum ret_val;
 

@@ -42,15 +42,15 @@
    a GDBM_NEWDB.  All other values of FLAGS in the flags are
    ignored. */
 
-gdbm_file_info *
+GDBM_FILE 
 dbm_open (char *file, int flags, int mode)
 {
   char* pag_file;	    /* Used to construct "file.pag". */
   char* dir_file;	    /* Used to construct "file.dir". */
   struct stat dir_stat;	    /* Stat information for "file.dir". */
-  gdbm_file_info *temp_dbf;  /* Temporary file pointer storage. */
-
-
+  GDBM_FILE temp_dbf;  /* Temporary file pointer storage. */
+  int open_flags;
+  
   /* Prepare the correct names of "file.pag" and "file.dir". */
   pag_file = (char *) malloc (strlen (file)+5);
   dir_file = (char *) malloc (strlen (file)+5);
@@ -68,22 +68,27 @@ dbm_open (char *file, int flags, int mode)
 
   /* Call the actual routine, saving the pointer to the file information. */
   flags &= O_RDONLY | O_RDWR | O_CREAT | O_TRUNC;
+
   if (flags == O_RDONLY)
     {
-      temp_dbf = gdbm_open (pag_file, 0, GDBM_READER, 0, NULL);
+      open_flags = GDBM_READER;
+      mode = 0;
     }
   else if (flags == (O_RDWR | O_CREAT))
     {
-      temp_dbf = gdbm_open (pag_file, 0, GDBM_WRCREAT, mode, NULL);
+      open_flags = GDBM_WRCREAT;
     }
   else if ( (flags & O_TRUNC) == O_TRUNC)
     {
-      temp_dbf = gdbm_open (pag_file, 0, GDBM_NEWDB, mode, NULL);
+      open_flags = GDBM_NEWDB;
     }
   else
     {
-      temp_dbf = gdbm_open (pag_file, 0, GDBM_WRITER, 0, NULL);
+      open_flags = GDBM_WRITER;
+      mode = 0;
     }
+
+  temp_dbf = gdbm_open (pag_file, 0, open_flags | GDBM_NOLOCK, mode, NULL);
 
   /* Did we successfully open the file? */
   if (temp_dbf == NULL)

@@ -26,7 +26,7 @@
 /* Close the DBF file. */
 
 void
-dbm_close (gdbm_file_info *dbf)
+dbm_close (GDBM_FILE dbf)
 {
   gdbm_close (dbf);
 }

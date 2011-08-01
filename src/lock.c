@@ -21,7 +21,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 #include "extern.h"
 
 #include <errno.h>
@@ -52,14 +51,14 @@
 
 #if 0
 int
-gdbm_locked (gdbm_file_info *dbf)
+gdbm_locked (GDBM_FILE dbf)
 {
   return (dbf->lock_type != LOCKING_NONE);
 }
 #endif
 
 void
-_gdbm_unlock_file (gdbm_file_info *dbf)
+_gdbm_unlock_file (GDBM_FILE dbf)
 {
 #if HAVE_FCNTL_LOCK
   struct flock fl;
@@ -94,7 +93,7 @@ _gdbm_unlock_file (gdbm_file_info *dbf)
 
 /* Try each supported locking mechanism. */
 int
-_gdbm_lock_file (gdbm_file_info *dbf)
+_gdbm_lock_file (GDBM_FILE dbf)
 {
 #if HAVE_FCNTL_LOCK
   struct flock fl;

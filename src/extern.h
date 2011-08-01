@@ -18,7 +18,7 @@
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 /* The global variables used for the "original" interface. */
-extern gdbm_file_info  *_gdbm_file;
+extern GDBM_FILE _gdbm_file;
 
 /* Memory for return data for the "original" interface. */
 extern datum _gdbm_memory;

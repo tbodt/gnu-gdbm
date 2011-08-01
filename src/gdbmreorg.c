@@ -21,7 +21,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 #include "extern.h"
 
 #if !HAVE_RENAME
@@ -58,9 +57,9 @@ _gdbm_rename (char *old_name, char *new_name)
    after a successful reorganization. */
 
 int
-gdbm_reorganize (gdbm_file_info *dbf)
+gdbm_reorganize (GDBM_FILE dbf)
 {
-  gdbm_file_info *new_dbf;		/* The new file. */
+  GDBM_FILE new_dbf;		/* The new file. */
   char *new_name;			/* A temporary name. */
   int  len;				/* Used in new_name construction. */
   datum key, nextkey, data;		/* For the sequential sweep. */

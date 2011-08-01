@@ -27,7 +27,7 @@
    return a pointer to it.  Also, cache the read value. */
 
 char *
-_gdbm_read_entry (gdbm_file_info *dbf, int elem_loc)
+_gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 {
   int num_bytes;		/* For seeking and reading. */
   int key_size;
@@ -75,7 +75,7 @@ _gdbm_read_entry (gdbm_file_info *dbf, int elem_loc)
    in DPTR.  If it is not found, the value -1 is returned.  Since find
    key computes the hash value of key, that value */
 int
-_gdbm_findkey (gdbm_file_info *dbf, datum key, char **dptr, int *new_hash_val)
+_gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
 {
   int    bucket_hash_val;	/* The hash value from the bucket. */
   char  *file_key;		/* The complete key as stored in the file. */

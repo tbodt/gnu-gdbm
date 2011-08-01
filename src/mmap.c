@@ -20,7 +20,6 @@
 #if HAVE_MMAP
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -54,7 +53,7 @@
 /* Store the size of the GDBM file DBF in *PSIZE.
    Return 0 on success and -1 on failure. */
 int
-_gdbm_file_size (gdbm_file_info *dbf, off_t *psize)
+_gdbm_file_size (GDBM_FILE dbf, off_t *psize)
 {
   struct stat sb;
   if (fstat (dbf->desc, &sb))
@@ -65,7 +64,7 @@ _gdbm_file_size (gdbm_file_info *dbf, off_t *psize)
 
 /* Unmap the region. Reset all mapped_ fields to initial values. */
 void
-_gdbm_mapped_unmap (gdbm_file_info *dbf)
+_gdbm_mapped_unmap (GDBM_FILE dbf)
 {
   if (dbf->mapped_region)
     {
@@ -83,7 +82,7 @@ _gdbm_mapped_unmap (gdbm_file_info *dbf)
    Take care to recompute {mapped_off,mapped_pos} so that the former lies
    on a page size boundary. */
 int
-_gdbm_internal_remap (gdbm_file_info *dbf)
+_gdbm_internal_remap (GDBM_FILE dbf)
 {
   void *p;
   int flags = PROT_READ;
@@ -115,7 +114,7 @@ _gdbm_internal_remap (gdbm_file_info *dbf)
    Otherwise, trim SIZE to the actual size of the file.
    Return 0 on success, -1 on failure. */
 int
-_gdbm_mapped_remap (gdbm_file_info *dbf, off_t size, int extend)
+_gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int extend)
 {
   off_t file_size;
       
@@ -177,7 +176,7 @@ _gdbm_mapped_remap (gdbm_file_info *dbf, off_t size, int extend)
    map the entire file into the memory. Otherwise, map first SIZE_T_MAX
    bytes. */
 int
-_gdbm_mapped_init (gdbm_file_info *dbf)
+_gdbm_mapped_init (GDBM_FILE dbf)
 {
   off_t file_size;
 	  
@@ -192,7 +191,7 @@ _gdbm_mapped_init (gdbm_file_info *dbf)
    not initialized or if it fails, fall back to the classical read(1).
    Return number of bytes read or -1 on failure. */
 ssize_t
-_gdbm_mapped_read (gdbm_file_info *dbf, void *buffer, size_t len)
+_gdbm_mapped_read (GDBM_FILE dbf, void *buffer, size_t len)
 {
   if (dbf->mapped_region)
     {
@@ -239,7 +238,7 @@ _gdbm_mapped_read (gdbm_file_info *dbf, void *buffer, size_t len)
    not initialized or if it fails, fall back to the classical write(1).
    Return number of bytes written or -1 on failure. */
 ssize_t
-_gdbm_mapped_write (gdbm_file_info *dbf, void *buffer, size_t len)
+_gdbm_mapped_write (GDBM_FILE dbf, void *buffer, size_t len)
 {
   if (dbf->mapped_region)
     {
@@ -290,7 +289,7 @@ _gdbm_mapped_write (gdbm_file_info *dbf, void *buffer, size_t len)
    Return number of bytes written or -1 on failure. */
    
 off_t
-_gdbm_mapped_lseek (gdbm_file_info *dbf, off_t offset, int whence)
+_gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
 {
   if (dbf->mapped_region)
     {
@@ -340,7 +339,7 @@ _gdbm_mapped_lseek (gdbm_file_info *dbf, off_t offset, int whence)
 
 /* Sync the mapped region to disk. */
 int
-_gdbm_mapped_sync(gdbm_file_info *dbf)
+_gdbm_mapped_sync(GDBM_FILE dbf)
 {
   if (dbf->mapped_region)
     {

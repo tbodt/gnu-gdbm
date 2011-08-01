@@ -22,11 +22,10 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 
 /* The global variables used for the "original" interface. */
-gdbm_file_info  *_gdbm_file = NULL;
+GDBM_FILE _gdbm_file = NULL;
 
 /* Memory for return data for the "original" interface. */
 datum _gdbm_memory = {NULL, 0};	/* Used by firstkey and nextkey. */

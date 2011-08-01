@@ -27,10 +27,10 @@
    the definition of the function. */
 
 static avail_elem get_elem (int, avail_elem [], int *);
-static avail_elem get_block (int, gdbm_file_info *);
-static void push_avail_block (gdbm_file_info *);
-static void pop_avail_block (gdbm_file_info *);
-static void adjust_bucket_avail (gdbm_file_info *);
+static avail_elem get_block (int, GDBM_FILE);
+static void push_avail_block (GDBM_FILE);
+static void pop_avail_block (GDBM_FILE);
+static void adjust_bucket_avail (GDBM_FILE);
 
 /* Allocate space in the file DBF for a block NUM_BYTES in length.  Return
    the file address of the start of the block.  
@@ -49,7 +49,7 @@ static void adjust_bucket_avail (gdbm_file_info *);
    the value of 0 will be returned.  */
 
 off_t
-_gdbm_alloc (gdbm_file_info *dbf, int num_bytes)
+_gdbm_alloc (GDBM_FILE dbf, int num_bytes)
 {
   off_t file_adr;		/* The address of the block. */
   avail_elem av_el;		/* For temporary use. */
@@ -97,7 +97,7 @@ _gdbm_alloc (gdbm_file_info *dbf, int num_bytes)
    avail structure. */
 
 void
-_gdbm_free (gdbm_file_info *dbf, off_t file_adr, int num_bytes)
+_gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 {
   avail_elem temp;
 
@@ -156,7 +156,7 @@ _gdbm_free (gdbm_file_info *dbf, off_t file_adr, int num_bytes)
    smart about things. */
 
 static void
-pop_avail_block (gdbm_file_info *dbf)
+pop_avail_block (GDBM_FILE dbf)
 {
   int  num_bytes;		/* For use with the read system call. */
   off_t file_pos;		/* For use with the lseek system call. */
@@ -231,7 +231,7 @@ pop_avail_block (gdbm_file_info *dbf)
 /* Splits the header avail block and pushes half onto the avail stack. */
 
 static void
-push_avail_block (gdbm_file_info *dbf)
+push_avail_block (GDBM_FILE dbf)
 {
   int  num_bytes;
   int  av_size;
@@ -412,7 +412,7 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
    no I/O.  */
 
 static avail_elem
-get_block (int size, gdbm_file_info *dbf)
+get_block (int size, GDBM_FILE dbf)
 {
   avail_elem val;
 
@@ -438,7 +438,7 @@ get_block (int size, gdbm_file_info *dbf)
 /*  When the header already needs writing, we can make sure the current
     bucket has its avail block as close to 1/3 full as possible. */
 static void
-adjust_bucket_avail (gdbm_file_info *dbf)
+adjust_bucket_avail (GDBM_FILE dbf)
 {
   int third = BUCKET_AVAIL / 3;
   avail_elem av_el;

@@ -21,12 +21,11 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 
 /* Make sure the database is all on disk. */
 
 void
-gdbm_sync (gdbm_file_info *dbf)
+gdbm_sync (GDBM_FILE dbf)
 {
 
   /* Initialize the gdbm_errno variable. */

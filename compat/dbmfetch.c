@@ -29,7 +29,7 @@
    dynamically allocated memory block.  */
 
 datum
-dbm_fetch (gdbm_file_info *dbf, datum key)
+dbm_fetch (GDBM_FILE dbf, datum key)
 {
   datum  ret_val;		/* The return value. */
 

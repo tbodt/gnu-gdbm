@@ -26,7 +26,7 @@
 /* not much of a routine, but should be a function for compatibility. */
 
 int
-dbm_rdonly(gdbm_file_info *dbf)
+dbm_rdonly(GDBM_FILE dbf)
 {
   return (dbf->read_write == GDBM_READER);
 }

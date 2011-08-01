@@ -22,7 +22,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "gdbmerrno.h"
 #include "extern.h"
 
 #include <errno.h>
@@ -41,7 +40,7 @@ extern const char *gdbm_strerror (gdbm_error);
 char *progname;                     /* Program name */
 
 char *file_name = NULL;             /* Database file name */   
-gdbm_file_info *gdbm_file = NULL;   /* Database to operate upon */
+GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
 int interactive;                    /* Are we running in interactive mode? */
 datum key_data;                     /* Current key */
 datum return_data;                  /* Current data */
@@ -77,7 +76,7 @@ print_bucket (hash_bucket * bucket, char *mesg)
 
 
 void
-_gdbm_print_avail_list (gdbm_file_info * dbf)
+_gdbm_print_avail_list (GDBM_FILE dbf)
 {
   int             temp;
   int             size;
@@ -122,7 +121,7 @@ _gdbm_print_avail_list (gdbm_file_info * dbf)
 }
 
 void
-_gdbm_print_bucket_cache (FILE *fp, gdbm_file_info * dbf)
+_gdbm_print_bucket_cache (FILE *fp, GDBM_FILE dbf)
 {
   int             index;
   char            changed;
