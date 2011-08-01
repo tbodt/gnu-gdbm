@@ -17,56 +17,42 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
+
 /* From bucket.c */
-void _gdbm_new_bucket	(gdbm_file_info *, hash_bucket *, int);
-void _gdbm_get_bucket	(gdbm_file_info *, int);
-void _gdbm_split_bucket (gdbm_file_info *, int);
-void _gdbm_write_bucket (gdbm_file_info *, cache_elem *);
+void _gdbm_new_bucket	(GDBM_FILE, hash_bucket *, int);
+void _gdbm_get_bucket	(GDBM_FILE, int);
+void _gdbm_split_bucket (GDBM_FILE, int);
+void _gdbm_write_bucket (GDBM_FILE, cache_elem *);
 
 /* From falloc.c */
-off_t _gdbm_alloc       (gdbm_file_info *, int);
-void _gdbm_free         (gdbm_file_info *, off_t, int);
+off_t _gdbm_alloc       (GDBM_FILE, int);
+void _gdbm_free         (GDBM_FILE, off_t, int);
 int  _gdbm_put_av_elem  (avail_elem, avail_elem [], int *, int);
 
 /* From findkey.c */
-char *_gdbm_read_entry  (gdbm_file_info *, int);
-int _gdbm_findkey       (gdbm_file_info *, datum, char **, int *);
+char *_gdbm_read_entry  (GDBM_FILE, int);
+int _gdbm_findkey       (GDBM_FILE, datum, char **, int *);
 
 /* From hash.c */
 int _gdbm_hash (datum);
 
 /* From update.c */
-void _gdbm_end_update   (gdbm_file_info *);
-void _gdbm_fatal	(gdbm_file_info *, const char *);
+void _gdbm_end_update   (GDBM_FILE);
+void _gdbm_fatal	(GDBM_FILE, const char *);
 
 /* From gdbmopen.c */
-int _gdbm_init_cache	(gdbm_file_info *, int);
+int _gdbm_init_cache	(GDBM_FILE, int);
 
 /* From mmap.c */
-int _gdbm_mapped_init	(gdbm_file_info *);
-void _gdbm_mapped_unmap	(gdbm_file_info *);
-ssize_t _gdbm_mapped_read	(gdbm_file_info *, void *, size_t);
-ssize_t _gdbm_mapped_write	(gdbm_file_info *, void *, size_t);
-off_t _gdbm_mapped_lseek	(gdbm_file_info *, off_t, int);
-int _gdbm_mapped_sync	(gdbm_file_info *);
+int _gdbm_mapped_init	(GDBM_FILE);
+void _gdbm_mapped_unmap	(GDBM_FILE);
+ssize_t _gdbm_mapped_read	(GDBM_FILE, void *, size_t);
+ssize_t _gdbm_mapped_write	(GDBM_FILE, void *, size_t);
+off_t _gdbm_mapped_lseek	(GDBM_FILE, off_t, int);
+int _gdbm_mapped_sync	(GDBM_FILE);
 
 /* From lock.c */
-void _gdbm_unlock_file	(gdbm_file_info *);
-int _gdbm_lock_file	(gdbm_file_info *);
+void _gdbm_unlock_file	(GDBM_FILE);
+int _gdbm_lock_file	(GDBM_FILE);
 
-/* The user callable routines.... */
-void  gdbm_close	(gdbm_file_info *);
-int   gdbm_delete	(gdbm_file_info *, datum);
-datum gdbm_fetch	(gdbm_file_info *, datum);
-gdbm_file_info *gdbm_open (char *, int, int, int, void (*) (const char *));
-int   gdbm_reorganize	(gdbm_file_info *);
-datum gdbm_firstkey     (gdbm_file_info *);
-datum gdbm_nextkey      (gdbm_file_info *, datum);
-int   gdbm_store        (gdbm_file_info *, datum, datum, int);
-int   gdbm_exists	(gdbm_file_info *, datum);
-void  gdbm_sync		(gdbm_file_info *);
-int   gdbm_setopt	(gdbm_file_info *, int, int *, int);
-int   gdbm_fdesc	(gdbm_file_info *);
-int   gdbm_export	(gdbm_file_info *, const char *, int, int);
-int   gdbm_import	(gdbm_file_info *, const char *, int);
 
