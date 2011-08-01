@@ -791,6 +791,20 @@ main (int argc, char *argv[])
     progname = argv[0];
   
   /* Argument checking. */
+  if (argc == 2)
+    {
+      if (strcmp (argv[1], "--help") == 0)
+	{
+	  usage ();
+	  exit (0);
+	}
+      else if (strcmp (argv[1], "--version") == 0)
+	{
+	  version ();
+	  exit (0);
+	}
+    }
+  
   opterr = 0;
   while ((opt = getopt (argc, argv, "lmsrnc:b:g:hv")) != -1)
     switch (opt)
