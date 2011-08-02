@@ -1,5 +1,15 @@
 2011-08-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* tests/.cvsignore: Update.
+	* tests/Makefile.am: Add new tests.
+	* tests/testsuite.at: Likewise.
+	* tests/gtdump.c: Minor fix.
+	* tests/gtfetch.c: Likewise.
+	* tests/delete00.at: New file.
+	* tests/delete01.at: New file.
+	* tests/delete02.at: New file.
+	* tests/gtdel.c: New file.	
+	
 	* Makefile.am (SUBDIRS): Add tests.
 	* configure.ac: Initialize testsuite.
 	* src/testgdbm.c: Minor fixes.
@@ -12,7 +22,8 @@
 	* tests/gtfetch.c: New file.
 	* tests/gtload.c: New file.
 	* tests/num2word.c: New file.
-	* tests/testsuite.at: New file.
+	* tests/testsuite.at: New file.	
+
 	* tests/version.at: New file.
 
 	* .cvsignore: Update.
