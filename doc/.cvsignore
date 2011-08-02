@@ -1,6 +1,9 @@
 Makefile
+Makefile.in
 gdbm.info
 gdbm.dvi
 gdbm.pdf
 gdbm.ps
 gdbm.html
+stamp-vti
+version.texi
