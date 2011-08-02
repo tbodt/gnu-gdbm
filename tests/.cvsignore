@@ -5,6 +5,7 @@ Makefile
 Makefile.in
 atconfig
 atlocal
+gtdel
 gtdump
 gtfetch
 gtload

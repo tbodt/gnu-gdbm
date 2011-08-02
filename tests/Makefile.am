@@ -45,6 +45,9 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac $(srcdir)/Makefile
 
 TESTSUITE_AT = \
  create00.at\
+ delete00.at\
+ delete01.at\
+ delete02.at\
  fetch00.at\
  fetch01.at\
  version.at
@@ -70,17 +73,19 @@ check-local: atconfig atlocal $(TESTSUITE)
 #installcheck-local:
 #	$(SHELL) $(TESTSUITE) AUTOTEST_PATH=$(exec_prefix)/bin
 
-## ------------ ##
-## num2word     ##
-## ------------ ##
+## --------------- ##
+## num2word et al. ##
+## --------------- ##
 
 check_PROGRAMS = \
+ gtdel\
  gtdump\
  gtfetch\
  gtload\
  num2word
 
 INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+gtdel_LDADD = ../src/libgdbm.la
 gtload_LDADD = ../src/libgdbm.la
 gtdump_LDADD = ../src/libgdbm.la
 gtfetch_LDADD = ../src/libgdbm.la

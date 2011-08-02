@@ -41,11 +41,10 @@ main (int argc, char **argv)
   const char *progname = canonical_progname (argv[0]);
   const char *dbname;
   datum key;
-  datum data;
   int flags = 0;
   GDBM_FILE dbf;
-  int delim = '\t';
   int data_z = 0;
+  int rc = 0;
   
   while (--argc)
     {
@@ -53,18 +52,18 @@ main (int argc, char **argv)
 
       if (strcmp (arg, "-h") == 0)
 	{
-	  printf ("usage: %s [-nolock] [-nommap] [-delim=CHR] DBFILE\n",
+	  printf ("usage: %s [-null] [-nolock] [-nommap] [-sync] DBFILE KEY [KEY...]\n",
 		  progname);
 	  exit (0);
 	}
+      else if (strcmp (arg, "-null") == 0)
+	data_z = 1;
       else if (strcmp (arg, "-nolock") == 0)
 	flags |= GDBM_NOLOCK;
       else if (strcmp (arg, "-nommap") == 0)
 	flags |= GDBM_NOMMAP;
       else if (strcmp (arg, "-sync") == 0)
 	flags |= GDBM_SYNC;
-      else if (strncmp (arg, "-delim=", 7) == 0)
-	delim = arg[7];
       else if (strcmp (arg, "--") == 0)
 	{
 	  --argc;
@@ -80,49 +79,34 @@ main (int argc, char **argv)
 	break;
     }
 
-  if (argc != 1)
+  if (argc < 2)
     {
       fprintf (stderr, "%s: wrong arguments\n", progname);
       exit (1);
     }
   dbname = *argv;
   
-  dbf = gdbm_open (dbname, 0, GDBM_READER|flags, 00664, NULL);
+  dbf = gdbm_open (dbname, 0, GDBM_WRITER|flags, 0, NULL);
   if (!dbf)
     {
       fprintf (stderr, "gdbm_open failed: %s\n", gdbm_strerror (gdbm_errno));
       exit (1);
     }
 
-  key = gdbm_firstkey (dbf);
-  while (key.dptr)
+  while (--argc)
     {
-      size_t i;
-      datum nextkey = gdbm_nextkey (dbf, key);
-      
-      for (i = 0; i < key.dsize && key.dptr[i]; i++)
+      char *arg = *++argv;
+
+      key.dptr = arg;
+      key.dsize = strlen (arg) + !!data_z;
+
+      if (gdbm_delete(dbf, key))
 	{
-	  if (key.dptr[i] == delim || key.dptr[i] == '\\')
-	    fputc ('\\', stdout);
-	  fputc (key.dptr[i], stdout);
+	  fprintf (stderr, "%s: cannot delete %s: %s\n",
+		   progname, arg, gdbm_strerror (gdbm_errno));
+	  rc = 2;
 	}
-
-      fputc (delim, stdout);
-
-      data = gdbm_fetch (dbf, key);
-      i = data.dsize;
-      if (data.dptr[i-1] == 0)
-	i--;
-      
-      fwrite (data.dptr, i, 1, stdout);
-      free (data.dptr);
-      
-      fputc ('\n', stdout);
-      
-      free (key.dptr);
-      key = nextkey;
     }
-
   gdbm_close (dbf);
-  exit (0);
+  exit (rc);
 }

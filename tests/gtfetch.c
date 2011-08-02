@@ -104,7 +104,7 @@ main (int argc, char **argv)
   dbf = gdbm_open (dbname, 0, GDBM_READER|flags, 00664, NULL);
   if (!dbf)
     {
-      fprintf (stderr, "gdbm_open failed: %s", gdbm_strerror (gdbm_errno));
+      fprintf (stderr, "gdbm_open failed: %s\n", gdbm_strerror (gdbm_errno));
       exit (1);
     }
 

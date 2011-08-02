@@ -14,27 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
-m4_version_prereq([2.52g])
+AT_SETUP([delete: non existing record])
+AT_KEYWORDS([delete delete01.at])
 
-m4_define([AT_SKIP_TEST],[exit 77])
-
-dnl AT_SORT_PREREQ - Skip test if sort utility outputs unwanted data on stderr
-m4_define([AT_SORT_PREREQ],[
-test -z "`sort < /dev/null 2>&1`" || AT_SKIP_TEST
+AT_CHECK([
+AT_SORT_PREREQ
+num2word 1:10 | gtload test.db
+gtdel test.db 11
+],
+[2],
+[],
+[gtdel: cannot delete 11: Item not found
 ])
 
-dnl # Begin tests
+AT_CLEANUP
 
-AT_INIT
-m4_include([version.at])
-
-m4_include([create00.at])
-
-m4_include([fetch00.at])
-m4_include([fetch01.at])
-
-m4_include([delete00.at])
-m4_include([delete01.at])
-m4_include([delete02.at])
-
-# End of testsuite.at
