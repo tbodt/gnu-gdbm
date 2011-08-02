@@ -1,4 +1,4 @@
-2011-08-02  Sergey Poznyakoff  <gray@mirddin.farlep.net>
+2011-08-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* Makefile.am (SUBDIRS): Add tests.
 	* configure.ac: Initialize testsuite.
