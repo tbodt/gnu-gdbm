@@ -1,3 +1,26 @@
+2011-08-02  Sergey Poznyakoff  <gray@mirddin.farlep.net>
+
+	* Makefile.am (SUBDIRS): Add tests.
+	* configure.ac: Initialize testsuite.
+	* src/testgdbm.c: Minor fixes.
+	* tests/Makefile.am: New file.
+	* tests/atlocal.in: New file.
+	* tests/create00.at: New file.
+	* tests/fetch00.at: New file.
+	* tests/fetch01.at: New file.
+	* tests/gtdump.c: New file.
+	* tests/gtfetch.c: New file.
+	* tests/gtload.c: New file.
+	* tests/num2word.c: New file.
+	* tests/testsuite.at: New file.
+	* tests/version.at: New file.
+
+	* .cvsignore: Update.
+	* compat/.cvsignore: Update.
+	* doc/.cvsignore: Update.
+	* export/.cvsignore: Update.
+	* src/.cvsignore: Update.
+
 2011-08-01  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* compat/dbminit.c: Remove useless include.

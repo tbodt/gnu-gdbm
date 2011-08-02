@@ -1,0 +1,12 @@
+.deps
+.gdbinit
+.libs
+Makefile
+Makefile.in
+atconfig
+atlocal
+gtdump
+gtfetch
+gtload
+package.m4
+testsuite
