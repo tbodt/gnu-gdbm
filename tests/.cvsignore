@@ -8,5 +8,8 @@ atlocal
 gtdump
 gtfetch
 gtload
+num2word
 package.m4
 testsuite
+testsuite.dir
+testsuite.log
