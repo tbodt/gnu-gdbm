@@ -93,5 +93,15 @@ AC_SUBST(GDBM183_LIBDIR)
 AC_SUBST(GDBM183_INCLUDEDIR)
 AM_CONDITIONAL([COMPAT_OPT], [test "$want_compat" = yes])
 AM_CONDITIONAL([ENABLE_EXPORT], [test "$want_export" = yes])
-AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile compat/Makefile export/Makefile])
+
+# Initialize the test suite.
+AC_CONFIG_TESTDIR(tests)
+AC_CONFIG_FILES([tests/Makefile tests/atlocal])
+AM_MISSING_PROG([AUTOM4TE], [autom4te])
+
+AC_CONFIG_FILES([Makefile
+                 src/Makefile
+		 doc/Makefile
+		 compat/Makefile
+		 export/Makefile])
 AC_OUTPUT

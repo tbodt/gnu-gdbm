@@ -564,7 +564,7 @@ print_version_handler (char *arg[NARGS] ARG_UNUSED)
 void
 read_handler (char *arg[NARGS])
 {
-  read_from_file (arg[0], arg[1] && strcmp (arg[1], "replace"));
+  read_from_file (arg[0], arg[1] && strcmp (arg[1], "replace") == 0);
 }
 
 void
@@ -952,7 +952,6 @@ main (int argc, char *argv[])
 	    args[i] = p;
 	}	  
       cmd->handler (args);
-      printf ("\n");
     }
   
   /* Quit normally. */
