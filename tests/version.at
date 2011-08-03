@@ -16,9 +16,10 @@
 
 AT_SETUP([gdbm version])
 
-AT_CHECK([testgdbm --version | sed 1q],
-         [0],
-         [testgdbm (AT_PACKAGE_NAME) AT_PACKAGE_VERSION
+AT_CHECK([gtver -lib -full -header -full],
+[0],
+[AT_PACKAGE_VERSION
+AT_PACKAGE_VERSION
 ],
 [],
 [cat >$[]XFAILFILE <<'_EOT'
