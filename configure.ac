@@ -14,13 +14,23 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
-AC_INIT([gdbm], [1.9.0], [bug-gdbm@gnu.org])
+m4_define([_GDBM_VERSION_MAJOR], 1)
+m4_define([_GDBM_VERSION_MINOR], 9)
+m4_define([_GDBM_VERSION_PATCH], 0)
+
+AC_INIT([gdbm],
+        [_GDBM_VERSION_MAJOR._GDBM_VERSION_MINOR[]m4_ifdef([_GDBM_VERSION_PATCH],._GDBM_VERSION_PATCH)],
+	[bug-gdbm@gnu.org])
 AC_PREREQ(2.59)
 AC_CONFIG_SRCDIR([src/gdbmdefs.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([autoconf.h])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.8.5 std-options])
+
+AC_SUBST([GDBM_VERSION_MAJOR], _GDBM_VERSION_MAJOR)
+AC_SUBST([GDBM_VERSION_MINOR], _GDBM_VERSION_MINOR)
+AC_SUBST([GDBM_VERSION_PATCH], m4_ifdef([_GDBM_VERSION_PATCH],_GDBM_VERSION_PATCH,0))
 
 AC_ARG_ENABLE([memory-mapped-io],
   AC_HELP_STRING(
@@ -101,6 +111,7 @@ AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+		 src/gdbm.h
 		 doc/Makefile
 		 compat/Makefile
 		 export/Makefile])
