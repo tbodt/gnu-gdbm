@@ -1,56 +1,86 @@
+GNU dbm README
+Copyright (C) 2011 Free Software Foundation, Inc.
+See the end of file for copying conditions.
+
+* Introduction
+
+This file contains brief information about configuring, testing
+and using GNU dbm.  It is *not* intended as a replacement
+for the documentation, instead it is provided as a brief reference
+only. The complete documentation is available in doc/ subdirectory.
+To read the manpage without installing the package use `man
+doc/gdbm.3'.  To read texinfo documentation without installing the
+package, run `info -f doc/gdbm.info'.  After the package is installed
+the documentation can be accessed by running `man gdbm' and
+`info gdbm'.
+
+* Overview
+
 GNU dbm is a set of database routines that use extendible hashing and
-works similar to the standard UNIX dbm routines.
+works similar to the standard UNIX dbm routines.  The library provides
+also an optional compatibility layer for UNIX-like dbm and ndbm calls.
 
-This is release 1.9.0 of GNU dbm.
+* Configuration
 
-To compile gdbm:
-
-   a)  configure <config parameters like -prefix ... see INSTALL>
+   a)  configure [PARAMETERS]
    b)  make 
 
-To compile the optional test and conversion programs:
+For a list of generic PARAMETERS, see the file INCLUDE.  The gdbm-specific
+parameters are:
 
-   a)  make progs
+** --enable-memory-mapped-io
 
-To install the basic package:
+Enable the use of mmap(2) for I/O optimizations.  This is the default,
+if mmap is available.  To disable mmap, use --disable-memory-mapped-io.
 
-   a)  make install
+** --enable-libgdbm-compat
 
-To install the optional dbm and ndbm API compatibility library and headers:
+Build and install libgdbm_compat, a compatibility layer which provides
+UNIX-like dbm and ndbm interfaces.
 
-   a)  make install-compat
+** --enable-gdbm-export
 
-Please report bugs to
-	bug-gnu-utils@gnu.org
+Build and install gdbmexport with specified gdbm 1.8 library.
 
-------------------------------------------
+** --with-gdbm183-library=LIB
 
-The files are:
+Build gdbmexport with specified (static) library.  LIB must be
+a loader argument valid for the use with cc(1), e.g.: -lgdbm-1.8.
 
-INSTALL		- Installation tips and information.
-NEWS		- New and changed things.
-COPYING		- Copying information.
-README		- This file.
+** --gdbm183-libdir=DIR
 
-bucket.c, extern.h, falloc.c, findkey.c, gdbm.proto, gdbmclose.c,
-gdbmconst.h gdbmdefs.h, gdbmdelete.c, gdbmerrno.h, gdbmfdesc.c, gdbmfetch.c,
-gdbmsync.c, gdbmopen.c, gdbmreorg.c, gdbmseq.c, gdbmstore.c, global.c, gdbm.h,
-hash.c systems.h, update.c, version.c - Source for GNU dbm library.
+Build gdbmexport with the gdbm library from the specified directory.
 
-dbm.h dbminit.c, delete.c, fetch.c, seq.c, store.c - Source for the
-DBM interface.
+** --gdbm183-includedir=DIR
 
-dbmclose.c, dbmdelete.c, dbmdirfno.c, dbmfetch.c, dbmopen.c, dbmpagfno.c
-dbmseq.c, dbmstore.c, ndbm.h - Source for the NDBM interface.
+Build gdbmexport with gdbm.h from the specified directory.
 
-Makefile 	- Makefile, will make gdbm.a  (BSD and SYSV)
-testgdbm.c	- A simple test program.
-testdbm.c	- A simple test program.
-testndbm.c	- A simple test program.
-conv2gdbm.c	- A dbm database conversion program.
+* Installation 
 
-gdbm.3, gdbm.texinfo - Documentation for gdbm.
+  make install
 
-The author of GNU dbm may be reached via e-mail to <phil@cs.wwu.edu>,
-and the current maintainer may be reached at <downsj@downsj.com>.
-E-mail may be sent to either, or both, of these people.
+* Bug reporting
+
+Please report bugs to <bug-gdbm@gnu.org>
+
+
+* Copyright information:
+
+Copyright (C) 2011 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+
+Local Variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+version-control: never
+End:
