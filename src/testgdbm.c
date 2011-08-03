@@ -59,18 +59,19 @@ print_bucket (hash_bucket * bucket, char *mesg)
   printf
     ("     #    hash value     key size    data size     data adr  home\n");
   for (index = 0; index < gdbm_file->header->bucket_elems; index++)
-    printf ("  %4d  %12x  %11d  %11d  %11d %5d\n", index,
+    printf ("  %4d  %12x  %11d  %11d  %11lu %5d\n", index,
 	    bucket->h_table[index].hash_value,
 	    bucket->h_table[index].key_size,
 	    bucket->h_table[index].data_size,
-	    bucket->h_table[index].data_pointer,
+	    (unsigned long) bucket->h_table[index].data_pointer,
 	    bucket->h_table[index].hash_value %
 	    gdbm_file->header->bucket_elems);
 
   printf ("\nAvail count = %1d\n", bucket->av_count);
   printf ("Avail  adr     size\n");
   for (index = 0; index < bucket->av_count; index++)
-    printf ("%9d%9d\n", bucket->bucket_avail[index].av_adr,
+    printf ("%9lu%9d\n",
+	    (unsigned long) bucket->bucket_avail[index].av_adr,
 	    bucket->bucket_avail[index].av_size);
 }
 
@@ -87,8 +88,8 @@ _gdbm_print_avail_list (GDBM_FILE dbf)
 	  dbf->header->avail.size, dbf->header->avail.count);
   for (temp = 0; temp < dbf->header->avail.count; temp++)
     {
-      printf ("  %15d   %10d \n", dbf->header->avail.av_table[temp].av_size,
-	      dbf->header->avail.av_table[temp].av_adr);
+      printf ("  %15d   %10lu \n", dbf->header->avail.av_table[temp].av_size,
+	      (unsigned long) dbf->header->avail.av_table[temp].av_adr);
     }
 
   /* Initialize the variables for a pass throught the avail stack. */
@@ -113,8 +114,8 @@ _gdbm_print_avail_list (GDBM_FILE dbf)
 	      av_stk->size, av_stk->count);
       for (temp = 0; temp < av_stk->count; temp++)
 	{
-	  printf ("  %15d   %10d \n", av_stk->av_table[temp].av_size,
-		  av_stk->av_table[temp].av_adr);
+	  printf ("  %15d   %10lu \n", av_stk->av_table[temp].av_size,
+		  (unsigned long) av_stk->av_table[temp].av_adr);
 	}
       temp = av_stk->next_block;
     }
@@ -135,9 +136,9 @@ _gdbm_print_bucket_cache (FILE *fp, GDBM_FILE dbf)
       for (index = 0; index < dbf->cache_size; index++)
 	{
 	  changed = dbf->bucket_cache[index].ca_changed;
-	  fprintf (fp, "  %5d:  %7d  %7s  %x\n",
+	  fprintf (fp, "  %5d:  %7lu %7s  %x\n",
 		   index,
-		   dbf->bucket_cache[index].ca_adr,
+		   (unsigned long) dbf->bucket_cache[index].ca_adr,
 		   (changed ? "True" : "False"),
 		   dbf->bucket_cache[index].ca_data.hash_val);
 	}
@@ -450,8 +451,8 @@ print_current_bucket_handler (char *arg[NARGS] ARG_UNUSED)
   print_bucket (gdbm_file->bucket, "Current bucket");
   printf ("\n current directory entry = %d.\n",
 	  gdbm_file->bucket_dir);
-  printf (" current bucket address  = %d.\n",
-	  gdbm_file->cache_entry->ca_adr);
+  printf (" current bucket address  = %lu.\n",
+	  (unsigned long) gdbm_file->cache_entry->ca_adr);
 }
 
 int
@@ -505,7 +506,7 @@ _print_dir (FILE *out, void *data)
 	   gdbm_file->header->dir_size, gdbm_file->header->dir_bits);
   
   for (i = 0; i < gdbm_file->header->dir_size / 4; i++)
-    fprintf (out, "  %10d:  %12d\n", i, gdbm_file->dir[i]);
+    fprintf (out, "  %10d:  %12lu\n", i, (unsigned long) gdbm_file->dir[i]);
 }
 
 void
@@ -518,18 +519,19 @@ void
 print_header_handler (char *arg[NARGS] ARG_UNUSED)
 {
   printf ("\nFile Header: \n\n");
-  printf ("  table        = %d\n", gdbm_file->header->dir);
+  printf ("  table        = %lu\n", (unsigned long) gdbm_file->header->dir);
   printf ("  table size   = %d\n", gdbm_file->header->dir_size);
   printf ("  table bits   = %d\n", gdbm_file->header->dir_bits);
   printf ("  block size   = %d\n", gdbm_file->header->block_size);
   printf ("  bucket elems = %d\n", gdbm_file->header->bucket_elems);
   printf ("  bucket size  = %d\n", gdbm_file->header->bucket_size);
   printf ("  header magic = %x\n", gdbm_file->header->header_magic);
-  printf ("  next block   = %d\n", gdbm_file->header->next_block);
+  printf ("  next block   = %lu\n",
+	  (unsigned long) gdbm_file->header->next_block);
   printf ("  avail size   = %d\n", gdbm_file->header->avail.size);
   printf ("  avail count  = %d\n", gdbm_file->header->avail.count);
-  printf ("  avail nx blk = %d\n",
-	  gdbm_file->header->avail.next_block);
+  printf ("  avail nx blk = %lu\n",
+	  (unsigned long) gdbm_file->header->avail.next_block);
 }  
 
 void
@@ -768,12 +770,6 @@ getword (char *s, char **endp)
 int
 main (int argc, char *argv[])
 {
-  char cmd_ch;
-
-  datum key_data;
-  datum data_data;
-  datum return_data;
-
   char cmdbuf[1000];
 
   int cache_size = DEFAULT_CACHESIZE;
@@ -956,5 +952,5 @@ main (int argc, char *argv[])
   
   /* Quit normally. */
   quit_handler (NULL);
-
+  return 0;
 }

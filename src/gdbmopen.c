@@ -60,7 +60,6 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   int         len;		/* Length of the file name. */
   int         num_bytes;	/* Used in reading and writing. */
   off_t       file_pos;		/* Used with seeks. */
-  int	      lock_val;         /* Returned by the flock call. */
   int	      file_block_size;	/* Block size to use for a new file. */
   int 	      index;		/* Used as a loop index. */
   char        need_trunc;	/* Used with GDBM_NEWDB and locking to avoid
