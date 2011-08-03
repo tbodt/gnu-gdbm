@@ -25,6 +25,7 @@ endif
 SUBDIRS = src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
 
 dist-hook:
+	rm -f $(distdir)/src/version.c; \
 	d=`date '+%d/%m/%Y'`; \
 	sed 's|/\*@DIST_DATE@\*/|"'"$$d"'"|' $(srcdir)/src/version.c > \
 		$(distdir)/src/version.c
