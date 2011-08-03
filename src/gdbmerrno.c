@@ -19,7 +19,7 @@
 /* Include system configuration before all else. */
 #include "autoconf.h"
 
-#include "gdbmerrno.h"
+#include "gdbm.h"
 
 /* this is not static so that applications may access the array if they
    like. it must be in the same order as the error codes! */
