@@ -134,7 +134,7 @@ struct gdbm_file_info {
 	/* Global variables and pointers to dynamic variables used by gdbm.  */
 
   	/* The file name. */
-	const char *name;
+	char *name;
 
 	/* The reader/writer status. */
 	unsigned read_write :2;
