@@ -1,5 +1,33 @@
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* src/gdbm.proto: Remove.
+	* src/gdbm.proto2: Remove.
+	* src/gdbmerrno.h: Remove.
+	* src/gdbm.h.in: New file.
+	* Makefile.am (dist-hook): Remove destination file before
+	copying over it.
+	* configure.ac: Define Major,Minor numbers and Patchlevel
+	separately.
+	(GDBM_VERSION_MAJOR,GDBM_VERSION_MINOR)
+	(GDBM_VERSION_PATCH): New substitution variables.
+	* src/Makefile.am: Remove rules for building gdbm.h.
+	It is now created by configure.
+	(noinst_HEADERS): Install gdbm.h
+	(EXTRA_DIST): Distribute gdbm.h.in.
+
+	* src/flatfile.c: Include arpa/inet.h and gdbm.h.
+	* src/gdbmerrno.c: Include gdbm.h.
+	* src/version.c: Include gdbm.h.
+	(gdbm_version_number): New global variable.
+	
+	* doc/gdbm.texinfo: Document gdbm_version_number and
+	GDBM_VERSION_* macros.
+	
+	* src/gdbmopen.c: Remove unused variables, fix format specs.
+	* src/testgdbm.c: Remove unused variables, fix format specs.
+
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* Makefile.am (dist-hook): Replace /*@DIST_DATE@*/ with
 	the actual distribution date.
 	* src/version.c (gdbm_version): Update automatically.
