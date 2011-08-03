@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
+# along with GDBM. If not, see <http://www.gnu.org/licenses/>. 
 
 # Flags
 AM_CPPFLAGS=-DIN_GDBM

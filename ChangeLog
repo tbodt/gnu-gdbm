@@ -1,5 +1,9 @@
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* (all files): Update copyright headers.
+
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* doc/Makefile.am (check-fixmes): New rule.
 	* doc/gdbm.texinfo: Document flat format and related
 	functions.
