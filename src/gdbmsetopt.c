@@ -28,7 +28,7 @@
 int
 gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
 {
-  switch(optflag)
+  switch (optflag)
     {
       case GDBM_CACHESIZE:
         /* Optval will point to the new size of the cache. */
@@ -42,7 +42,7 @@ gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
 
       case GDBM_FASTMODE:
       	/* Obsolete form of SYNCMODE. */
-	if ((*optval != TRUE) && (*optval != FALSE))
+	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
 	  {
 	    gdbm_errno = GDBM_OPT_ILLEGAL;
 	    return -1;
@@ -53,7 +53,7 @@ gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
 
       case GDBM_SYNCMODE:
       	/* Optval will point to either true or false. */
-	if ((*optval != TRUE) && (*optval != FALSE))
+	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
 	  {
 	    gdbm_errno = GDBM_OPT_ILLEGAL;
 	    return -1;
@@ -64,7 +64,7 @@ gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
 
       case GDBM_CENTFREE:
       	/* Optval will point to either true or false. */
-	if ((*optval != TRUE) && (*optval != FALSE))
+	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
 	  {
 	    gdbm_errno = GDBM_OPT_ILLEGAL;
 	    return -1;
@@ -75,7 +75,7 @@ gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
 
       case GDBM_COALESCEBLKS:
       	/* Optval will point to either true or false. */
-	if ((*optval != TRUE) && (*optval != FALSE))
+	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
 	  {
 	    gdbm_errno = GDBM_OPT_ILLEGAL;
 	    return -1;
