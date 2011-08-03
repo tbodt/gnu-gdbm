@@ -1,3 +1,15 @@
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/gdbm.proto2: Remove a leftover __P wrapper.
+	* src/gdbmsetopt.c (gdbm_setopt): Avoid coredumps on NULL
+	optval.
+
+	* doc/.cvsignore: Update.
+	* doc/Makefile.am: Rewrite.
+	* doc/gdbm.texinfo: Revise.
+	* doc/gendocs_template: New file.
+	* doc/untabify.el: New file.
+
 2011-08-02  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* tests/.cvsignore: Update.
