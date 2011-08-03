@@ -1,26 +1,36 @@
-\input texinfo	@c -*- Texinfo -*-
+\input texinfo  @c -*- Texinfo -*-
 @comment $Id$
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename gdbm.info
 @include version.texi
-@settitle gdbm
+@settitle gdbm manual
+
+@ifinfo
 @dircategory Programming & development tools
 @direntry
-* GDBM: (gdbm).			The GNU database manager.
+* GDBM: (gdbm).                 The GNU database manager.
 @end direntry
+@end ifinfo
+
 @c @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
+
+@c Use @kwindex for keywords
+@defcodeindex kw
+@syncodeindex kw cp
+@c Use @flindex for files
+@defcodeindex fl
+@syncodeindex fl cp
 
 @iftex
 @finalout
 @end iftex
 
-@ifinfo
+@copying
 This file documents the GNU dbm utility.
 
-Copyright (C) 1989-1999, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright @copyright{} 1989-1999, 2007, 2008, 2009-2011 Free Software Foundation, Inc.
 
-@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
@@ -32,32 +42,29 @@ License.''
 (a) The FSF's Back-Cover Text is: ``You have the freedom to
 copy and modify this GNU manual.  Buying copies from the FSF
 supports it in developing GNU and promoting software freedom.''
-@end quotation
-@end ifinfo
+@end copying
 
 @titlepage
-@null
 @sp 6
 @center @titlefont{GNU dbm}
 @sp 2
 @center A Database Manager
 @sp 2
-@center by Philip A. Nelson, Jason Downs and Sergey Poznyakoff
+@center by Philip A.  Nelson, Jason Downs and Sergey Poznyakoff
 @sp 4
-@center Manual by Pierre Gaumond, Philip A. Nelson, Jason Downs
+@center Manual by Pierre Gaumond, Philip A.  Nelson, Jason Downs
 @center and Sergey Poznyakoff
 @sp 1
 @center Edition @value{EDITION}
 @sp 1
 @center for GNU @code{dbm}, Version @value{VERSION}
 @page
-@null
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993-1999, 2007-2008 Free Software Foundation, Inc.
+Copyright @copyright{} 1993-1999, 2007-2011 Free Software Foundation, Inc.
 @sp 2
 
-This is Edition 1.6 of the @cite{GNU @code{dbm} Manual}, for @code{gdbm}
-Version @value{VERSION}. @*
+This is Edition @value{EDITION} of the @cite{GNU @code{dbm} Manual},
+for @code{gdbm} Version @value{VERSION}.  @*
 Last updated @value{UPDATED}
 
 Published by the Free Software Foundation @*
@@ -80,15 +87,23 @@ by the Free Software Foundation.
 @end titlepage
 @page
 
-@node Top, Copying, (dir), (dir)
-@ifinfo
+@ifnothtml
+@page
+@summarycontents
+@page
+@end ifnothtml
+@contents
+
+@ifnottex
+@node Top
+@top The GNU database manager.
+
 GNU @code{dbm} is a library of functions implementing a hashed database
 on a disk file.  This manual documents GNU @code{dbm} Version @value{VERSION}
-(@code{gdbm}).  The software was written by Philip A. Nelson. This
+(@code{gdbm}).  The software was originally written by Philip A.  Nelson.  This
 document was originally written by Pierre Gaumond from texts written by
 Phil.
-@end ifinfo
-
+@end ifnottex
 
 @menu
 Introduction:
@@ -118,15 +133,16 @@ Programs
 
 Other topics:
 
+* Error codes::                Error codes returned by @code{gdbm} calls.
 * Variables::                  Two useful variables.
 * Compatibility::              Compatibility with UNIX dbm and ndbm.
 * Bugs::                       Problems and bugs.
-* GNU Free Documentation License::	Document license.
 
-* Index::			Index
+* GNU Free Documentation License::      Document license.
+* Index::                       Index
 @end menu
 
-@node Copying, Intro, Top, Top
+@node Copying
 @chapter Copying Conditions.
 This library is @dfn{free}; this means that everyone is free to use
 it and free to redistribute it on a free basis.  GNU @code{dbm} (@code{gdbm})
@@ -156,16 +172,16 @@ their recipients to know that what they have is not what we distributed,
 so that any problems introduced by others will not reflect on our
 reputation.@refill
 
-@code{gdbm} is currently distributed under the terms of the GNU General
+@code{Gdbm} is currently distributed under the terms of the GNU General
 Public License, Version 3.  (@emph{NOT} under the GNU General Library
 Public License.)  A copy the GNU General Public License is included with
 the distribution of @code{gdbm}.
 
-@node Intro, List, Copying, Top
+@node Intro
 @chapter Introduction to GNU @code{dbm}.
 
-GNU @code{dbm} (@code{gdbm})is a library of database functions that use
-extendible hashing and works similar to the standard UNIX @code{dbm}
+GNU @code{dbm} (@code{gdbm}) is a library of database functions that use
+extensible hashing and works similar to the standard UNIX @code{dbm}
 functions.  These routines are provided to a programmer needing to
 create and manipulate a hashed database. (@code{gdbm} is @emph{NOT} a
 complete database package for an end user.)
@@ -190,15 +206,15 @@ to be able manipulate the keys and data contained in the database.
 @code{gdbm} allows an application to have multiple databases open at the
 same time.  When an application opens a @code{gdbm} database, it is
 designated as a @code{reader} or a @code{writer}.  A @code{gdbm}
-database opened by at most one writer at a time.  However, many readers
-may open the database open simultaneously.  Readers and writers can not
+database can be opened by at most one writer at a time.  However, many readers
+may open the database simultaneously.  Readers and writers can not
 open the @code{gdbm} database at the same time.
 
-@node List, Open, Intro, Top
+@node List
 @chapter List of functions.
 
 The following is a quick list of the functions contained in the @code{gdbm}
-library. The include file @code{gdbm.h}, that can be included by the user,
+library.  The include file @code{gdbm.h}, that can be included by the user,
 contains a definition of these functions.
 
 @example
@@ -223,424 +239,493 @@ The @code{gdbm.h} include file is often in the @file{/usr/local/include}
 directory. (The actual location of @code{gdbm.h} depends on your local
 installation of @code{gdbm}.)
 
-@node Open, Close, List, Top
+@node Open
 @chapter Opening the database.
 
-Initialize @code{gdbm} system. If the file has a size of zero bytes, a file
+@deftypefn {gdbm interface} GDBM_FILE gdbm_open (const char *@var{name}, int @var{block_size}, @
+  int @var{flags}, int @var{mode}, void (*fatal_func)(const char *))
+Initializes @code{gdbm} system.  If the file has a size of zero bytes, a file
 initialization procedure is performed, setting up the initial structure in the
 file.
 
-The procedure for opening a @code{gdbm} file is:
+The arguments are:
 
-@example
-GDBM_FILE dbf;
-
-dbf = gdbm_open(name, block_size, flags, mode, fatal_func);
-@end example
-
-The parameters are:
-
-@table @asis
-@item char *name
+@table @var
+@item name
 The name of the file (the complete name, @code{gdbm} does not append any
 characters to this name).
-@item int block_size
-It is used during initialization to determine the size of various constructs. It
-is the size of a single transfer from disk to memory. This parameter is ignored
-if the file has been previously initialized. The minimum size is 512.
-If the value is less than 512, the file system blocksize is used, otherwise the
-value of @code{block_size} is used.
-@item int flags
-If @code{flags} is set to GDBM_READER, the user wants to just read the
+@item block_size
+It is used during initialization to determine the size of various
+constructs.  It is the size of a single transfer from disk to
+memory.  This parameter is ignored if the file has been previously
+initialized.  The minimum size is 512.  If the value is less than 512,
+the file system block size is used, otherwise the value of
+@var{block_size} is used.
+@item flags
+@kwindex GDBM_READER
+@kwindex GDBM_WRITER
+@kwindex GDBM_WRCREAT
+@kwindex GDBM_NEWDB
+If @code{flags} is set to @samp{GDBM_READER}, the user wants to just read the
 database and any call to @code{gdbm_store} or @code{gdbm_delete} will fail.
-Many readers can access the database at the same time. If @code{flags} is
-set to GDBM_WRITER, the user wants both read and write access to the database
-and requires exclusive access. If @code{flags} is set to GDBM_WRCREAT, the
-user wants both read and write access to the database and if the database does
-not exist, create a new one. If @code{flags} is set to GDBM_NEWDB, the
-user want a new database created, regardless of whether one existed, and wants
-read and write access to the new database.  The following may also be logically
-or'd into the database flags: GDBM_SYNC, which causes all database operations
-to be synchronized to the disk, and GDBM_NOLOCK, which prevents the library
-from performing any locking on the database file.  The option GDBM_FAST is
+Many readers can access the database at the same time.  If @code{flags} is
+set to @samp{GDBM_WRITER}, the user wants both read and write access
+to the database and requires exclusive access.  If @code{flags} is set
+to @samp{GDBM_WRCREAT}, the user wants both read and write access to
+the database and wants it created if it does not already exist.  If
+@code{flags} is set to @samp{GDBM_NEWDB}, the user want a new database
+created, regardless of whether one existed, and wants read and write
+access to the new database.
+
+@kwindex GDBM_SYNC
+@kwindex GDBM_NOLOCK
+@kwindex GDBM_NOMMAP
+The following may also be logically or'd into the database flags:
+@samp{GDBM_SYNC}, which causes all database operations to be
+synchronized to the disk, @samp{GDBM_NOLOCK}, which prevents the library 
+from performing any locking on the database file, and @samp{GDBM_NOMMAP},
+which disables the memory mapping mechanism.  The option @samp{GDBM_FAST} is
 now obsolete, since @code{gdbm} defaults to no-sync mode.  Any error detected
-will cause a return value of NULL and an appropriate value will be in
-@code{gdbm_errno} (see Variables). If no errors occur, a pointer to the
+will cause a return value of @samp{NULL} and an appropriate value will be in
+@code{gdbm_errno} (@pxref{Variables}).  If no errors occur, a pointer to the
 @code{gdbm} file descriptor will be returned.
-@item int mode
-File mode (see chmod(2) and open(2) if the file is created).
-@item void (*fatal_func) ()
-A function for @code{gdbm} to call if it detects a fatal error. The only
-parameter of this function is a string. If the value of NULL is provided,
-@code{gdbm} will use a default function.
+@item mode
+File mode (see
+@ifhtml
+@uref{http://www.manpagez.com/man/2/chmod},
+@end ifhtml
+@ifnothtml
+@ref{chmod,,change permissions of a file,chmod(2),
+chmod(2) man page},
+@end ifnothtml
+and
+@ifhtml
+@uref{http://www.manpagez.com/man/2/open},
+@end ifhtml
+@ifnothtml
+@pxref{open,,open a file,open(2), open(2) man page}
+@end ifnothtml
+), which is used if the file is created).
+@item fatal_func
+A function for @code{gdbm} to call if it detects a fatal error.  The only
+parameter of this function is a string.  If the value of @samp{NULL} is
+provided, @code{gdbm} will use a default function.
 @end table
 
-The return value, @code{dbf}, is the pointer needed by all other functions to
-access that @code{gdbm} file. If the return is the NULL pointer,
-@code{gdbm_open} was not successful. The errors can be found in
-@code{gdbm_errno} for @code{gdbm} errors and in @code{errno} for file system
-errors (for error codes, see @code{gdbm.h}).
+The return value, is the pointer needed by all other functions to
+access that @code{gdbm} file.  If the return is the @samp{NULL} pointer,
+@code{gdbm_open} was not successful.  The errors can be found in
+@code{gdbm_errno} variable (@pxref{Variables, gdbm_errno}).  Available
+error codes are discussed in @ref{Error codes}.
 
-In all of the following calls, the parameter @code{dbf} refers to the pointer
+In all of the following calls, the parameter @var{dbf} refers to the pointer
 returned from @code{gdbm_open}.
+@end deftypefn
 
-@node Close, Store, Open, Top
+@node Close
 @chapter Closing the database.
 
-It is important that every file opened is also closed. This is needed to
-update the reader/writer count on the file. This is done by:
+It is important that every file opened is also closed.  This is needed to
+update the reader/writer count on the file:
 
-@example
-gdbm_close(dbf);
-@end example
+@deftypefn {gdbm interface} void gdbm_close (GDBM_FILE @var{dbf})
+This function closes the @code{gdbm} file and frees all memory
+associated with it.  The parameter is:
 
-The parameter is:
-
-@table @asis
-@item GDBM_FILE dbf
+@table @var
+@item dbf
 The pointer returned by @code{gdbm_open}.
 @end table
+@end deftypefn
 
-Closes the @code{gdbm} file and frees all memory associated with the file 
-@code{dbf}. 
-
-@node Store, Fetch, Close, Top
+@node Store
 @chapter Inserting and replacing records in the database.
 
+@deftypefn {gdbm interface} int gdbm_store (GDBM_FILE @var{dbf}, datum @var{key}, @
+           datum @var{content}, int @var{flag})
 The function @code{gdbm_store} inserts or replaces records in the database.
-
-@example
-ret = gdbm_store(dbf, key, content, flag);
-@end example
 
 The parameters are:
 
-@table @asis
-@item GDBM_FILE dbf
+@table @var
+@item dbf
 The pointer returned by @code{gdbm_open}.
-@item datum key
-The @code{key} data.
-@item datum content
+@item key
+The search key.
+@item content
 The data to be associated with the key.
-@item int flag
-Defines the action to take when the key is already in the database. The value
-GDBM_REPLACE (defined in @code{gdbm.h}) asks that the old data be replaced by
-the new @code{content}. The value GDBM_INSERT asks that an error be returned
-and no action taken if the @code{key} already exists.
+@item flag
+@kwindex GDBM_REPLACE
+@kwindex GDBM_INSERT
+Defines the action to take when the key is already in the database.  The value
+@samp{GDBM_REPLACE} (defined in @file{gdbm.h}) asks that the old data
+be replaced by the new @var{content}.  The value @samp{GDBM_INSERT}
+asks that an error be returned and no action taken if the @var{key}
+already exists.
 @end table
 
-The values returned in @code{ret} are:
+This function can return the following values:
 
 @table @asis
 @item -1
 The item was not stored in the database because the caller was not an
-official writer or either @code{key} or @code{content} have a NULL dptr field.
-Both @code{key} and @code{content} must have the dptr field be a non-NULL value.
-Since a NULL dptr field is used by other functions to indicate an error, a NULL
-field cannot be valid data.
+official writer or either @var{key} or @var{content} have a
+@samp{NULL} @samp{dptr} field.
+
+Both @var{key} and @var{content} must have the @samp{dptr} field be a
+non-@samp{NULL} value.  Since a @samp{NULL} @samp{dptr} field is used by
+other functions to indicate an error, it cannot be valid data.
 @item +1
-The item was not stored because the argument @code{flag} was GDBM_INSERT and
-the @code{key} was already in the database.
+The item was not stored because the argument @var{flag} was
+@samp{GDBM_INSERT} and the @var{key} was already in the database.
 @item 0
-No error. @code{content} is keyed by @code{key}. The file on disk is updated
-to reflect the structure of the new database before returning from this
-function.
+No error.  The value of @var{content} is keyed by @var{key}.  The file
+on disk is updated to reflect the structure of the new database before
+returning from this function.
 @end table
+@end deftypefn
 
-If you store data for a @code{key} that is already in the data base,
+If you store data for a @var{key} that is already in the data base,
 @code{gdbm} replaces the old data with the new data if called with
-GDBM_REPLACE. You do not get two data items for the same @code{key} and you do
-not get an error from @code{gdbm_store}.
+@samp{GDBM_REPLACE}.  You do not get two data items for the same
+@code{key} and you do not get an error from @code{gdbm_store}.
 
-The size in @code{gdbm} is not restricted like @code{dbm} or @code{ndbm}. Your
+The size in @code{gdbm} is not restricted like @code{dbm} or @code{ndbm}.  Your
 data can be as large as you want.
 
-@node Fetch, Delete, Store,Top
+@node Fetch
 @chapter Searching for records in the database.
 
-Looks up a given @code{key} and returns the information associated with that
-key. The pointer in the structure that is  returned is a pointer to dynamically
-allocated memory block. To search for some data:
+@deftypefn {gdbm interface} datum gdbm_fetch (GDBM_FILE @var{dbf}, datum @var{key})
+Looks up a given @var{key} and returns the information associated with it.
+The @samp{dptr} field in the structure that is returned points to a
+memory block allocated by @code{malloc}.  It is the caller's
+responsibility to free it when no longer needed.
 
-@example
-content = gdbm_fetch(dbf, key);
-@end example
-
-The parameters are:
-
-@table @asis
-@item GDBM_FILE dbf
-The pointer returned by @code{gdbm_open}.
-@item datum key
-The @code{key} data.
-@end table
-
-The datum returned in @code{content} is a pointer to the data found. If the
-dptr is NULL, no data was found. If dptr is not NULL, then it points
-to data allocated by malloc. @code{gdbm} does not automatically free this data.
-The user must free this storage when done using it. This eliminates the
-need to copy the result to save it for later use (you just save the pointer).
-
-You may also search for a particular key without retrieving it, using:
-
-@example
-ret = gdbm_exists(dbf, key);
-@end example
+If the @samp{dptr} is @samp{NULL}, no data was found.
 
 The parameters are:
 
-@table @asis
-@item GDBM_FILE dbf
+@table @var
+@item dbf
 The pointer returned by @code{gdbm_open}.
-@item datum key
-The @code{key} data.
+@item key
+The search key.
 @end table
+@end deftypefn
 
-Unlike @code{gdbm_fetch}, this routine does not allocate any memory, and
-simply returns true or false, depending on whether the @code{key} exists,
-or not.
+An example of using this function:
 
-@node Delete, Sequential, Fetch, Top
+@example
+content = gdbm_fetch (dbf, key);
+if (content.dptr == NULL)
+  @{
+    fprintf(stderr, "key not found\n");
+  @}
+else
+  @{
+    /* do something with content.dptr */
+  @}
+@end example
+
+You may also search for a particular key without retrieving it:
+
+@deftypefn {gdbm interface} int gdbm_exists (GDBM_FILE @var{dbf}, datum @var{key})
+Returns @samp{true} (@samp{1}) if the @var{key} exists in @var{dbf}
+and @samp{false} (@samp{0}) otherwise.
+
+The parameters are:
+
+@table @var
+@item dbf
+The pointer returned by @code{gdbm_open}.
+@item key
+The search key.
+@end table
+@end deftypefn
+
+@node Delete
 @chapter Removing records from the database.
 
-To remove some data from the database:
+To remove some data from the database, use the @code{gdbm_delete}
+function.
 
-@example
-ret = gdbm_delete(dbf, key);
-@end example
+@deftypefn {gdbm interface} int gdbm_delete (GDBM_FILE @var{dbf}, datum @var{key})
+Deletes the data associated with the given @var{key}, if it exists in
+the database @var{dbf}.  The file on disk is updated to reflect the
+structure of the new database before returning from this function.
 
 The parameters are:
 
-@table @asis
-@item GDBM_FILE dbf
+@table @var
+@item dbf
 The pointer returned by @code{gdbm_open}.
 @item datum key
-The @code{key} data.
+The search key.
 @end table
 
-The ret value is -1 if the item is not present or the requester is a reader.
-The ret value is 0 if there was a successful delete.
+The function returns @samp{-1} if the item is not present or the
+requester is a reader.  The return of @samp{0} marks a successful delete.
+@end deftypefn
 
-@code{gdbm_delete} removes the keyed item and the @code{key} from the database
-@code{dbf}. The file on disk is updated to reflect the structure of the new
-database before returning from this function.
-
-@node Sequential, Reorganization, Delete, Top
+@node Sequential
 @chapter Sequential access to records.
 
-The next two functions allow for accessing all items in the database. This
+The next two functions allow for accessing all items in the database.  This
 access is not @code{key} sequential, but it is guaranteed to visit every
-@code{key} in the database once. The order has to do with the hash values.
+@code{key} in the database once.  The order has to do with the hash values.
 @code{gdbm_firstkey} starts the visit of all keys in the database.
 @code{gdbm_nextkey} finds and reads the next entry in the hash structure for
 @code{dbf}.
 
-@example
-key = gdbm_firstkey(dbf);
+@deftypefn {gdbm interface} datum gdbm_firstkey (GDBM_FILE @var{dbf})
+Initiate sequential access to the database @var{dbf}.  The returned
+value is the first key accessed in the database.  If the @samp{dptr}
+field in the returned datum is @samp{NULL}, the database contains no
+data.
 
-nextkey = gdbm_nextkey(dbf, key);
-@end example
+Otherwise, @samp{dptr} points to a memory block obtained from
+@code{malloc}, which holds the key value.  The caller is responsible
+for freeing this memory block when no longer needed.
+@end deftypefn
 
-The parameters are:
+@deftypefn {gdbm interface} datum gdbm_nextkey (GDBM_FILE @var{dbf}, datum @var{prev})
+This function continues the iteration over the keys in @var{dbf},
+initiated by @code{gdbm_firstkey}.  The parameter @var{prev} holds the
+value returned from a previous call to @code{gdbm_nextkey} or
+@code{gdbm_firstkey}.
 
-@table @asis
-@item GDBM_FILE dbf
-The pointer returned by @code{gdbm_open}.
-@item datum @code{key}
-@item datum nextkey
-The @code{key} data.
-@end table
+The function returns next key from the database.  If the @samp{dptr}
+field in the returned datum is @samp{NULL}, all keys in the database
+has been visited.
 
-The return values are both datum. If @code{key}.dptr or nextkey.dptr is NULL,
-there is no first @code{key} or next @code{key}. Again notice that dptr points to
-data allocated by malloc and @code{gdbm} will not free it for you.
+Otherwise, @samp{dptr} points to a memory block obtained from
+@code{malloc}, which holds the key value.  The caller is responsible
+for freeing this memory block when no longer needed.
+@end deftypefn
 
 These functions were intended to visit the database in read-only algorithms,
-for instance, to validate the database or similar operations.
-
-File @code{visiting} is based on a @code{hash table}. @code{gdbm_delete}
-re-arranges the hash table to make sure that any collisions in the table do not
-leave some item @code{un-findable}. The original key order is NOT guaranteed to
-remain unchanged in ALL instances. It is possible that some key will not be
-visited if a loop like the following is executed:
+for instance, to validate the database or similar operations.  The
+usual algorithm for sequential access is:
 
 @example
 @group
-   key = gdbm_firstkey ( dbf );
-   while ( key.dptr ) @{
-      nextkey = gdbm_nextkey ( dbf, key );
-      if ( some condition ) @{
-         gdbm_delete ( dbf, key );
-         free ( key.dptr );
-      @}
-      key = nextkey;
-   @}
+   key = gdbm_firstkey (dbf);
+   while (key.dptr)
+     @{
+        datum nextkey;
+
+        /* do something with the key */
+        ...
+
+        /* Obtain the next key */
+        nextkey = gdbm_nextkey (dbf, key);
+        /* Reclaim the memory used by the key */
+        free (key.dptr);
+        /* Use nextkey in the next iteration. */
+        key = nextkey;
+     @}
 @end group
 @end example
 
-@node Reorganization, Sync, Sequential, Top
+Care should be taken when the @code{gdbm_delete} function is used in
+such a loop.  File visiting is based on a @dfn{hash table}.  The
+@code{gdbm_delete} function re-arranges the hash table to make sure
+that any collisions in the table do not leave some item
+@dfn{un-findable}.  The original key order is @emph{not} guaranteed to
+remain unchanged in all instances.  So it is possible that some key
+will not be visited if a loop like the following is executed:
+
+@example
+@group
+   key = gdbm_firstkey (dbf);
+   while (key.dptr)
+     @{
+        datum nextkey;
+        if (some condition)
+          @{
+             gdbm_delete (dbf, key);
+          @}
+         nextkey = gdbm_nextkey (dbf, key);
+         free (key.dptr);
+         key = nextkey;
+      @}
+@end group
+@end example
+
+@node Reorganization
 @chapter Database reorganization.
 
 The following function should be used very seldom.
 
-@example
-ret = gdbm_reorganize(dbf);
-@end example
+@deftypefn {gdbm interface} int gdbm_reorganize (GDBM_FILE @var{dbf})
+Reorganizes the database.
 
 The parameter is:
 
-@table @asis
-@item GDBM_FILE dbf
+@table @var
+@item dbf
 The pointer returned by @code{gdbm_open}.
 @end table
+@end deftypefn
 
 If you have had a lot of deletions and would like to shrink the space
 used by the @code{gdbm} file, this function will reorganize the database.
-@code{gdbm} will not shorten the length of a @code{gdbm} file (deleted file space will be
-reused) except by using this reorganization.
+This results, in particular, in shortening the length of a @code{gdbm}
+file by removing the space occupied by deleted records.
 
 This reorganization requires creating a new file and inserting all the elements
-in the old file @code{dbf} into the new file. The new file is then renamed to
-the same name as the old file and @code{dbf} is updated to contain all the
-correct information about the new file. If an error is detected, the return
-value is negative. The value zero is returned after a successful
+in the old file @var{dbf} into the new file.  The new file is then renamed to
+the same name as the old file and @var{dbf} is updated to contain all the
+correct information about the new file.  If an error is detected, the return
+value is negative.  The value zero is returned after a successful
 reorganization.
 
-@node Sync, Errors, Reorganization, Top
+@node Sync
 @chapter Database Synchronization
 
-Unless your database was opened with the GDBM_SYNC flag, @code{gdbm} does not
-wait for writes to be flushed to the disk before continuing.  This allows
-faster writing of databases at the risk of having a corrupted database if
-the application terminates in an abnormal fashion.  The following function
-allows the programmer to make sure the disk version of the 
-database has been completely updated with all changes to the current time.
+@kwindex GDBM_SYNC
+Unless your database was opened with the @samp{GDBM_SYNC} flag,
+@code{gdbm} does not wait for writes to be flushed to the disk before
+continuing.  This allows for faster writing of databases at the risk
+of having a corrupted database if the application terminates in an
+abnormal fashion.  The following function allows the programmer to
+make sure the disk version of the database has been completely updated
+with all changes to the current time.
 
-@example
-gdbm_sync(dbf);
-@end example
+@deftypefn {gdbm interface} void gdbm_sync (GDBM_FILE @var{dbf})
+Synchronizes the changes in @var{dbf} with its disk file.  The
+parameter is a pointer returned by @code{gdbm_open}.
 
-The parameter is:
+This function would usually be called after a complete set of changes
+have been made to the database and before some long waiting time.
+The @code{gdbm_close} function automatically calls the equivalent of
+@code{gdbm_sync} so no call is needed if the database is to be closed
+immediately after the set of changes have been made.
+@end deftypefn
 
-@table @asis
-@item GDBM_FILE dbf
-The pointer returned by @code{gdbm_open}.
-@end table
-
-This would usually be called after a complete set of changes have been
-made to the database and before some long waiting time.
-@code{gdbm_close} automatically calls the equivalent of @code{gdbm_sync}
-so no call is needed if the database is to be closed immediately after
-the set of changes have been made.
-
-@node Errors, Options, Sync, Top
+@node Errors
 @chapter Error strings.
 
-To convert a @code{gdbm} error code into English text, use this routine:
+To convert a @code{gdbm} error code into English text, use this
+routine:
 
-@example
-ret = gdbm_strerror(errno)
-@end example
+@deftypefn {gdbm interface} const char *gdbm_strerror (gdbm_error @var{errno})
+Converts @var{errno} (which is an integer value) into a human-readable
+descriptive text.  Returns a pointer to a static string.  The caller
+must not alter or free the returned pointer.
 
-The parameter is:
+The @var{errno} argument is usually the value of the global variable
+@code{gdbm_errno}.  @xref{Variables, gdbm_errno}.
+@end deftypefn
 
-@table @asis
-@item gdbm_error errno
-The @code{gdbm} error code, usually @code{gdbm_errno}.
-@end table
-
-The appropiate phrase for reading by humans is returned.
-
-@node Options, Locking, Errors, top
-@chapter Seting options.
+@node Options
+@chapter Setting options.
 
 @code{Gdbm} supports the ability to set certain options on an already
 open database.
 
-@example
-ret = gdbm_setopt(dbf, option, value, size);
-@end example
+@deftypefn {gdbm interface} int gdbm_setopt (GDBM_FILE @var{dbf}, int @var{option}, @
+           int *@var{value}, int @var{size})
+Sets an option on the database.
 
 The parameters are:
 
-@table @asis
-@item GDBM_FILE dbf
+@table @var
+@item dbf
 The pointer returned by @code{gdbm_open}.
-@item int option
+@item option
 The option to be set.
-@item int *value
-A pointer to the value to which @code{option} will be set.
-@item int size
-The length of the data pointed to by @code{value}.
+@item value
+A pointer to the value to which @var{option} will be set.
+@item size
+The length of the data pointed to by @var{value}.
 @end table
+@end deftypefn
 
 The valid options are:
 
-  GDBM_CACHESIZE - Set the size of the internal bucket cache.  This
-  option may only be set once on each GDBM_FILE descriptor, and
-  is set automatically to 100 upon the first access to the database.
+@table @asis
+@kwindex GDBM_CACHESIZE
+@item GDBM_CACHESIZE
+Set the size of the internal bucket cache.  This option may only be
+set once on each GDBM_FILE descriptor, and is set automatically to 100
+upon the first access to the database.  The @var{value} should point
+to an integer holding the desired cache size.
 
-  GDBM_FASTMODE - Set fast mode to either on or off.  This allows
-  fast mode to be toggled on an already open and active database.
-  value (see below) should be set to either TRUE or FALSE.
-  @emph{This option is now obsolete.}
+@kwindex GDBM_FASTMODE
+@item GDBM_FASTMODE
+@emph{This option is now obsolete and has no effect.  The following
+description reflects its historical usage:}
 
-  GDBM_SYNCMODE - Turn on or off file system synchronization operations.  This
-  setting defaults to off; value (see below) should be set to either TRUE or
-  FALSE.
+Enable or disable the fast mode.  This allows fast mode to be toggled
+on an already open and active database.  The @var{value} should point
+to an integer: @samp{TRUE} to enable fast mode, and @samp{FALSE} to disable
+it.
 
-  GDBM_CENTFREE - Set central free block pool to either on or off.
-  The default is off, which is how previous versions of @code{Gdbm}
-  handled free blocks.  If set, this option causes all subsequent free
-  blocks to be placed in the @emph{global} pool, allowing (in theory)
-  more file space to be reused more quickly.  value (see below) should
-  be set to either TRUE or FALSE.
-  @emph{NOTICE: This feature is still under study.}
+@kwindex GDBM_SYNCMODE
+@item GDBM_SYNCMODE
+Turn on or off file system synchronization operations.  This
+setting defaults to off.  The @var{value} should point
+to an integer: @samp{TRUE} to turn synchronization on, and @samp{FALSE} to
+turn it off.
 
-  GDBM_COALESCEBLKS - Set free block merging to either on or off.
-  The default is off, which is how previous versions of @code{Gdbm}
-  handled free blocks.  If set, this option causes adjacent free blocks
-  to be merged.  This can become a CPU expensive process with time, though,
-  especially if used in conjunction with GDBM_CENTFREE.  value (see below)
-  should be set to either TRUE or FALSE.
-  @emph{NOTICE: This feature is still under study.}
+@kwindex GDBM_CENTFREE
+@item GDBM_CENTFREE
+@emph{NOTICE: This feature is still under study.}
 
-The return value will be -1 upon failure, or 0 upon success.  The global
-variable @code{gdbm_errno} will be set upon failure.
+Set central free block pool to either on or off.  The default is off,
+which is how previous versions of @code{gdbm} handled free blocks.  If
+set, this option causes all subsequent free blocks to be placed in the
+@emph{global} pool, allowing (in theory) more file space to be reused
+more quickly.  The @var{value} should point to an integer: @samp{TRUE} to
+turn central block pool on, and @samp{FALSE} to turn it off.
+
+@kwindex GDBM_COALESCEBLKS
+@item GDBM_COALESCEBLKS
+@emph{NOTICE: This feature is still under study.}
+
+Set free block merging to either on or off.  The default is off, which
+is how previous versions of @code{gdbm} handled free blocks.  If set,
+this option causes adjacent free blocks to be merged.  This can become
+a @acronym{CPU} expensive process with time, though, especially if
+used in conjunction with GDBM_CENTFREE.  The @var{value} should point
+to an integer: @samp{TRUE} to turn free block merging on, and @samp{FALSE} to
+turn it off.
+@end table
+
+The return value will be @samp{-1} upon failure, or @samp{0} upon
+success.  The global variable @code{gdbm_errno} will be set upon failure.
 
 For instance, to set a database to use a cache of 10, after opening it
 with @code{gdbm_open}, but prior to accessing it in any way, the following
 code could be used:
 
 @example
+@group
 int value = 10;
 ret = gdbm_setopt(dbf, GDBM_CACHESIZE, &value, sizeof(int));
+@end group
 @end example
 
-@node Locking, testgdbm, Options, Top
+@node Locking
 @chapter File Locking.
 
-With locking disabled (if @code{gdbm_open} was called with GDBM_NOLOCK),
+@kwindex GDBM_NOLOCK
+With locking disabled (if @code{gdbm_open} was called with @samp{GDBM_NOLOCK}),
 the user may want to perform their own file locking on the database file
 in order to prevent multiple writers operating on the same file
 simultaneously.
 
 In order to support this, the @code{gdbm_fdesc} routine is provided.
 
-@example
-ret = gdbm_fdesc(dbf);
-@end example
+@deftypefn {gdbm interface} int gdbm_fdesc (GDBM_FILE @var{dbf})
+Returns the file descriptor of the database @var{dbf}.  This value
+can be used as an argument to @code{flock}, @code{lockf} or similar
+calls.
+@end deftypefn
 
-The single valid parameter is:
-
-@table @asis
-@item GDBM_FILE dbf
-The pointer returned by @code{gdbm_open}.
-@end table
-
-The return value will be the file descriptor of the database.
-
-@node testgdbm, gdbmexport, Locking, Top
+@node testgdbm
 @chapter Test and modify a GDBM database.
 
 The @command{testgdbm} utility allows you to view and modify an
@@ -648,10 +733,11 @@ existing @acronym{GDBM} database or to create a new one.
 
 @cindex default database, @command{testgdbm} 
 @cindex @option{-g}, @command{testgdbm} option
+@flindex junk.gdbm
 When invoked without options, it tries to open a database file called
 @file{junk.gdbm}, located in the current working directory.  You can
 change this default using the @option{-g} command line option.  This
-option takes a single argument, specifying a file name to open, e.g.:
+option takes a single argument, specifying the file name to open, e.g.:
 
 @example
 $ testgdbm -g file.db
@@ -746,7 +832,7 @@ error and exits immediately.
 Some commands produce excessive amounts of output.  To help you follow
 it, @command{testgdbm} will use a pager utility to display such
 output.  The name of the pager utility is taken from the environment
-variable @env{PAGER}.  The pager is ivoked only in interactive mode
+variable @env{PAGER}.  The pager is invoked only in interactive mode
 and only if the estimated number of output lines is greater then the
 number of lines on your screen.  
 
@@ -773,8 +859,8 @@ as its second argument.
 @item f @var{key}
 Fetch and display a record with the given @var{key}.
 
-@item i @var{file-name} [replace]
 @anchor{import}
+@item i @var{file-name} [replace]
 Import data from a flat dump file @var{file-name}
 (@pxref{gdbmexport}).  If the word @samp{replace} is given
 as the second argument, any records with the same keys as the already
@@ -818,17 +904,17 @@ Reorganize the database (@pxref{Reorganization}).
 
 @item z
 Toggle key nul-termination.  Use @code{S} to inspect the current
-state. @xref{nul-termination}.
+state.  @xref{nul-termination}.
 
 @item A
-Print avail list.
+Print the @dfn{avail list}.
 
 @item B @var{num} 
 Print a bucket number @var{num}.  This command uses pager
 (@pxref{pager}).
 
 @item C
-Print current bucket.  This command uses pager (@pxref{pager}).
+Print the current bucket.  This command uses pager (@pxref{pager}).
 
 @item D
 Print hash directory.  Uses pager (@pxref{pager}).
@@ -853,7 +939,7 @@ Zero terminated data: yes
 @end example
 
 @item V
-Print version of @command{gdbm}.
+Print the version of @command{gdbm}.
 
 @item Z
 Toggle data nul-termination.  Use @command{S} to examine the current
@@ -870,16 +956,16 @@ arguments are enclosed in square brackets.
 Quit the program.
 @end table
 
-@node gdbmexport, Variables, testgdbm, Top
+@node gdbmexport
 @chapter Export a database into a portable format.
 
 The @command{gdbmexport} utility converts the database into a portable
-``flat'' format.  Files in this format can be used to populate
+@dfn{flat format}.  Files in this format can be used to populate
 databases using the @code{i} command of @command{testgdbm} utility
 (@pxref{import}).  In many cases files in this format are suitable for
 sending over the network to populate the database on another machine.
 The only exception to this are databases whose records contain
-non-@acronym{ASCII} data (e.g. @acronym{C} structures, integers
+non-@acronym{ASCII} data (e.g.  @acronym{C} structures, integers
 etc.).  For such databases you will be better off by writing a
 specialized utility to convert them to an architecture-independent
 format.
@@ -888,7 +974,7 @@ If @command{gdbmexport} is linked with @file{libgdbm}
 version 1.8.3, it can be used to convert databases from old to new
 format.
 
-The utiity takes two mandatory arguments: the name of the database
+The utility takes two mandatory arguments: the name of the database
 file to convert and the output file name, e.g.:
 
 @example
@@ -905,39 +991,184 @@ Display short usage summary and exit.
 Display program version and licensing information, and exit.
 @end table
 
-@node Variables, Compatibility, gdbmexport, Top
+@node Variables
 @chapter Two useful variables.
 
 The following two variables are variables that may need to be used:
 
+@deftypevar gdbm_error gdbm_errno
+This variable contains error code from the last failed @code{gdbm}
+call.  @xref{Error codes}, for a list of available error codes and
+their descriptions.
+
+Use @code{gdbm_strerror} (@pxref{Errors}) to convert it to a
+descriptive text.
+@end deftypevar
+
+@deftypevar const char *gdbm_version
+A string containing the version information.
+@end deftypevar
+
+@node Error codes
+@chapter Error codes
+
+This chapter summarizes the error codes which can be set by the
+functions in @code{gdbm} library.
+
 @table @asis
-@item gdbm_error gdbm_errno
-The variable that contains more information about @code{gdbm} errors
-(@code{gdbm.h} has the definitions of the error values).
-@item char * gdbm_version
-The string containing the version information.
+@kwindex GDBM_NO_ERROR
+@item GDBM_NO_ERROR
+No error occurred.
+
+@kwindex GDBM_MALLOC_ERROR
+@item GDBM_MALLOC_ERROR
+Memory allocation failed.  Not enough memory.
+
+@kwindex GDBM_BLOCK_SIZE_ERROR
+@item GDBM_BLOCK_SIZE_ERROR
+This error is set by the @code{gdbm_open} function (@pxref{Open}), if
+the value of its @var{block_size} argument is incorrect.
+
+@kwindex GDBM_FILE_OPEN_ERROR
+@item GDBM_FILE_OPEN_ERROR
+@c FIXME: Neither gdbm_export nor gdbm_import are described in this doc!
+The library was not able to open a disk file.  This can be set by
+@code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
+@code{gdbm_import} functions.
+
+@kwindex GDBM_FILE_WRITE_ERROR
+@item GDBM_FILE_WRITE_ERROR
+Writing to a disk file failed.  This can be set by
+@code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
+@code{gdbm_import} functions.
+
+@kwindex GDBM_FILE_SEEK_ERROR
+@item GDBM_FILE_SEEK_ERROR
+Positioning in a disk file failed.  This can be set by
+@code{gdbm_open} (@pxref{Open}) function.
+
+@kwindex GDBM_FILE_READ_ERROR
+@item GDBM_FILE_READ_ERROR
+Reading from a disk file failed.  This can be set by
+@code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
+@code{gdbm_import} functions.
+
+@kwindex GDBM_BAD_MAGIC_NUMBER
+@item GDBM_BAD_MAGIC_NUMBER
+The file given as argument to @code{gdbm_open} function is not a valid
+@code{gdbm} file: it has a wrong magic number.
+
+@kwindex GDBM_EMPTY_DATABASE
+@item GDBM_EMPTY_DATABASE
+The file given as argument to @code{gdbm_open} function is not a valid
+@code{gdbm} file: it has zero length.
+
+@kwindex GDBM_CANT_BE_READER
+@item GDBM_CANT_BE_READER
+This error code is set by the @code{gdbm_open} function if it is not
+able to lock file when called in @samp{GDBM_READER} mode (@pxref{Open,
+GDBM_READER}).
+
+@kwindex GDBM_CANT_BE_WRITER
+@item GDBM_CANT_BE_WRITER       
+This error code is set by the @code{gdbm_open} function if it is not
+able to lock file when called in writer mode (@pxref{Open}).
+
+@kwindex GDBM_READER_CANT_DELETE
+@item GDBM_READER_CANT_DELETE
+Set by the @code{gdbm_delete} (@pxref{Delete}) if it attempted to
+operate on a database that is open in read-only mode (@pxref{Open,
+GDBM_READER}).
+
+@kwindex GDBM_READER_CANT_STORE
+@item GDBM_READER_CANT_STORE    
+Set by the @code{gdbm_store} (@pxref{Store}) if it attempted to
+operate on a database that is open in read-only mode (@pxref{Open,
+GDBM_READER}).
+
+@kwindex GDBM_READER_CANT_REORGANIZE
+@item GDBM_READER_CANT_REORGANIZE       
+Set by the @code{gdbm_reorganize} (@pxref{Reorganization}) if it attempted to
+operate on a database that is open in read-only mode (@pxref{Open,
+GDBM_READER}).
+
+@kwindex GDBM_UNKNOWN_UPDATE
+@item GDBM_UNKNOWN_UPDATE
+Currently unused.  Reserved for future uses.
+
+@kwindex GDBM_ITEM_NOT_FOUND
+@item GDBM_ITEM_NOT_FOUND
+Requested item was not found.  This error is set by @code{gdbm_delete}
+(@pxref{Delete}) and @code{gdbm_fetch} (@pxref{Fetch}) when the requested
+@var{key} value is not found in the database.
+
+@kwindex GDBM_REORGANIZE_FAILED
+@item GDBM_REORGANIZE_FAILED
+The @code{gdbm_reorganize} function is not
+able to create a temporary database.  @xref{Reorganization}.
+
+@kwindex GDBM_CANNOT_REPLACE
+@item GDBM_CANNOT_REPLACE
+Cannot replace existing item.  This error is set by the
+@code{gdbm_store} if the requested @var{key} value is found in the
+database and the @var{flag} parameter is not @samp{GDBM_REPLACE}.
+@xref{Store}, for a detailed discussion.
+
+@kwindex GDBM_ILLEGAL_DATA
+@item GDBM_ILLEGAL_DATA
+Either @var{key} or @var{content} parameter was wrong in a call to
+to @code{gdbm_store} (@pxref{Store}).
+
+@kwindex GDBM_OPT_ALREADY_SET
+@item GDBM_OPT_ALREADY_SET      
+Requested option can be set only once and was already set.  This error
+is returned by the @code{gdbm_setopt} function.  @xref{Options,
+GDBM_CACHESIZE}.
+
+@kwindex GDBM_OPT_ILLEGAL
+@item GDBM_OPT_ILLEGAL
+The @var{option} argument is not valid or the @var{value} argument
+points to an invalid value in a call to @code{gdbm_setopt} function.
+@xref{Options}.
+
+@kwindex GDBM_BYTE_SWAPPED
+@item GDBM_BYTE_SWAPPED
+The @code{gdbm_open} function (@pxref{Open}) attempts to open a
+database which is created on a machine with different byte ordering.
+
+@kwindex GDBM_BAD_FILE_OFFSET
+@item GDBM_BAD_FILE_OFFSET
+The @code{gdbm_open} function (@pxref{Open}) sets this error code if
+the file it tries to open has a wrong magic number.
+
+@kwindex GDBM_BAD_OPEN_FLAGS
+@item GDBM_BAD_OPEN_FLAGS
+@c FIXME: xref?
+Set by the @code{gdbm_export} function if supplied an invalid
+@var{flags} argument.
 @end table
 
-@node Compatibility, Bugs, Variables, Top
+@node Compatibility
 @chapter Compatibility with standard @code{dbm} and @code{ndbm}.
 
-GNU @code{dbm} files are not @code{sparse}. You can copy them with the UNIX
+GNU @code{dbm} files are not @code{sparse}.  You can copy them with the UNIX
 @code{cp} command and they will not expand in the copying process.
 
 There is a compatibility mode for use with programs that already use UNIX
 @code{dbm} and UNIX @code{ndbm}.
 
-GNU @code{dbm} has compatibility functions for @code{dbm}. For @code{dbm}
-compatibility functions, you need the include file @code{dbm.h}.
+GNU @code{dbm} has compatibility functions for @code{dbm}.  For @code{dbm}
+compatibility functions, you need the include file @file{dbm.h}.
 
 In this compatibility mode, no @code{gdbm} file pointer is required
-by the user, and Only one file may be opened at a time. All users in
-compatibility mode are assumed to be writers. If the @code{gdbm} file is a
-read only, it will fail as a writer, but will also try to open it as a reader.
-All returned pointers in datum structures point to data that @code{gdbm} WILL
-free. They should be treated as static pointers (as standard UNIX @code{dbm}
-does). The compatibility function names are the same as the UNIX @code{dbm}
-function names. Their definitions follow:
+by the user, and only one file may be opened at a time.  All users in
+compatibility mode are assumed to be writers.  If the @code{gdbm} file is a
+read only one, it will fail as a writer, but the library will try to open it
+as a reader.  All returned pointers in datum structures point to data
+that @code{gdbm} @emph{will} free.  They should be treated as static
+pointers (as standard UNIX @code{dbm} does).  The compatibility
+function names are the same as the UNIX @code{dbm} function
+names.  Their definitions follow:
 
 @example
 int dbminit(name);
@@ -950,15 +1181,16 @@ int dbmclose();
 @end example
 
 Standard UNIX @code{dbm} and GNU @code{dbm} do not have the same data
-format in the file. You cannot access a standard UNIX @code{dbm} file with GNU
-@code{dbm}!  If you want to use an old database with GNU @code{dbm}, you must
-use the @code{conv2gdbm} program.
+format in the file.  You cannot access a standard UNIX @code{dbm} file
+with GNU @code{dbm}!  If you want to use an old database with GNU
+@code{dbm}, you must use the @code{conv2gdbm} program.
+@c FIXME: What's it? Where to get it?
 
-Also, GNU @code{dbm} has compatibility functions for @code{ndbm}. For
+Also, GNU @code{dbm} has compatibility functions for @code{ndbm}.  For
 @code{ndbm} compatibility functions, you need the include file @code{ndbm.h}.
 
 Again, just like @code{ndbm}, any returned datum can be assumed to be static
-storage. You do not have to free that memory, the @code{ndbm} compatibility
+storage.  You do not have to free that memory, the @code{ndbm} compatibility
 functions will do it for you.
 
 The functions are:
@@ -978,36 +1210,38 @@ int dbm_pagfno(file);
 int dbm_rdonly(file);
 @end example
 
-If you want to compile an old C program that used UNIX @code{dbm} or @code{ndbm}
-and want to use @code{gdbm} files, execute the following @code{cc} command:
+If you want to compile an old C program that used UNIX @code{dbm} or
+@code{ndbm} and want to use @code{gdbm} files, execute the following
+@code{cc} command:
 
 @example
 cc ... -L/usr/local/lib -lgdbm -lgdbm_compat
 @end example
 
-@node Bugs, GNU Free Documentation License, Compatibility, Top
+@node Bugs
 @chapter Problems and bugs.
 
 If you have problems with GNU @code{dbm} or think you've found a bug,
-please report it. Before reporting a bug, make sure you've actually
-found a real bug. Carefully reread the documentation and see if it
-really says you can do what you're trying to do. If it's not clear
+please report it.  Before reporting a bug, make sure you've actually
+found a real bug.  Carefully reread the documentation and see if it
+really says you can do what you're trying to do.  If it's not clear
 whether you should be able to do something or not, report that too; it's
 a bug in the documentation!
 
 Before reporting a bug or trying to fix it yourself, try to isolate it
-to the smallest possible input file that reproduces the problem. Then
-send us the input file and the exact results @code{gdbm} gave you. Also
+to the smallest possible input file that reproduces the problem.  Then
+send us the input file and the exact results @code{gdbm} gave you.  Also
 say what you expected to occur; this will help us decide whether the
 problem was really in the documentation.
 
 Once you've got a precise problem, send e-mail to
 @email{bug-gdbm@@gnu.org}.
 
-Please include the version number of GNU @code{dbm} you are using. You can get
-this information by printing the variable @code{gdbm_version} (see Variables).
+Please include the version number of GNU @code{dbm} you are using.  You can get
+this information by printing the variable @code{gdbm_version}
+(@pxref{Variables}).
 
-Non-bug suggestions are always welcome as well. If you have questions
+Non-bug suggestions are always welcome as well.  If you have questions
 about things that are unclear in the documentation or are just obscure
 features, please report them too.
 
@@ -1016,12 +1250,12 @@ You may contact the authors and maintainers by e-mail:
 @file{phil@@cs.wwu.edu}, @file{downsj@@downsj.com}, @file{gray@@gnu.org.ua}
 @end example
 
-@node GNU Free Documentation License, Index, Bugs, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 
 @include fdl.texi
 
-@node Index, , GNU Free Documentation License, Top
+@node Index
 @unnumbered Index
 
 @printindex cp
