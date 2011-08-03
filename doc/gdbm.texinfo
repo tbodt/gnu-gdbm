@@ -1083,7 +1083,7 @@ Display program version and licensing information, and exit.
 @node Variables
 @chapter Useful global variables.
 
-The following two variables are variables that may need to be used:
+The following global variables and constants are available:
 
 @deftypevar gdbm_error gdbm_errno
 This variable contains error code from the last failed @code{gdbm}
@@ -1096,6 +1096,36 @@ descriptive text.
 
 @deftypevar const char *gdbm_version
 A string containing the version information.
+@end deftypevar
+
+@deftypevar int const gdbm_version_number[3]
+This variable contains the @code{gdbm} version numbers:
+
+@multitable @columnfractions 0.4 0.5
+@headitem Index @tab Meaning
+@item 0         @tab Major number
+@item 1         @tab Minor number
+@item 2         @tab Patchlevel number
+@end multitable
+
+Additionally, the following constants are defined in the @file{gdbm.h}
+file:
+
+@table @asis
+@kwindex GDBM_VERSION_MAJOR
+@item GDBM_VERSION_MAJOR
+Major number.
+
+@kwindex GDBM_VERSION_MINOR
+@item GDBM_VERSION_MINOR
+Minor number.
+
+@kwindex GDBM_VERSION_PATCH
+@item GDBM_VERSION_PATCH
+Patchlevel number.
+@end table
+
+These can be used to verify whether the header file matches the library.
 @end deftypevar
 
 @deftypevar const char * const gdbm_errlist[]
