@@ -22,6 +22,13 @@
 @defcodeindex fl
 @syncodeindex fl cp
 
+@c Merge all indices into a single one
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex ky cp
+@syncodeindex pg cp
+@syncodeindex tp cp
+
 @iftex
 @finalout
 @end iftex
@@ -122,6 +129,7 @@ Functions:
 * Sequential::                 Sequential access to records.
 * Reorganization::             Database reorganization.
 * Sync::                       Insure all writes to disk have competed.
+* Flat files::                 Export and import to Flat file format.
 * Errors::                     Convert internal error codes into English.
 * Options::                    Setting internal options.
 * Locking::                    File locking.
@@ -300,12 +308,12 @@ chmod(2) man page},
 @end ifnothtml
 and
 @ifhtml
-@uref{http://www.manpagez.com/man/2/open},
+@uref{http://www.manpagez.com/man/2/open}),
 @end ifhtml
 @ifnothtml
-@pxref{open,,open a file,open(2), open(2) man page}
+@pxref{open,,open a file,open(2), open(2) man page}),
 @end ifnothtml
-), which is used if the file is created).
+which is used if the file is created).
 @item fatal_func
 A function for @code{gdbm} to call if it detects a fatal error.  The only
 parameter of this function is a string.  If the value of @samp{NULL} is
@@ -604,6 +612,83 @@ The @code{gdbm_close} function automatically calls the equivalent of
 immediately after the set of changes have been made.
 @end deftypefn
 
+@node Flat files
+@chapter Export and Import
+@cindex Flat file format
+@cindex export
+@cindex import
+@code{Gdbm} databases can be converted into a protable @dfn{flat
+format}.  This format can be used, for example, to migrate between
+the different versions of @code{gdbm} databases.  Generally speaking,
+flat files are safe to send over the network, and can be used to
+recreate the database on another machine.  The recreated database is
+guaranteed to be a byte-to-byte equivalent of the database from which
+the flat file was created.  This does not necessarily mean, however,
+that this file can be used in the same way as the original one.  For
+example, if the original database contained non-@acronym{ASCII} data
+(e.g.  @acronym{C} structures, integers etc.), the recreated database
+can be of any use only if the target machine has the same integer
+size and byte ordering as the source one and if its @acronym{C}
+compiler uses the same packing conventions as the one which generated
+@acronym{C} which populated the original database.  In general, such
+binary databases are not portable between machines, unless you follow
+some stringent rules on what data is written to them and how it is
+interpreted.
+
+@deftypefn {gdbm interface} int gdbm_export (GDBM_FILE @var{dbf}, @
+           const char *@var{exportfile}, int @var{flag}, int @var{mode})
+Create a flat file from the @code{gdbm} database.  The parameters are:
+
+@table @var
+@item dbf
+A pointer to the source database, returned by a call to
+@code{gdbm_open}.  The database must be open in @samp{GDBM_WRITER} mode.
+
+@item exportfile
+The name of the output file.
+
+@item flag
+@kwindex GDBM_WRCREAT
+@kwindex GDBM_NEWDB
+How to create the output file.  If @var{flag} is @samp{GDBM_WRCREAT},
+the file will be created if it does not exist already.  Otherwise, if
+it is @samp{GDBM_NEWDB}, it will be created if it does not exist, and
+truncated otherwise.
+
+@item mode
+The permissions to use when creating the output file.
+See @ifhtml
+@uref{http://www.manpagez.com/man/2/open},
+@end ifhtml
+@ifnothtml
+@ref{open,,open a file,open(2), open(2) man page},
+@end ifnothtml
+for a detailed discussion.
+@end table
+@end deftypefn
+
+@deftypefn {gdbm interface} int gdbm_import (GDBM_FILE @var{dbf}, @
+           const char *@var{importfile}, int @var{flag})
+Populates the database from an existing flat file.
+
+@table @var
+@item dbf
+A pointer to the source database, returned by a call to
+@code{gdbm_open}.  The database must be open in @samp{GDBM_WRITER} mode.
+
+@item importfile
+The name of the input flat file.  The file must exist.
+
+@item flag
+The @var{flag} argument to be passed to @code{gdbm_store} function
+when adding new records.  @xref{Store}, for a description of its
+effect.
+@end table
+@end deftypefn
+
+See also @ref{gdbmexport}, @ref{testgdbm export}, and
+@ref{testgdbm import}.
+
 @node Errors
 @chapter Error strings.
 
@@ -828,7 +913,7 @@ error and exits immediately.
 
 @anchor{pager}
 @cindex pager, @command{testgdbm}
-@cindex @env{PAGER}.
+@cindex @env{PAGER}
 Some commands produce excessive amounts of output.  To help you follow
 it, @command{testgdbm} will use a pager utility to display such
 output.  The name of the pager utility is taken from the environment
@@ -850,19 +935,22 @@ The following table summarizes all available commands:
 Print the number of entries in the database.
 @item d @var{key}
 Delete entry with a given @var{key}
+@anchor{testgdbm export}
 @item e @var{file-name} [truncate]
-Export the database (similar to @command{gdbmexport},
-@pxref{gdbmexport}) to file @var{file-name}.  This command will not
-overwrite an existing file, unless the word @samp{truncate} is given
-as its second argument.
+Export the database to the flat file @var{file-name}.  @xref{Flat files},
+for a description of the flat file format and its purposes.  This
+command will not overwrite an existing file, unless the word
+@samp{truncate} is given as its second argument.
+
+See also @ref{gdbmexport}.
 
 @item f @var{key}
 Fetch and display a record with the given @var{key}.
 
-@anchor{import}
+@anchor{testgdbm import}
 @item i @var{file-name} [replace]
 Import data from a flat dump file @var{file-name}
-(@pxref{gdbmexport}).  If the word @samp{replace} is given
+(@pxref{Flat files}).  If the word @samp{replace} is given
 as the second argument, any records with the same keys as the already
 existing ones will replace them.
 
@@ -961,8 +1049,9 @@ Quit the program.
 
 The @command{gdbmexport} utility converts the database into a portable
 @dfn{flat format}.  Files in this format can be used to populate
-databases using the @code{i} command of @command{testgdbm} utility
-(@pxref{import}).  In many cases files in this format are suitable for
+databases using the @code{gdbm_import} function (@pxref{Flat files,
+gdbm_import}) or the @code{i} command of @command{testgdbm} utility
+(@pxref{testgdbm import}).  In many cases files in this format are suitable for
 sending over the network to populate the database on another machine.
 The only exception to this are databases whose records contain
 non-@acronym{ASCII} data (e.g.  @acronym{C} structures, integers
@@ -992,7 +1081,7 @@ Display program version and licensing information, and exit.
 @end table
 
 @node Variables
-@chapter Two useful variables.
+@chapter Useful global variables.
 
 The following two variables are variables that may need to be used:
 
@@ -1008,6 +1097,23 @@ descriptive text.
 @deftypevar const char *gdbm_version
 A string containing the version information.
 @end deftypevar
+
+@deftypevar const char * const gdbm_errlist[]
+This variable is an array of error descriptions, which is used by
+@code{gdbm_strerror} to convert error codes to human-readable text
+(@pxref{Errors}).  You can access it directly, if you wish so.  It
+contains @code{_GDBM_MAX_ERRNO + 1} elements and can be directly
+indexed by the error code to obtain a corresponding descriptive
+text.
+@end deftypevar
+
+@defvr {Constant} _GDBM_MIN_ERRNO
+The minimum error code used by @code{gdbm}.
+@end defvr
+
+@defvr {Constant} _GDBM_MAX_ERRNO
+The maximum error code used by @code{gdbm}.
+@end defvr
 
 @node Error codes
 @chapter Error codes
@@ -1031,10 +1137,9 @@ the value of its @var{block_size} argument is incorrect.
 
 @kwindex GDBM_FILE_OPEN_ERROR
 @item GDBM_FILE_OPEN_ERROR
-@c FIXME: Neither gdbm_export nor gdbm_import are described in this doc!
 The library was not able to open a disk file.  This can be set by
 @code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
-@code{gdbm_import} functions.
+@code{gdbm_import} functions (@pxref{Flat files}).
 
 @kwindex GDBM_FILE_WRITE_ERROR
 @item GDBM_FILE_WRITE_ERROR
@@ -1143,9 +1248,8 @@ the file it tries to open has a wrong magic number.
 
 @kwindex GDBM_BAD_OPEN_FLAGS
 @item GDBM_BAD_OPEN_FLAGS
-@c FIXME: xref?
 Set by the @code{gdbm_export} function if supplied an invalid
-@var{flags} argument.
+@var{flags} argument.  @xref{Flat files}.
 @end table
 
 @node Compatibility
@@ -1247,7 +1351,7 @@ features, please report them too.
 
 You may contact the authors and maintainers by e-mail:
 @example
-@file{phil@@cs.wwu.edu}, @file{downsj@@downsj.com}, @file{gray@@gnu.org.ua}
+@email{phil@@cs.wwu.edu}, @email{downsj@@downsj.com}, @email{gray@@gnu.org.ua}
 @end example
 
 @node GNU Free Documentation License
