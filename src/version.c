@@ -19,8 +19,11 @@
 
 #include "autoconf.h"
 
-/* Keep a string with the version number in it! */
-const char * gdbm_version = "GDBM version 1.9.0. xx/xx/2007"
+/* Keep a string with the version number in it.
+   The DIST_DATE magic below is replaced by the actual date when
+   making the distdir. */
+const char * gdbm_version = "GDBM version " PACKAGE_VERSION ". "
+/*@DIST_DATE@*/
 #if defined(__STDC__) && defined(__DATE__) && defined(__TIME__)
 		" (built " __DATE__ " " __TIME__ ")"
 #endif
