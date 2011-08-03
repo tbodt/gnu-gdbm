@@ -27,12 +27,10 @@
 
 extern const char * gdbm_version;
 
-int
-gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
-#else
-int
-gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
 #endif
+
+int
+gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
 {
   int nfd, size;
   datum key, nextkey, data;
@@ -41,7 +39,8 @@ gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
   int count = 0;
 
   /* Only support GDBM_WCREAT or GDBM_NEWDB */
-  switch (flags) {
+  switch (flags)
+    {
     case GDBM_WRCREAT:
       nfd = open (exportfile, O_WRONLY | O_CREAT | O_EXCL, mode);
       if (nfd == -1)
@@ -66,7 +65,7 @@ gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
 #endif
       return -1;
   }
-
+  
   /* Write out the text header. */
   if (write (nfd, header1, strlen (header1)) != strlen (header1))
     goto write_fail;
@@ -100,15 +99,15 @@ gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
       free (key.dptr);
       free (data.dptr);
       key = nextkey;
-
+      
       count++;
     }
   close (nfd);
-
+  
   return count;
-
-write_fail:
-
+  
+ write_fail:
+  
   gdbm_errno = GDBM_FILE_WRITE_ERROR;
   return -1;
 }
