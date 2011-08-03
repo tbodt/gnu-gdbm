@@ -17,27 +17,16 @@
 # Flags
 AM_CPPFLAGS=-DIN_GDBM
 
-# Built sources
-BUILT_SOURCES = gdbm.h
-DISTCLEANFILES = gdbm.h
-
-gdbm.h:	$(top_srcdir)/src/gdbm.proto $(top_srcdir)/src/gdbmerrno.h $(top_srcdir)/src/gdbm.proto2
-	rm -f gdbm.h
-	cp $(top_srcdir)/src/gdbm.proto gdbm.h
-	chmod +w gdbm.h
-	grep _ $(top_srcdir)/src/gdbmerrno.h >> gdbm.h
-	cat $(top_srcdir)/src/gdbm.proto2 >> gdbm.h
-	chmod -w gdbm.h
-
-# Extras
-EXTRA_DIST = gdbm.proto gdbmerrno.h gdbm.proto2
+# Headers
+include_HEADERS = gdbm.h
 noinst_HEADERS = \
  extern.h\
  gdbmconst.h\
  gdbmdefs.h\
- gdbmerrno.h\
  proto.h\
  systems.h
+
+EXTRA_DIST = gdbm.h.in
 
 # The libraries
 VI_CURRENT  = 4
