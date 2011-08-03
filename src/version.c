@@ -18,6 +18,7 @@
    along with GDBM. If not, see <http://www.gnu.org/licenses/>.   */
 
 #include "autoconf.h"
+#include "gdbm.h"
 
 /* Keep a string with the version number in it.
    The DIST_DATE magic below is replaced by the actual date when
@@ -27,4 +28,9 @@ const char * gdbm_version = "GDBM version " PACKAGE_VERSION ". "
 #if defined(__STDC__) && defined(__DATE__) && defined(__TIME__)
 		" (built " __DATE__ " " __TIME__ ")"
 #endif
-		;
+;
+int const gdbm_version_number[3] = {
+  GDBM_VERSION_MAJOR,
+  GDBM_VERSION_MINOR,
+  GDBM_VERSION_PATCH
+};
