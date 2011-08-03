@@ -1,5 +1,10 @@
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* src/gdbmdefs.h (struct gdbm_file_info) <name>: Remove
+	the static qualifier.
+
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* src/gdbm.proto2: Remove a leftover __P wrapper.
 	* src/gdbmsetopt.c (gdbm_setopt): Avoid coredumps on NULL
 	optval.
