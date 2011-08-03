@@ -23,3 +23,8 @@ if ENABLE_EXPORT
   MAYBE_EXPORT = export
 endif
 SUBDIRS = src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
+
+dist-hook:
+	d=`date '+%d/%m/%Y'`; \
+	sed 's|/\*@DIST_DATE@\*/|"'"$$d"'"|' $(srcdir)/src/version.c > \
+		$(distdir)/src/version.c
