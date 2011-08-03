@@ -1,5 +1,17 @@
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* doc/Makefile.am (check-fixmes): New rule.
+	* doc/gdbm.texinfo: Document flat format and related
+	functions.
+
+	* src/flatfile.c: Minor changes.
+	* src/gdbmerrno.c (gdbm_errlist): Indicate the size of
+	array and document its entries to minimize the possibility
+	of errors when editing it.
+	* src/gdbmerrno.h (gdbm_errlist): New prototype.
+
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* src/gdbmdefs.h (struct gdbm_file_info) <name>: Remove
 	the static qualifier.
 
