@@ -20,11 +20,11 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
+#include <arpa/inet.h>
 
 #include "gdbmdefs.h"
 #include "extern.h"
-
-extern const char * gdbm_version;
+#include "gdbm.h"
 
 #endif
 
