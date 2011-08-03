@@ -1,5 +1,11 @@
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* Makefile.am (dist-hook): Replace /*@DIST_DATE@*/ with
+	the actual distribution date.
+	* src/version.c (gdbm_version): Update automatically.
+
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* (all files): Update copyright headers.
 
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
