@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,5 +17,52 @@
 # Documentation
 
 info_TEXINFOS = gdbm.texinfo
+gdbm_TEXINFOS=\
+  fdl.texi
+
 man_MANS   = gdbm.3
-EXTRA_DIST = $(man_MANS) fdl.texi
+EXTRA_DIST = $(man_MANS)
+
+GENDOCS=gendocs.sh 
+
+TEXI2DVI=texi2dvi -E
+
+# Make sure you set TEXINPUTS.
+# TEXINPUTS=/usr/share/texmf/pdftex/plain/misc/ is ok for most distributions
+.PHONY: manual
+manual:
+	TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$(TEXINPUTS) \
+	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS)" \
+	 TEXI2DVI="$(TEXI2DVI) -t @finalout" \
+	 $(GENDOCS) --texi2html $(PACKAGE) '$(PACKAGE_NAME) manual'
+
+# Checking
+check-tabs:
+	@if test -n "`cat $(info_TEXINFOS) $(gdbm_TEXINFOS) | tr -d -c '\t'`"; then \
+		echo "Sources contain tabs; run make untabify"; \
+		false; \
+	fi
+
+check-sentence-spacing:
+	@if grep -q '\. [@A-Z]' $(info_TEXINFOS) $(gdbm_TEXINFOS); then \
+		echo >&2 "Sources contain single-space sentence separators"; \
+		echo >&2 "Run make fix-sentence-spacing to fix"; \
+	fi
+
+check-format: check-tabs check-sentence-spacing
+
+check-docs: check-format
+
+untabify:
+	emacs -batch -l untabify.el $(info_TEXINFOS) $(cfpeek_TEXINFOS)
+
+fix-sentence-spacing:
+	for file in $(info_TEXINFOS) $(cfpeek_TEXINFOS); \
+	do \
+		if grep -q '\. [@A-Z]' $$file; then \
+			mv $$file $${file}~; \
+			sed -r 's/\. ([@A-Z])/.  \1/g' $${file}~ > $$file; \
+		fi; \
+	done
+
+final: untabify fix-sentence-spacing
