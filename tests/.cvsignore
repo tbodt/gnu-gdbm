@@ -9,6 +9,7 @@ gtdel
 gtdump
 gtfetch
 gtload
+gtver
 num2word
 package.m4
 testsuite
