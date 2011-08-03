@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-extern const char *gdbm_strerror __P((gdbm_error));
+extern const char *gdbm_strerror (gdbm_error);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }
