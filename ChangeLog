@@ -1,5 +1,12 @@
 2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* tests/gtver.c: New file.
+	* tests/Makefile.am (check_PROGRAMS): Add gtver.
+	* tests/.cvsignore: Update.
+	* tests/version.at: Use gtver instead of testgdbm.
+
+2011-08-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* src/gdbm.proto: Remove.
 	* src/gdbm.proto2: Remove.
 	* src/gdbmerrno.h: Remove.
