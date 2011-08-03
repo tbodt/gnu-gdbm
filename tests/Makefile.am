@@ -82,6 +82,7 @@ check_PROGRAMS = \
  gtdump\
  gtfetch\
  gtload\
+ gtver\
  num2word
 
 INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
@@ -89,7 +90,7 @@ gtdel_LDADD = ../src/libgdbm.la
 gtload_LDADD = ../src/libgdbm.la
 gtdump_LDADD = ../src/libgdbm.la
 gtfetch_LDADD = ../src/libgdbm.la
-
+gtver_LDADD = ../src/libgdbm.la
 
 
 
