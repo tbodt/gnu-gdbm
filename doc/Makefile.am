@@ -49,9 +49,24 @@ check-sentence-spacing:
 		echo >&2 "Run make fix-sentence-spacing to fix"; \
 	fi
 
+check-fixmes:
+	@for file in $(info_TEXINFOS) $(gdbm_TEXINFOS); \
+	do \
+	  sed -e = $$file | \
+           sed -n 'N;/@c  *FIXME:/{s/\(^[0-9][0-9]*\).*@c  *FIXME:\(.*\)/'$$file':\1: \2/gp}'; \
+	done > $@-t; \
+	if [ -s $@-t ]; then \
+	  echo "Unresolved FIXMEs:"; \
+	  cat $@-t; \
+	  rm $@-t; \
+	  false; \
+	else \
+          rm -f $@-t; \
+	fi
+
 check-format: check-tabs check-sentence-spacing
 
-check-docs: check-format
+check-docs: check-format check-fixmes
 
 untabify:
 	emacs -batch -l untabify.el $(info_TEXINFOS) $(cfpeek_TEXINFOS)
