@@ -1,7 +1,7 @@
 /* gdbmerrno.c - convert gdbm errors into english. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1993, 2007  Free Software Foundation, Inc.
+   Copyright (C) 1993, 2007, 2011  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,14 +25,31 @@
 /* this is not static so that applications may access the array if they
    like. it must be in the same order as the error codes! */
 
-const char * const gdbm_errlist[] = {
-  "No error", "Malloc error", "Block size error", "File open error",
-  "File write error", "File seek error", "File read error",
-  "Bad magic number", "Empty database", "Can't be reader", "Can't be writer",
-  "Reader can't delete", "Reader can't store", "Reader can't reorganize",
-  "Unknown update", "Item not found", "Reorganize failed", "Cannot replace",
-  "Illegal data", "Option already set", "Illegal option", "Byte-swapped file",
-  "Wrong file offset", "Bad file flags"
+const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
+  "No error",                    /* GDBM_NO_ERROR               */
+  "Malloc error",		 /* GDBM_MALLOC_ERROR       	*/
+  "Block size error",		 /* GDBM_BLOCK_SIZE_ERROR   	*/
+  "File open error",		 /* GDBM_FILE_OPEN_ERROR    	*/
+  "File write error",		 /* GDBM_FILE_WRITE_ERROR   	*/
+  "File seek error",		 /* GDBM_FILE_SEEK_ERROR    	*/
+  "File read error",		 /* GDBM_FILE_READ_ERROR    	*/
+  "Bad magic number",		 /* GDBM_BAD_MAGIC_NUMBER   	*/
+  "Empty database",		 /* GDBM_EMPTY_DATABASE     	*/
+  "Can't be reader",		 /* GDBM_CANT_BE_READER     	*/
+  "Can't be writer",		 /* GDBM_CANT_BE_WRITER     	*/
+  "Reader can't delete",	 /* GDBM_READER_CANT_DELETE 	*/
+  "Reader can't store",		 /* GDBM_READER_CANT_STORE  	*/
+  "Reader can't reorganize",	 /* GDBM_READER_CANT_REORGANIZE */
+  "Unknown update",		 /* GDBM_UNKNOWN_UPDATE     	*/
+  "Item not found",		 /* GDBM_ITEM_NOT_FOUND     	*/
+  "Reorganize failed",		 /* GDBM_REORGANIZE_FAILED  	*/
+  "Cannot replace",		 /* GDBM_CANNOT_REPLACE     	*/
+  "Illegal data",		 /* GDBM_ILLEGAL_DATA       	*/
+  "Option already set",		 /* GDBM_OPT_ALREADY_SET    	*/
+  "Illegal option",		 /* GDBM_OPT_ILLEGAL        	*/
+  "Byte-swapped file",		 /* GDBM_BYTE_SWAPPED       	*/
+  "Wrong file offset",		 /* GDBM_BAD_FILE_OFFSET    	*/
+  "Bad file flags"		 /* GDBM_BAD_OPEN_FLAGS     	*/
 };
 
 const char *
