@@ -10,4 +10,5 @@ config.log
 config.status
 configure
 libtool
+m4
 stamp-h1
