@@ -19,21 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gdbm.h"
-
-const char *
-canonical_progname (const char *str)
-{
-  const char *p;
-
-  p = strrchr (str, '/');
-  if (p)
-    p++;
-  else
-    p = str;
-  if (strncmp (p, "lt-", 3) == 0)
-    p += 3;
-  return p;
-}
+#include "progname.h"
 
 int
 main (int argc, char **argv)

@@ -19,21 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "gdbm.h"
-
-const char *
-canonical_progname (const char *str)
-{
-  const char *p;
-
-  p = strrchr (str, '/');
-  if (p)
-    p++;
-  else
-    p = str;
-  if (strncmp (p, "lt-", 3) == 0)
-    p += 3;
-  return p;
-}
+#include "progname.h"
 
 #define major_number(lib) ((lib) ? gdbm_version_number[0] : GDBM_VERSION_MAJOR)
 #define minor_number(lib) ((lib) ? gdbm_version_number[1] : GDBM_VERSION_MINOR)

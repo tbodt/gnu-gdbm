@@ -19,21 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gdbm.h"
-
-const char *
-canonical_progname (const char *str)
-{
-  const char *p;
-
-  p = strrchr (str, '/');
-  if (p)
-    p++;
-  else
-    p = str;
-  if (strncmp (p, "lt-", 3) == 0)
-    p += 3;
-  return p;
-}
+#include "progname.h"
 
 int
 main (int argc, char **argv)
@@ -100,6 +86,11 @@ main (int argc, char **argv)
   dbname = *argv;
   
   dbf = gdbm_open (dbname, block_size, mode|flags, 00664, NULL);
+  if (!dbf)
+    {
+      fprintf (stderr, "gdbm_open failed: %s\n", gdbm_strerror (gdbm_errno));
+      exit (1);
+    }
 
   while (fgets (buf, sizeof buf, stdin))
     {

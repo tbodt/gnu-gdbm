@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gdbm.h"
+#include "progname.h"
 
 void
 print_key (FILE *fp, datum key, int delim)
@@ -31,21 +32,6 @@ print_key (FILE *fp, datum key, int delim)
 	fputc ('\\', fp);
       fputc (key.dptr[i], fp);
     }
-}
-
-const char *
-canonical_progname (const char *str)
-{
-  const char *p;
-
-  p = strrchr (str, '/');
-  if (p)
-    p++;
-  else
-    p = str;
-  if (strncmp (p, "lt-", 3) == 0)
-    p += 3;
-  return p;
 }
 
 int
