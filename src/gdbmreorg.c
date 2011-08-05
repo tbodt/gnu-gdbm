@@ -21,7 +21,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "extern.h"
 
 #if !HAVE_RENAME
 

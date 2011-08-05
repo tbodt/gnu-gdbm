@@ -23,7 +23,6 @@
 #include <arpa/inet.h>
 
 #include "gdbmdefs.h"
-#include "extern.h"
 #include "gdbm.h"
 
 #endif

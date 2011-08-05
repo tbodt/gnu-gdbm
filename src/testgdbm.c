@@ -22,7 +22,6 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
-#include "extern.h"
 
 #include <errno.h>
 #include <ctype.h>
