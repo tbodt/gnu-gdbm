@@ -1305,20 +1305,18 @@ function names are the same as the UNIX @code{dbm} function
 names.  Their definitions follow:
 
 @example
-int dbminit(name);
-int store(key, content);
-datum fetch(key);
-int delete(key);
-datum firstkey();
-datum nextkey(key);
-int dbmclose();
+int     dbminit (char *file);
+datum   fetch (datum key);
+int     store (datum key, datum content);
+int     delete (datum key);
+datum   firstkey (void);
+datum   nextkey (datum key);
+int     dbmclose (void);
 @end example
 
 Standard UNIX @code{dbm} and GNU @code{dbm} do not have the same data
 format in the file.  You cannot access a standard UNIX @code{dbm} file
-with GNU @code{dbm}!  If you want to use an old database with GNU
-@code{dbm}, you must use the @code{conv2gdbm} program.
-@c FIXME: What's it? Where to get it?
+with GNU @code{dbm}!
 
 Also, GNU @code{dbm} has compatibility functions for @code{ndbm}.  For
 @code{ndbm} compatibility functions, you need the include file @code{ndbm.h}.
@@ -1330,18 +1328,18 @@ functions will do it for you.
 The functions are:
 
 @example
-DBM *dbm_open(name, flags, mode);
-void dbm_close(file);
-datum dbm_fetch(file, key);
-int dbm_store(file, key, @code{content}, flags);
-int dbm_delete(file, key);
-datum dbm_firstkey(file);
-datum dbm_nextkey(file);
-int dbm_error(file);
-int dbm_clearerr(file);
-int dbm_dirfno(file);
-int dbm_pagfno(file);
-int dbm_rdonly(file);
+DBM     *dbm_open (char *file, int flags, int mode);
+void     dbm_close (DBM *dbf);
+datum    dbm_fetch (DBM *dbf, datum key);
+int      dbm_store (DBM *dbf, datum key, datum content, int flags);
+int      dbm_delete (DBM *dbf, datum key);
+datum    dbm_firstkey (DBM *dbf);
+datum    dbm_nextkey (DBM *dbf);
+int dbm_error(DBM *dbf);
+void dbm_clearerr(DBM *dbf)
+int      dbm_dirfno (DBM *dbf);
+int      dbm_pagfno (DBM *dbf);
+int      dbm_rdonly (DBM *dbf);
 @end example
 
 If you want to compile an old C program that used UNIX @code{dbm} or
