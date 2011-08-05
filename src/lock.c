@@ -84,6 +84,9 @@ _gdbm_unlock_file (GDBM_FILE dbf)
 	fcntl (dbf->desc, F_SETLK, &fl);
 #endif
 	break;
+
+      case LOCKING_NONE:
+        break;
     }
 
   dbf->lock_type = LOCKING_NONE;
