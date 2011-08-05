@@ -5,6 +5,7 @@
 	AT_PACKAGE_VERSION_MINOR, and AT_PACKAGE_VERSION_PATCH.
 	* src/lock.c: Shut the gcc warning.
 	* doc/gdbm.texinfo: Minor fixes.
+	* src/testgdbm.c (error): Bugfix.
 	
 2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
