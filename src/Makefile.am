@@ -20,7 +20,6 @@ AM_CPPFLAGS=-DIN_GDBM
 # Headers
 include_HEADERS = gdbm.h
 noinst_HEADERS = \
- extern.h\
  gdbmconst.h\
  gdbmdefs.h\
  proto.h\
@@ -51,7 +50,6 @@ libgdbm_la_SOURCES = \
  falloc.c\
  findkey.c\
  flatfile.c\
- global.c\
  hash.c\
  lock.c\
  mmap.c\
