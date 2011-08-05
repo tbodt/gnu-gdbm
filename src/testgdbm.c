@@ -184,7 +184,7 @@ error (int code, char *fmt, ...)
   fprintf (stderr, "%s: ", progname);
   va_start (ap, fmt);
   vfprintf (stderr, fmt, ap);
-  va_end (fmt);
+  va_end (ap);
   fputc ('\n', stderr);
   if (code)
     exit (code);
