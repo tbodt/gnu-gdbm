@@ -24,6 +24,9 @@ VI_AGE      = 0
 
 lib_LTLIBRARIES = libgdbm_compat.la
 
+include_HEADERS = dbm.h ndbm.h
+noinst_HEADERS = dbm-priv.h
+
 DBM_CF=\
  dbminit.c\
  delete.c\
