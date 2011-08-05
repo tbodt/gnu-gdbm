@@ -23,6 +23,10 @@ m4_define([AT_SORT_PREREQ],[
 test -z "`sort < /dev/null 2>&1`" || AT_SKIP_TEST
 ])
 
+m4_define([AT_COMPAT_PREREQ],[
+test $COMPAT -eq 1 || AT_SKIP_TEST
+])
+
 dnl # Begin tests
 
 AT_INIT
@@ -36,5 +40,14 @@ m4_include([fetch01.at])
 m4_include([delete00.at])
 m4_include([delete01.at])
 m4_include([delete02.at])
+
+m4_include([dbmcreate00.at])
+
+m4_include([dbmfetch00.at])
+m4_include([dbmfetch01.at])
+
+m4_include([dbmdel00.at])
+m4_include([dbmdel01.at])
+m4_include([dbmdel02.at])
 
 # End of testsuite.at
