@@ -1,5 +1,13 @@
 2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* tests/version.at: Update.
+	* tests/Makefile.am: Define AT_PACKAGE_VERSION_MAJOR,
+	AT_PACKAGE_VERSION_MINOR, and AT_PACKAGE_VERSION_PATCH.
+	* src/lock.c: Shut the gcc warning.
+	* doc/gdbm.texinfo: Minor fixes.
+	
+2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* src/global.c: Remove.
 	* src/extern.h: Remove.
 	* src/Makefile.am: Remove extern.h and global.c
