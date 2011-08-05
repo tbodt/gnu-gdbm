@@ -20,9 +20,7 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
-#include "gdbmdefs.h"
-#include "extern.h"
+#include "dbm-priv.h"
 
 /* Start the visit of all keys in the database.  This produces something in
    hash order, not in any sorted order.  */
@@ -30,16 +28,7 @@
 datum
 firstkey (void)
 {
-  datum ret_val;
-
-  /* Free previous dynamic memory, do actual call, and save pointer to new
-     memory. */
-  ret_val = gdbm_firstkey (_gdbm_file);
-  if (_gdbm_memory.dptr != NULL) free (_gdbm_memory.dptr);
-  _gdbm_memory = ret_val;
-
-  /* Return the new value. */
-  return ret_val;
+  return dbm_firstkey (_gdbm_file);
 }
 
 
@@ -48,17 +37,5 @@ firstkey (void)
 datum
 nextkey (datum key)
 {
-  datum ret_val;
-
-  /* Make sure we have a valid key. */
-  if (key.dptr == NULL)
-    return key;
-
-  /* Call gdbm nextkey with supplied value. After that, free the old value. */
-  ret_val = gdbm_nextkey (_gdbm_file, key);
-  if (_gdbm_memory.dptr != NULL) free (_gdbm_memory.dptr);
-  _gdbm_memory = ret_val;
-
-  /* Return the new value. */
-  return ret_val;
+  return dbm_nextkey (_gdbm_file);
 }

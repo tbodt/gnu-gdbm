@@ -18,24 +18,18 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
-#include "gdbmdefs.h"
-#include "extern.h"
-
+#include "dbm-priv.h"
 
 /* It's unclear whether dbmclose() is *always* a void function in old
    C libraries.  We use int, here. */
 
 int
-dbmclose()
+dbmclose ()
 {
   if (_gdbm_file != NULL)
     {
-      gdbm_close (_gdbm_file);
+      dbm_close (_gdbm_file);
       _gdbm_file = NULL;
-      if (_gdbm_memory.dptr != NULL) free(_gdbm_memory.dptr);
-      _gdbm_memory.dptr = NULL;
-      _gdbm_memory.dsize = 0;
     }
   return (0);
 }

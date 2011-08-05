@@ -19,10 +19,7 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
-#include "gdbmdefs.h"
-#include "extern.h"
-
+#include "dbm-priv.h"
 
 /* Look up a given KEY and return the information associated with that KEY.
    The pointer in the structure that is  returned is a pointer to dynamically
@@ -31,15 +28,5 @@
 datum
 fetch (datum key)
 {
-  datum  ret_val;		/* The return value. */
-
-  /* Free previous dynamic memory, do actual call, and save pointer to new
-     memory. */
-  ret_val = gdbm_fetch (_gdbm_file, key);
-  if (_gdbm_fetch_val != NULL) free (_gdbm_fetch_val);
-  _gdbm_fetch_val = ret_val.dptr;
-
-  /* Return the new value. */
-  return ret_val;
-
+  return dbm_fetch (_gdbm_file, key);
 }

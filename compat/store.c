@@ -19,10 +19,7 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
-#include "gdbmdefs.h"
-#include "extern.h"
-
+#include "dbm-priv.h"
 
 /* Add a new element to the database.  CONTENT is keyed by KEY.  The file on
    disk is updated to reflect the structure of the new database before
@@ -31,5 +28,5 @@
 int
 store (datum key, datum content)
 {
-  return gdbm_store (_gdbm_file, key, content, GDBM_REPLACE);
+  return dbm_store (_gdbm_file, key, content, DBM_REPLACE);
 }
