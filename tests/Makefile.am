@@ -44,6 +44,13 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac $(srcdir)/Makefile
 ## ------------ ##
 
 TESTSUITE_AT = \
+ testsuite.at\
+ dbmcreate00.at\
+ dbmdel00.at\
+ dbmdel01.at\
+ dbmdel02.at\
+ dbmfetch00.at\
+ dbmfetch01.at\
  create00.at\
  delete00.at\
  delete01.at\
@@ -77,20 +84,31 @@ check-local: atconfig atlocal $(TESTSUITE)
 ## num2word et al. ##
 ## --------------- ##
 
+if COMPAT_OPT
+ DBMINCLUDES = -I$(top_srcdir)/compat
+ DBMPROGS = dtload dtdump dtfetch dtdel
+endif 
+
 check_PROGRAMS = \
  gtdel\
  gtdump\
  gtfetch\
  gtload\
  gtver\
- num2word
+ num2word\
+ $(DBMPROGS)
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src
+INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src $(DBMINCLUDES)
+noinst_HEADERS=progname.h
 gtdel_LDADD = ../src/libgdbm.la
 gtload_LDADD = ../src/libgdbm.la
 gtdump_LDADD = ../src/libgdbm.la
 gtfetch_LDADD = ../src/libgdbm.la
 gtver_LDADD = ../src/libgdbm.la
 
+dtload_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
+dtdump_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
+dtfetch_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
+dtdel_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 
 
