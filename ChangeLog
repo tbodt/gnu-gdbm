@@ -1,3 +1,69 @@
+2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/global.c: Remove.
+	* src/extern.h: Remove.
+	* src/Makefile.am: Remove extern.h and global.c
+	* src/flatfile.c: Don't include extern.h
+	* src/gdbmreorg.c: Likewise.
+	* src/lock.c: Likewise.
+	* src/testgdbm.c: Likewise.
+	* src/gdbmerrno.c (gdbm_errno): New declaration (from
+	global.c)
+	
+
+	* compat/dbm-priv.h: New file.
+	* compat/dbm.h: New file.
+	* compat/ndbm.h: New file.
+	* compat/Makefile.am (include_HEADERS): Add dbm.h and ndbm.h
+	(noinst_HEADERS): Add dbm-priv.h
+	* compat/close.c: Rewrite using ndbm interface.
+	* compat/dbminit.c: Likewise.
+	* compat/delete.c: Likewise.
+	* compat/fetch.c: Likewise.
+	* compat/seq.c: Likewise.
+	* compat/store.c: Likewise.
+	
+	* compat/dbmclose.c: Include nbdm.h.
+	Use the new DBM declaration.
+	* compat/dbmdelete.c: Likewise.
+	* compat/dbmdirfno.c: Likewise.
+	* compat/dbmfetch.c: Likewise.
+	* compat/dbmopen.c: Likewise.
+	* compat/dbmpagfno.c: Likewise.
+	* compat/dbmrdonly.c: Likewise.
+	* compat/dbmseq.c: Likewise.
+	* compat/dbmstore.c: Likewise.
+
+	* tests/Makefile.am: Add new files.
+	* tests/atlocal.in: Conditionally define COMPAT.
+
+	* tests/create00.at: Update keywords.
+	* tests/delete00.at: Likewise.
+	* tests/delete01.at: Likewise.
+	* tests/delete02.at: Likewise.
+	* tests/fetch00.at: Likewise.
+	* tests/fetch01.at: Likewise.
+
+	* tests/gtdel.c: Include progname.h instead of declaring
+	canonical_progname.
+	* tests/gtdump.c: Likewise.
+	* tests/gtfetch.c: Likewise.
+	* tests/gtload.c: Likewise.
+	* tests/gtver.c: Likewise.
+
+	* tests/testsuite.at (AT_COMPAT_PREREQ): New macro.
+	Add compat test cases.
+	
+	* tests/dtload.c: New file.
+	* tests/dtdump.c: New file.
+	* tests/dtdel.c: New file.
+	* tests/dbmcreate00.at: New test case.
+	* tests/dbmfetch00: Likewise.
+	* tests/dbmfetch01: Likewise.
+	* tests/dbmdel00.at: Likewise.
+	* tests/dbmdel01.at: Likewise.
+	* tests/dbmdel02.at: Likewise.
+
 2011-08-04  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* README: Update.
