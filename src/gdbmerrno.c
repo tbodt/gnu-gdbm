@@ -21,6 +21,9 @@
 
 #include "gdbm.h"
 
+/* The dbm error number is placed in the variable GDBM_ERRNO. */
+gdbm_error gdbm_errno = GDBM_NO_ERROR;
+
 /* this is not static so that applications may access the array if they
    like. it must be in the same order as the error codes! */
 
