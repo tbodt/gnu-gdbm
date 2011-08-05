@@ -20,15 +20,12 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
-#include "gdbmdefs.h"
-#include "extern.h"
-
+#include "ndbm.h"
 
 /* Remove the KEYed item and the KEY from the database DBF. */
 
 int
-dbm_delete (GDBM_FILE dbf, datum key)
+dbm_delete (DBM *dbm, datum key)
 {
-  return gdbm_delete (dbf,key);
+  return gdbm_delete (dbm->file, key);
 }

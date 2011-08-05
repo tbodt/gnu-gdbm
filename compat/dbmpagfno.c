@@ -19,15 +19,14 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-
 
 /* Return the file number of the DBF file.  NDBM original wanted the .pag
    file number.  Since we have only one file number, we return it. */
 
 int
-dbm_pagfno (GDBM_FILE dbf)
+dbm_pagfno (DBM *dbm)
 {
-  return (dbf->desc);
+  return dbm->file->desc;
 }

@@ -19,25 +19,24 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-#include "extern.h"
-
 
 /* NDBM Look up a given KEY and return the information associated with that
    KEY. The pointer in the structure that is  returned is a pointer to
    dynamically allocated memory block.  */
 
 datum
-dbm_fetch (GDBM_FILE dbf, datum key)
+dbm_fetch (DBM *dbm, datum key)
 {
   datum  ret_val;		/* The return value. */
 
   /* Free previous dynamic memory, do actual call, and save pointer to new
      memory. */
-  ret_val = gdbm_fetch (dbf, key);
-  if (_gdbm_fetch_val != NULL) free (_gdbm_fetch_val);
-  _gdbm_fetch_val = ret_val.dptr;
+  ret_val = gdbm_fetch (dbm->file, key);
+  if (dbm->_dbm_fetch_val != NULL)
+    free (dbm->_dbm_fetch_val);
+  dbm->_dbm_fetch_val = ret_val.dptr;
 
   /* Return the new value. */
   return ret_val;

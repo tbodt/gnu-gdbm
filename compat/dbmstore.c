@@ -19,17 +19,15 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-#include "extern.h"
-
 
 /* NDBM add a new element to the database.  CONTENT is keyed by KEY.
    The file on disk is updated to reflect the structure of the new
    database before returning from this procedure.  */
 
 int
-dbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
+dbm_store (DBM *dbm, datum key, datum content, int flags)
 {
-  return gdbm_store (dbf, key, content, flags);
+  return gdbm_store (dbm->file, key, content, flags);
 }

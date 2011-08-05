@@ -20,25 +20,24 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-#include "extern.h"
-
 
 /* NDBM Start the visit of all keys in the database.  This produces
    something in hash order, not in any sorted order.  DBF is the dbm file
    information pointer. */
 
 datum
-dbm_firstkey (GDBM_FILE dbf)
+dbm_firstkey (DBM *dbm)
 {
   datum ret_val;
 
   /* Free previous dynamic memory, do actual call, and save pointer to new
      memory. */
-  ret_val = gdbm_firstkey (dbf);
-  if (_gdbm_memory.dptr != NULL) free (_gdbm_memory.dptr);
-  _gdbm_memory = ret_val;
+  ret_val = gdbm_firstkey (dbm->file);
+  if (dbm->_dbm_memory.dptr != NULL)
+    free (dbm->_dbm_memory.dptr);
+  dbm->_dbm_memory = ret_val;
 
   /* Return the new value. */
   return ret_val;
@@ -49,18 +48,19 @@ dbm_firstkey (GDBM_FILE dbf)
    DBF is the file information pointer. */
 
 datum
-dbm_nextkey (GDBM_FILE dbf)
+dbm_nextkey (DBM *dbm)
 {
   datum ret_val;
 
   /* Make sure we have a valid key. */
-  if (_gdbm_memory.dptr == NULL)
-    return _gdbm_memory;
+  if (dbm->_dbm_memory.dptr == NULL)
+    return dbm->_dbm_memory;
 
   /* Call gdbm nextkey with the old value. After that, free the old value. */
-  ret_val = gdbm_nextkey (dbf,_gdbm_memory);
-  if (_gdbm_memory.dptr != NULL) free (_gdbm_memory.dptr);
-  _gdbm_memory = ret_val;
+  ret_val = gdbm_nextkey (dbm->file, dbm->_dbm_memory);
+  if (dbm->_dbm_memory.dptr != NULL)
+    free (dbm->_dbm_memory.dptr);
+  dbm->_dbm_memory = ret_val;
 
   /* Return the new value. */
   return ret_val;

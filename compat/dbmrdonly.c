@@ -18,14 +18,13 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-
 
 /* not much of a routine, but should be a function for compatibility. */
 
 int
-dbm_rdonly(GDBM_FILE dbf)
+dbm_rdonly (DBM *dbm)
 {
-  return (dbf->read_write == GDBM_READER);
+  return (dbm->file->read_write == GDBM_READER);
 }

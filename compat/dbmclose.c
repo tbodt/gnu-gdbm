@@ -19,14 +19,18 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-
 
 /* Close the DBF file. */
 
 void
-dbm_close (GDBM_FILE dbf)
+dbm_close (DBM *dbm)
 {
-  gdbm_close (dbf);
+  gdbm_close (dbm->file);
+  if (dbm->_dbm_memory.dptr)
+    free (dbm->_dbm_memory.dptr);
+  if (dbm->_dbm_fetch_val)
+    free (dbm->_dbm_fetch_val);
+  free (dbm);
 }

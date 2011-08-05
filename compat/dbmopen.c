@@ -20,9 +20,8 @@
 
 /* Include system configuration before all else. */
 #include "autoconf.h"
-
+#include "ndbm.h"
 #include "gdbmdefs.h"
-#include "extern.h"
 
 /* Initialize ndbm system.  FILE is a pointer to the file name.  In
    standard dbm, the database is found in files called FILE.pag and
@@ -41,13 +40,13 @@
    a GDBM_NEWDB.  All other values of FLAGS in the flags are
    ignored. */
 
-GDBM_FILE 
+DBM *
 dbm_open (char *file, int flags, int mode)
 {
   char* pag_file;	    /* Used to construct "file.pag". */
   char* dir_file;	    /* Used to construct "file.dir". */
   struct stat dir_stat;	    /* Stat information for "file.dir". */
-  GDBM_FILE temp_dbf;  /* Temporary file pointer storage. */
+  DBM *dbm = NULL;
   int open_flags;
   
   /* Prepare the correct names of "file.pag" and "file.dir". */
@@ -62,8 +61,7 @@ dbm_open (char *file, int flags, int mode)
   strcpy (pag_file, file);
   strcat (pag_file, ".pag");
   strcpy (dir_file, file);
-  strcat (dir_file, ".dir");
-  
+  strcat (dir_file, ".dir");  
 
   /* Call the actual routine, saving the pointer to the file information. */
   flags &= O_RDONLY | O_RDWR | O_CREAT | O_TRUNC;
@@ -87,12 +85,23 @@ dbm_open (char *file, int flags, int mode)
       mode = 0;
     }
 
-  temp_dbf = gdbm_open (pag_file, 0, open_flags | GDBM_NOLOCK, mode, NULL);
+  dbm = calloc (1, sizeof (*dbm));
+  if (!dbm)
+    {
+      free (pag_file);
+      free (dir_file);
+      gdbm_errno = GDBM_MALLOC_ERROR;	/* For the hell of it. */
+      return NULL;
+    }
+      
+  dbm->file = gdbm_open (pag_file, 0, open_flags | GDBM_NOLOCK, mode, NULL);
 
   /* Did we successfully open the file? */
-  if (temp_dbf == NULL)
+  if (dbm->file == NULL)
     {
       gdbm_errno = GDBM_FILE_OPEN_ERROR;
+      free (dbm);
+      dbm = NULL;
       goto done;
     }
 
@@ -104,8 +113,9 @@ dbm_open (char *file, int flags, int mode)
 	if (unlink (dir_file) != 0 || link (pag_file, dir_file) != 0)
 	  {
 	    gdbm_errno = GDBM_FILE_OPEN_ERROR;
-	    gdbm_close (temp_dbf);
-	    temp_dbf = NULL;
+	    gdbm_close (dbm->file);
+	    free (dbm);
+	    dbm = NULL;
 	    goto done;
 	  }
     }
@@ -116,8 +126,9 @@ dbm_open (char *file, int flags, int mode)
       if (link (pag_file, dir_file) != 0)
 	{
 	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
-	  gdbm_close (temp_dbf);
-	  temp_dbf = NULL;
+	  gdbm_close (dbm->file);
+	  free (dbm);
+	  dbm = NULL;
 	  goto done;
 	}
     }
@@ -125,5 +136,5 @@ dbm_open (char *file, int flags, int mode)
 done:
   free (pag_file);
   free (dir_file);
-  return temp_dbf;
+  return dbm;
 }
