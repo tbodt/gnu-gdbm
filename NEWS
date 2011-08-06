@@ -1,82 +1,133 @@
-CHANGES from 1.8.2 to 1.8.3
-  1.  Various configure related changes and additional updates.
+GNU dbm NEWS -- history of user-visible changes. 2011-07-27
+Copyright (C) 1990-2011 Free Software Foundation, Inc.
+See the end of file for copying conditions.
 
-CHANGES from 1.8.1 to 1.8.2
-  1.  Allow `NEWDB'-opened databases to actually, well, store records.
+Please send mailutils bug reports to <bug-gdbm@gnu.org>.
+
+Version 1.9
 
-CHANGES from 1.8 to 1.8.1
-  1.  Lots of bug fixes, including a data corruption bug.
-  2.  Updated to current autoconf and libtool.
-  3.  Moved the dbm/ndbm compatibility routines to libgdbm_compat.
+* Use mmap if available.
+* A testsuite is provided.
+* Improve documentation.
+
+Version 1.8.3
 
-CHANGES from 1.7.3 to 1.8
-  1.  Added GDBM_CENTFREE functionality and option.
-  2.  Added GDBM_COALESCEBLKS functionality and option.
-  3.  Added GDBM_NOLOCK flag.
-  4.  Made ``fast'' mode the default, making GDBM_FAST obsolete, and adding
-      the GDBM_SYNC flag and GDBM_SYNCMODE option.
-  5.  Switched to building with libtool.
+* Various configure related changes and additional updates.
+
+Version 1.8.2
 
-CHANGES from 1.7.2 to 1.7.3
-  1.  Fixed a couple of last minute problems. (Namely, no autoconf.h in
-      version.c, and no GDBM_FASTMODE in gdbm.h!)
-  2.  Fixed some documentation bugs.
+* Allow `NEWDB'-opened databases to actually, well, store records.
+
+Version 1.8.1
 
-CHANGES from 1.7.1 to 1.7.2
-  1.  Enhanced portability and compile/installation changes.
-  2.  Additional, "fast mode" related gdbm_setopt() option.
-  3.  Growth problems bug fix.
+* Lots of bug fixes, including a data corruption bug.
+* Updated to current autoconf and libtool.
+* Moved the dbm/ndbm compatibility routines to libgdbm_compat.
+
+Version 1.8
 
-CHANGES from 1.7 to 1.7.1
-  1.  Enhanced portabilty and compile/installation bug fixes.
-  2.  Switched over to using an auto config header.
-  2.  Slight documentation upgrade.
+* Added GDBM_CENTFREE functionality and option.
+* Added GDBM_COALESCEBLKS functionality and option.
+* Added GDBM_NOLOCK flag.
+* Made ``fast'' mode the default, making GDBM_FAST obsolete, and adding
+  the GDBM_SYNC flag and GDBM_SYNCMODE option.
+* Switched to building with libtool.
+
+Version 1.7.3
 
-CHANGES from 1.6 to 1.7
-  1.  A new dynamic, delayed initialization, bucket cache.
-  2.  New gdbm_setopt(), gdbm_exists(), and gdbm_strerror() routines.
-  3.  Slightly improved dbm/ndbm compatibility.
-  4.  Greatly improved portability to 64 or 16 bit machines.
-  5.  Various bug fixes.
+* Fixed a couple of last minute problems.
 
-CHANGES from 1.5 to 1.6
-  1.  New documentation in both man and texinfo formats.
-  2.  Bug fixes.
-  3.  A New "writers" mode that does not fsync the database.
-  4.  Uses Autoconf now.
+Namely, no autoconf.h in version.c, and no GDBM_FASTMODE in gdbm.h!
 
-CHANGES from 1.4 to 1.5:
-  1.  Minor bug fixes.  See the ChangeLog.
-  2.  Added gdbmconst.h to allow users to change the size of the
-      bucket cache in the systems.h file.
+* Fixed some documentation bugs.
+
+Version 1.7.2
 
-CHANGES from 1.0 to 1.4:
-  1.  Mainly bug fixes.
-  2.  A define for "dbmclose()" was added to dbm.h for those few 
-      implementaions that need that call.
-  3.  For details, see the ChangeLog.
+* Enhanced portability and compile/installation changes.
+* Additional, "fast mode" related gdbm_setopt() option.
+* Growth problems bug fix.
+
+Version 1.7.1
 
-CHANGES from 0.9 to 1.0:
-  1.  Makefiles were combined into one and a few new things added to it.
-  2.  Several minor bugs were fixed including a cache bug.
-  3.  Two new calls (dbm_pagfno, dbm_dirfno) were added to the NDBM interface.
-  3.  A conversion program from dbm files to gdbm files was added.
-  4.  Reorganize was changed to allow complex file names. (dir/file form)
-  5.  testgdbm, testndbm, and testdbm were modified to return key and data
-      pairs where needed and to take an optional file name as an argument.
-      testgdbm had some command characters changed.
-  6.  The DBM and NDBM interfaces were separated.
-  7.  An include file for dbm users was added. (dbm.h)
-  8.  The include file for ndbm users was renamed ndbm.h. (It was gndbm.h.)
+* Enhanced portabilty and compile/installation bug fixes.
+* Switched over to using an auto config header.
+* Slight documentation upgrade.
+
+Version 1.7
 
-CHANGES from 0.8 to 0.9:
-  1.  The hash function changed.
-  2.  The file format changed.
-  3.  There was a complete rewrite of falloc.c.
-  4.  There were added compatiblity routines for ndbm.
-  5.  The file names for dbm compatibility routines were made to
-      look like dbm.
-  6.  Test programs changed.
-  7.  Support for System V.
-  8.  Various other small changes.
-  9.  The need for recovery and associated code was removed.
+* A new dynamic, delayed initialization, bucket cache.
+* New gdbm_setopt(), gdbm_exists(), and gdbm_strerror() routines.
+* Slightly improved dbm/ndbm compatibility.
+* Greatly improved portability to 64 or 16 bit machines.
+* Various bug fixes.
+
+Version 1.6
+
+* New documentation in both man and texinfo formats.
+* Bug fixes.
+* A New "writers" mode that does not fsync the database.
+* Uses Autoconf now.
+
+Version 1.5
+
+* Minor bug fixes.  See the ChangeLog.
+* Added gdbmconst.h to allow users to change the size of the
+* bucket cache in the systems.h file.
+
+Version 1.4
+
+* Mainly bug fixes
+* A define for "dbmclose()" was added to dbm.h for those few 
+  implementaions that need that call.
+* For details, see the ChangeLog.
+
+Version 1.0
+
+* Makefiles were combined into one and a few new things added to it.
+* Several minor bugs were fixed including a cache bug.
+* Two new calls (dbm_pagfno, dbm_dirfno) were added to the NDBM interface.
+* A conversion program from dbm files to gdbm files was added.
+* Reorganize was changed to allow complex file names. (dir/file form)
+* testgdbm, testndbm, and testdbm were modified to return key and data
+  pairs where needed and to take an optional file name as an argument.
+  testgdbm had some command characters changed.
+* The DBM and NDBM interfaces were separated.
+* An include file for dbm users was added. (dbm.h)
+* The include file for ndbm users was renamed ndbm.h. (It was gndbm.h.)
+
+Version 0.9
+
+* The hash function changed.
+* The file format changed.
+* There was a complete rewrite of falloc.c.
+* There were added compatiblity routines for ndbm.
+* The file names for dbm compatibility routines were made to look like dbm.
+* Test programs changed.
+* Support for System V.
+* Various other small changes.
+* The need for recovery and associated code was removed.
+
+
+----------------------------------------------------------------------
+Copyright information:
+
+Copyright (C) 1990-2011 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+eval: (add-hook 'write-file-hooks 'time-stamp)
+time-stamp-start: "changes. "
+time-stamp-format: "%:y-%02m-%02d"
+time-stamp-end: "\n"
+end:
