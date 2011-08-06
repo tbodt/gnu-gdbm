@@ -34,9 +34,10 @@
 /* The file information header.  */
 typedef struct
 {
-  GDBM_FILE file;
-  datum _dbm_memory;
-  char *_dbm_fetch_val;
+  GDBM_FILE file;         /* Actual gdbm file (held in the .pag file */
+  int dirfd;              /* Descriptor of the .dir file */
+  datum _dbm_memory;      /* Keeps the last returned key */
+  char *_dbm_fetch_val;   /* Keeps the dptr of the last fetched datum */
 } DBM;
 
 /* These are the routines (with some macros defining them!) */
