@@ -34,3 +34,24 @@ int const gdbm_version_number[3] = {
   GDBM_VERSION_MINOR,
   GDBM_VERSION_PATCH
 };
+
+int
+gdbm_version_cmp (int const a[], int const b[])
+{
+  if (a[0] > b[0])
+    return 1;
+  else if (a[0] < b[0])
+    return -1;
+
+  if (a[1] > b[1])
+    return 1;
+  else if (a[1] < b[1])
+    return -1;
+
+  if (a[2] > b[2])
+    return 1;
+  else if (a[2] < b[2])
+    return -1;
+
+  return 0;
+}
