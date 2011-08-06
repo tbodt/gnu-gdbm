@@ -1,5 +1,11 @@
 2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: Require latest autotools. Enable silent mode.
+	* NEWS: Convert to the standard GNU outline format. Add entry
+	for 1.9.
+
+2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* tests/version.at: Update.
 	* tests/Makefile.am: Define AT_PACKAGE_VERSION_MAJOR,
 	AT_PACKAGE_VERSION_MINOR, and AT_PACKAGE_VERSION_PATCH.
