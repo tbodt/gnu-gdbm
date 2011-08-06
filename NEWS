@@ -1,4 +1,4 @@
-GNU dbm NEWS -- history of user-visible changes. 2011-07-27
+GNU dbm NEWS -- history of user-visible changes. 2011-08-06
 Copyright (C) 1990-2011 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -7,6 +7,30 @@ Please send mailutils bug reports to <bug-gdbm@gnu.org>.
 Version 1.9
 
 * Use mmap if available.
+
+* Changes in compatibility mode
+
+The changes below fix several long-standing bugs in
+ndbm compatibility code, which made it impossible to
+use GDBM with Sendmail and Postfix.  Now that they are
+fixed, GDBM can be used with these MTAs. 
+
+** Locking is disabled.
+
+This was reported, in particular, in
+https://bugzilla.redhat.com/show_bug.cgi?id=663932
+
+** Do not link pag to dir.
+
+Instead of linking pag to dir as previous versions did, GDBM now
+creates a separate dir file.  Consequently, dbm_pagfno and
+dbm_dirfno return different file descriptors.
+
+When opening an existing database as a writer, GDBM determines
+if dir is linked to pag, and if so breaks the link and creates
+a new dir file.  When such a database is opened in a read-only
+mode, GDBM does not attemt to alter the link.
+
 * A testsuite is provided.
 * Improve documentation.
 

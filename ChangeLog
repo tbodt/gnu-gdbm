@@ -1,3 +1,19 @@
+2011-08-06  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* compat/ndbm.h (DBM) <dirfd>: New member.
+	* src/version.c (gdbm_version_cmp): New function.
+	* compat/dbmclose.c (dbm_close): Close dirfd.
+	* compat/dbmdirfno.c (dbm_dirfno): Return dirfd.
+	* compat/dbmopen.c (dbm_open): Instead of linking
+	pag to dir, create a separate dir file with the version
+	information in it. When opening an existing db in 
+	write mode, detect if it has pag linked to dir. If so,
+	break the link and recreate the dir file in new format.
+	This allows GDBM to cooperate with the applications which
+	lock both pag and dir files.
+	* doc/gdbm.texinfo: Document gdbm_version_cmp.
+	* NEWS: Update.
+
 2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* configure.ac: Require latest autotools. Enable silent mode.
