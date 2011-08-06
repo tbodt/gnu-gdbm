@@ -1,5 +1,8 @@
 2011-08-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* doc/Config: New file.
+	* doc/gendocs_template: Rewrite for the new site layout.
+
 	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): New variable.
 	Force the use of --enable-libgdbm-compat on distcheck stage.
 
