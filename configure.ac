@@ -16,17 +16,20 @@
 
 m4_define([_GDBM_VERSION_MAJOR], 1)
 m4_define([_GDBM_VERSION_MINOR], 9)
-m4_define([_GDBM_VERSION_PATCH], 0)
+dnl m4_define([_GDBM_VERSION_PATCH], 0)
 
 AC_INIT([gdbm],
         [_GDBM_VERSION_MAJOR._GDBM_VERSION_MINOR[]m4_ifdef([_GDBM_VERSION_PATCH],._GDBM_VERSION_PATCH)],
 	[bug-gdbm@gnu.org])
-AC_PREREQ(2.59)
+AC_PREREQ(2.63)
 AC_CONFIG_SRCDIR([src/gdbmdefs.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([autoconf.h])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.8.5 std-options])
+AM_INIT_AUTOMAKE([gnu 1.11 std-options silent-rules])
+
+# Enable silent rules by default:
+AM_SILENT_RULES([yes])
 
 AC_SUBST([GDBM_VERSION_MAJOR], _GDBM_VERSION_MAJOR)
 AC_SUBST([GDBM_VERSION_MINOR], _GDBM_VERSION_MINOR)
