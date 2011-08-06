@@ -22,7 +22,156 @@
 #include "autoconf.h"
 #include "ndbm.h"
 #include "gdbmdefs.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
+#define DIRSUF ".dir"
+
+/* dir file structure:
+
+   GDBM_DIR_MAGIC         4 bytes
+   GDBM_VERSION_MAJOR     4 bytes
+   GDBM_VERSION_MINOR     4 bytes
+   GDBM_VERSION_PATCH     4 bytes
+
+   Total length:         16 bytes
+*/
+
+#define GDBM_DIR_MAGIC 0x4744424d  /* GDBM */
+#define DEF_DIR_SIZE 16
+
+static unsigned
+getint (const unsigned char *cp)
+{
+  return (cp[0] << 24) + (cp[1] << 16) + (cp[2] << 8) + cp[3];
+}
+
+static void
+putint (unsigned char *cp, unsigned n)
+{
+  cp[0] = (n >> 24) & 0xff;
+  cp[1] = (n >> 16) & 0xff;
+  cp[2] = (n >> 8) & 0xff;
+  cp[3] = n & 0xff;
+}
+
+/* FIXME: revise return codes */
+static int
+ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
+{
+  int fd = -1;
+  struct stat st, pagst;
+  unsigned char dirbuf[DEF_DIR_SIZE];
+      
+  if (fstat (pagfd, &pagst))
+    {
+      gdbm_errno = GDBM_FILE_OPEN_ERROR; /* FIXME: special code? */
+      return -1;
+    } 
+      
+  /* Previous versions of GDBM linked pag to dir. Try to detect this: */
+  if (stat (file_name, &st) == 0)
+    {
+      if (st.st_nlink >= 2)
+	{
+	  if (st.st_dev == pagst.st_dev && st.st_ino == pagst.st_ino)
+	    {
+	      if (unlink (file_name))
+		{
+		  if (mode == GDBM_READER)
+		    /* Ok, try to cope with it. */
+		    return pagfd;
+		  else
+		    {
+		      gdbm_errno = GDBM_FILE_OPEN_ERROR; 
+		      return -1;
+		    } 
+		}
+	    }
+	  else
+	    {
+	      gdbm_errno = GDBM_FILE_OPEN_ERROR;
+	      return -1;
+	    }
+	}
+      else if (st.st_size == 0)
+	/* ok */;
+      else if (st.st_size != DEF_DIR_SIZE)
+	{
+	  gdbm_errno = GDBM_BAD_MAGIC_NUMBER;
+	  return -1;
+	}
+      else
+	{
+	  fd = open (file_name, O_RDWR);
+	  if (fd == -1)
+	    {
+	      gdbm_errno = GDBM_FILE_OPEN_ERROR;
+	      return fd;
+	    }
+	  
+	  if (read (fd, dirbuf, sizeof (dirbuf)) != sizeof (dirbuf))
+	    {
+	      gdbm_errno = GDBM_FILE_OPEN_ERROR;
+	      close (fd);
+	      return -1;
+	    } 
+	  
+	  if (getint (dirbuf) == GDBM_DIR_MAGIC)
+	    {
+	      int v[3];
+	      
+	      v[0] = getint (dirbuf + 4);
+	      v[1] = getint (dirbuf + 8);
+	      v[2] = getint (dirbuf + 12);
+	      
+	      if (gdbm_version_cmp (v, gdbm_version_number) <= 0)
+		return fd;
+	    }
+	  close (fd);
+	  gdbm_errno = GDBM_BAD_MAGIC_NUMBER;
+	  return -1;
+	}
+    }
+  
+  /* File does not exist.  Create it. */
+  fd = open (file_name, O_RDWR | O_CREAT, pagst.st_mode & 0777);
+  if (fd >= 0)
+    {
+      putint (dirbuf, GDBM_DIR_MAGIC);
+      putint (dirbuf + 4, gdbm_version_number[0]);
+      putint (dirbuf + 8, gdbm_version_number[1]);
+      putint (dirbuf + 12, gdbm_version_number[2]);
+
+      if (write (fd, dirbuf, sizeof (dirbuf)) != sizeof (dirbuf))
+	{
+	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
+	  close (fd);
+	  fd = -1;
+	} 
+    }
+  
+  return fd;
+}
+
+static int
+ndbm_open_dir_file (const char *base, int pagfd, int mode)
+{
+  char *file_name = malloc (strlen (base) + sizeof (DIRSUF));
+  int fd;
+  
+  if (!file_name)
+    {
+      gdbm_errno = GDBM_MALLOC_ERROR;
+      return -1;
+    }
+  fd = ndbm_open_dir_file0 (strcat (strcpy (file_name, base), DIRSUF),
+			    pagfd, mode);
+  free (file_name);
+  return fd;
+}
+  
 /* Initialize ndbm system.  FILE is a pointer to the file name.  In
    standard dbm, the database is found in files called FILE.pag and
    FILE.dir.  To make gdbm compatable with dbm using the dbminit call,
@@ -43,16 +192,13 @@
 DBM *
 dbm_open (char *file, int flags, int mode)
 {
-  char* pag_file;	    /* Used to construct "file.pag". */
-  char* dir_file;	    /* Used to construct "file.dir". */
-  struct stat dir_stat;	    /* Stat information for "file.dir". */
+  char *pag_file;	    /* Used to construct "file.pag". */
   DBM *dbm = NULL;
   int open_flags;
   
-  /* Prepare the correct names of "file.pag" and "file.dir". */
+  /* Prepare the correct name for "file.pag". */
   pag_file = (char *) malloc (strlen (file)+5);
-  dir_file = (char *) malloc (strlen (file)+5);
-  if ((pag_file == NULL) || (dir_file == NULL))
+  if (!pag_file)
     {
       gdbm_errno = GDBM_MALLOC_ERROR;	/* For the hell of it. */
       return NULL;
@@ -60,8 +206,6 @@ dbm_open (char *file, int flags, int mode)
 
   strcpy (pag_file, file);
   strcat (pag_file, ".pag");
-  strcpy (dir_file, file);
-  strcat (dir_file, ".dir");  
 
   /* Call the actual routine, saving the pointer to the file information. */
   flags &= O_RDONLY | O_RDWR | O_CREAT | O_TRUNC;
@@ -89,7 +233,6 @@ dbm_open (char *file, int flags, int mode)
   if (!dbm)
     {
       free (pag_file);
-      free (dir_file);
       gdbm_errno = GDBM_MALLOC_ERROR;	/* For the hell of it. */
       return NULL;
     }
@@ -102,39 +245,18 @@ dbm_open (char *file, int flags, int mode)
       gdbm_errno = GDBM_FILE_OPEN_ERROR;
       free (dbm);
       dbm = NULL;
-      goto done;
-    }
-
-  /* If the database is new, link "file.dir" to "file.pag". This is done
-     so the time stamp on both files is the same. */
-  if (stat (dir_file, &dir_stat) == 0)
-    {
-      if (dir_stat.st_size == 0)
-	if (unlink (dir_file) != 0 || link (pag_file, dir_file) != 0)
-	  {
-	    gdbm_errno = GDBM_FILE_OPEN_ERROR;
-	    gdbm_close (dbm->file);
-	    free (dbm);
-	    dbm = NULL;
-	    goto done;
-	  }
     }
   else
     {
-      /* Since we can't stat it, we assume it is not there and try
-         to link the dir_file to the pag_file. */
-      if (link (pag_file, dir_file) != 0)
+      dbm->dirfd = ndbm_open_dir_file (file, dbm->file->desc, open_flags);
+      if (dbm->dirfd == -1)
 	{
-	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
 	  gdbm_close (dbm->file);
 	  free (dbm);
 	  dbm = NULL;
-	  goto done;
 	}
     }
 
-done:
   free (pag_file);
-  free (dir_file);
   return dbm;
 }
