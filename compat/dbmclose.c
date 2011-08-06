@@ -28,6 +28,7 @@ void
 dbm_close (DBM *dbm)
 {
   gdbm_close (dbm->file);
+  close (dbm->dirfd);
   if (dbm->_dbm_memory.dptr)
     free (dbm->_dbm_memory.dptr);
   if (dbm->_dbm_fetch_val)
