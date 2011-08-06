@@ -1094,6 +1094,23 @@ Use @code{gdbm_strerror} (@pxref{Errors}) to convert it to a
 descriptive text.
 @end deftypevar
 
+@deftypevar const char * const gdbm_errlist[]
+This variable is an array of error descriptions, which is used by
+@code{gdbm_strerror} to convert error codes to human-readable text
+(@pxref{Errors}).  You can access it directly, if you wish so.  It
+contains @code{_GDBM_MAX_ERRNO + 1} elements and can be directly
+indexed by the error code to obtain a corresponding descriptive
+text.
+@end deftypevar
+
+@defvr {Constant} _GDBM_MIN_ERRNO
+The minimum error code used by @code{gdbm}.
+@end defvr
+
+@defvr {Constant} _GDBM_MAX_ERRNO
+The maximum error code used by @code{gdbm}.
+@end defvr
+
 @deftypevar const char *gdbm_version
 A string containing the version information.
 @end deftypevar
@@ -1128,22 +1145,30 @@ Patchlevel number.
 These can be used to verify whether the header file matches the library.
 @end deftypevar
 
-@deftypevar const char * const gdbm_errlist[]
-This variable is an array of error descriptions, which is used by
-@code{gdbm_strerror} to convert error codes to human-readable text
-(@pxref{Errors}).  You can access it directly, if you wish so.  It
-contains @code{_GDBM_MAX_ERRNO + 1} elements and can be directly
-indexed by the error code to obtain a corresponding descriptive
-text.
-@end deftypevar
+To compare two split-out version numbers, use the following function:
 
-@defvr {Constant} _GDBM_MIN_ERRNO
-The minimum error code used by @code{gdbm}.
-@end defvr
+@deftypefn {gdbm interface} int gdbm_version_cmp (int const @var{a}[3], @
+                                                  int const @var{b}[3])
+Compare two version numbers.  Return @samp{-1} if @var{a} is less than
+@var{b}, @samp{1} if @var{a} is greater than @var{b} and @samp{0} if
+they are equal.
 
-@defvr {Constant} _GDBM_MAX_ERRNO
-The maximum error code used by @code{gdbm}.
-@end defvr
+Comparison is done from left to right, so that:
+
+@example
+a = @{ 1, 8, 3 @};
+b = @{ 1, 8, 3 @};
+gdbm_version_cmp (a, b) @result{} 0
+
+a = @{ 1, 8, 3 @};
+b = @{ 1, 8, 2 @};
+gdbm_version_cmp (a, b) @result{} 1
+
+a = @{ 1, 8, 3 @};
+b = @{ 1, 9. 0 @};
+gdbm_version_cmp (a, b) @result{} -1
+@end example
+@end deftypefn
 
 @node Error codes
 @chapter Error codes
