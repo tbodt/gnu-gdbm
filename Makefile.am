@@ -24,6 +24,8 @@ if ENABLE_EXPORT
 endif
 SUBDIRS = src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
 
+DISTCHECK_CONFIGURE_FLAGS=--enable-libgdbm-compat
+
 dist-hook:
 	rm -f $(distdir)/src/version.c; \
 	d=`date '+%d/%m/%Y'`; \
