@@ -28,5 +28,5 @@
 int
 dbm_dirfno (DBM *dbm)
 {
-  return (dbm->file->desc);
+  return dbm->dirfd;
 }
