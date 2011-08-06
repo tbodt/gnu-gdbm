@@ -1,5 +1,8 @@
 2011-08-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* Makefile.am (DISTCHECK_CONFIGURE_FLAGS): New variable.
+	Force the use of --enable-libgdbm-compat on distcheck stage.
+
 	* compat/ndbm.h (DBM) <dirfd>: New member.
 	* src/version.c (gdbm_version_cmp): New function.
 	* compat/dbmclose.c (dbm_close): Close dirfd.
