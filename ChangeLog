@@ -1,3 +1,14 @@
+2011-08-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/testgdbm.c: Change internal command invocation
+	mechanism: the begin handler (if provided) initializes
+	the invocation and computes the expected number of
+	output lines. If it is greater than the screen size
+	the pager is enabled. End handler (if supplied) cleans
+	up after the invocation.
+
+	Always use error() for diagnostics.
+
 2011-08-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/Config: New file.
