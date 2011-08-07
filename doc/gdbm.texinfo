@@ -695,7 +695,7 @@ See also @ref{gdbmexport}, @ref{testgdbm export}, and
 To convert a @code{gdbm} error code into English text, use this
 routine:
 
-@deftypefn {gdbm interface} const char *gdbm_strerror (gdbm_error @var{errno})
+@deftypefn {gdbm interface} {const char *} gdbm_strerror (gdbm_error @var{errno})
 Converts @var{errno} (which is an integer value) into a human-readable
 descriptive text.  Returns a pointer to a static string.  The caller
 must not alter or free the returned pointer.
@@ -998,7 +998,7 @@ state.  @xref{nul-termination}.
 Print the @dfn{avail list}.
 
 @item B @var{num} 
-Print a bucket number @var{num}.  This command uses pager
+Print the bucket number @var{num}.  This command uses pager
 (@pxref{pager}).
 
 @item C
@@ -1094,7 +1094,7 @@ Use @code{gdbm_strerror} (@pxref{Errors}) to convert it to a
 descriptive text.
 @end deftypevar
 
-@deftypevar const char * const gdbm_errlist[]
+@deftypevar {const char *} gdbm_errlist[]
 This variable is an array of error descriptions, which is used by
 @code{gdbm_strerror} to convert error codes to human-readable text
 (@pxref{Errors}).  You can access it directly, if you wish so.  It
@@ -1111,11 +1111,11 @@ The minimum error code used by @code{gdbm}.
 The maximum error code used by @code{gdbm}.
 @end defvr
 
-@deftypevar const char *gdbm_version
+@deftypevar {const char *} gdbm_version
 A string containing the version information.
 @end deftypevar
 
-@deftypevar int const gdbm_version_number[3]
+@deftypevar {int const} gdbm_version_number[3]
 This variable contains the @code{gdbm} version numbers:
 
 @multitable @columnfractions 0.4 0.5
