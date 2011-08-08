@@ -20,15 +20,6 @@ AT_CHECK([gtver -lib -full -header -full],
 [0],
 [AT_PACKAGE_VERSION_MAJOR.AT_PACKAGE_VERSION_MINOR.AT_PACKAGE_VERSION_PATCH
 AT_PACKAGE_VERSION_MAJOR.AT_PACKAGE_VERSION_MINOR.AT_PACKAGE_VERSION_PATCH
-],
-[],
-[cat >$[]XFAILFILE <<'_EOT'
-
-==============================================================
-WARNING: Not using the proper version, *all* checks dubious...
-==============================================================
-_EOT
-],
-[rm -f $[]XFAILFILE])
+])
 
 AT_CLEANUP

@@ -1,3 +1,17 @@
+2011-08-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Provide test group descriptors in the testsuite.
+	
+	* tests/atlocal.in (XFAILFILE): Remove.
+	* tests/version.at: Don't create XFAILFILE.
+	* tests/testsuite.at: Add test group banners 
+	* tests/dbmcreate00.at (AT_SETUP): Change description.
+	* tests/dbmdel00.at: Likewise.
+	* tests/dbmdel01.at: Likewise.
+	* tests/dbmdel02.at: Likewise.
+	* tests/dbmfetch00.at: Likewise.
+	* tests/dbmfetch01.at: Likewise.
+	
 2011-08-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* src/testgdbm.c: Change internal command invocation
@@ -30,6 +44,12 @@
 	lock both pag and dir files.
 	* doc/gdbm.texinfo: Document gdbm_version_cmp.
 	* NEWS: Update.
+
+2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* configure.ac: Require latest autotools. Enable silent mode.
+	* NEWS: Convert to the standard GNU outline format. Add entry
+	for 1.9.
 
 2011-08-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 

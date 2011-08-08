@@ -32,6 +32,8 @@ dnl # Begin tests
 AT_INIT
 m4_include([version.at])
 
+AT_BANNER([GDBM interface])
+
 m4_include([create00.at])
 
 m4_include([fetch00.at])
@@ -40,6 +42,8 @@ m4_include([fetch01.at])
 m4_include([delete00.at])
 m4_include([delete01.at])
 m4_include([delete02.at])
+
+AT_BANNER([Compatibility library (dbm/ndbm)])
 
 m4_include([dbmcreate00.at])
 

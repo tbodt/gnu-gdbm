@@ -16,12 +16,9 @@
 
 PATH=@abs_top_builddir@/src:$PATH
 
-XFAILFILE=$abs_builddir/.badversion
-
 @COMPAT_OPT_TRUE@COMPAT=1
 @COMPAT_OPT_FALSE@COMPAT=0
 
-trap "cleanup; test -r $XFAILFILE && cat $XFAILFILE; exit $?" 1 2 13 15
 
 
 
