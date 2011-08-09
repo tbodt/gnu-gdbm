@@ -640,7 +640,7 @@ immediately after the set of changes have been made.
 @cindex Flat file format
 @cindex export
 @cindex import
-@code{Gdbm} databases can be converted into a protable @dfn{flat
+@code{Gdbm} databases can be converted into a portable @dfn{flat
 format}.  This format can be used, for example, to migrate between
 the different versions of @code{gdbm} databases.  Generally speaking,
 flat files are safe to send over the network, and can be used to
@@ -1384,7 +1384,7 @@ and @file{dbm.h} and the @file{libgdbm_compat} library.
 Older programs using @code{ndbm} or @code{dbm} interfaces can
 use @file{libgdbm_compat} without any changes.  To link a program with
 the compatibility library, add the following two options to the
-@command{cc} invocation: @option{-lgdbm -lgdbm_compat}.  A @option{-L}
+@command{cc} invocation: @option{-lgdbm -lgdbm_compat}.  The @option{-L}
 option may also be required, depending on where @code{gdbm} is
 installed, e.g.:
 
@@ -1394,7 +1394,7 @@ cc ... -L/usr/local/lib -lgdbm -lgdbm_compat
 
 @cindex @samp{dir} file
 @cindex @samp{pag} file
-The databases created and manipulated by the compatibility interfaces
+Databases created and manipulated by the compatibility interfaces
 consist of two different files: @file{@var{file}.dir} and
 @file{@var{file}.pag}.  This is required by the @acronym{POSIX}
 specification and corresponds to the traditional usage.  Note,
