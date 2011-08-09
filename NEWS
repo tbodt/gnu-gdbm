@@ -37,6 +37,12 @@ if dir is linked to pag, and if so breaks the link and creates
 a new dir file.  When such a database is opened in a read-only
 mode, GDBM does not attempt to alter the link.
 
+* The testgdbm program is installed
+
+Testgdbm is an interactive tool for manipulating GDBM database files.
+It allows you to view or update existing databases, export
+them to the portable flat file format and to create new database files.
+
 * A testsuite is provided.
 
 * Improved documentation.
