@@ -38,6 +38,7 @@ DBM_CF=\
 NDBM_CF=\
  dbmopen.c\
  dbmdelete.c\
+ dbmerr.c\
  dbmfetch.c\
  dbmstore.c\
  dbmseq.c\

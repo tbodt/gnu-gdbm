@@ -1,3 +1,19 @@
+2011-08-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement dbm_error and dbm_clearerr.
+	
+	* compat/ndbm.h (__gdbm_error_to_ndbm): New macro
+	(dbm_error,dbm_clearerr): Provide prototypes instead of
+	the macros.
+	(DBM) <_dbm_errno>: New member.
+	* compat/dbmerr.c: New file.
+	* compat/Makefile.am (NDBM_CF): Add dbmerr.c
+	* compat/dbmdelete.c: Make sure _dbm_errno reflects the
+	actual error state.
+	* compat/dbmfetch.c: Likewise.
+	* compat/dbmseq.c: Likewise.
+	* compat/dbmstore.c: Likewise.
+
 2011-08-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Provide test group descriptors in the testsuite.

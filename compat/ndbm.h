@@ -28,8 +28,8 @@
 #include <gdbm.h>
 
 /* Parameters to dbm_store for simple insertion or replacement. */
-#define  DBM_INSERT  GDBM_INSERT
-#define  DBM_REPLACE GDBM_REPLACE
+#define DBM_INSERT  GDBM_INSERT
+#define DBM_REPLACE GDBM_REPLACE
 
 /* The file information header.  */
 typedef struct
@@ -38,9 +38,19 @@ typedef struct
   int dirfd;              /* Descriptor of the .dir file */
   datum _dbm_memory;      /* Keeps the last returned key */
   char *_dbm_fetch_val;   /* Keeps the dptr of the last fetched datum */
+  gdbm_error _dbm_errno;  /* Error code from the last failed call */
 } DBM;
 
-/* These are the routines (with some macros defining them!) */
+/* Used internally by the library */
+#define __gdbm_error_to_ndbm(dbm)				\
+  do								\
+    {								\
+      if (gdbm_errno && gdbm_errno != GDBM_ITEM_NOT_FOUND)	\
+	(dbm)->_dbm_errno = gdbm_errno;				\
+    }								\
+  while (0)
+
+/* These are the routines */
 
 extern DBM 	*dbm_open (char *file, int flags, int mode);
 extern void	 dbm_close (DBM *dbf);
@@ -49,8 +59,8 @@ extern int	 dbm_store (DBM *dbf, datum key, datum content, int flags);
 extern int	 dbm_delete (DBM *dbf, datum key);
 extern datum	 dbm_firstkey (DBM *dbf);
 extern datum	 dbm_nextkey (DBM *dbf);
-#define		 dbm_error(dbf)  (0)
-#define		 dbm_clearerr(dbf)
+extern int       dbm_error (DBM *dbf);
+extern void      dbm_clearerr (DBM *dbf);
 extern int	 dbm_dirfno (DBM *dbf);
 extern int	 dbm_pagfno (DBM *dbf);
 extern int	 dbm_rdonly (DBM *dbf);

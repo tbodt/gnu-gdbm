@@ -37,7 +37,7 @@ dbm_fetch (DBM *dbm, datum key)
   if (dbm->_dbm_fetch_val != NULL)
     free (dbm->_dbm_fetch_val);
   dbm->_dbm_fetch_val = ret_val.dptr;
-
+  __gdbm_error_to_ndbm (dbm);
   /* Return the new value. */
   return ret_val;
 }

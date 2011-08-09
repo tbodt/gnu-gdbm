@@ -38,7 +38,7 @@ dbm_firstkey (DBM *dbm)
   if (dbm->_dbm_memory.dptr != NULL)
     free (dbm->_dbm_memory.dptr);
   dbm->_dbm_memory = ret_val;
-
+  __gdbm_error_to_ndbm (dbm);
   /* Return the new value. */
   return ret_val;
 }
@@ -61,7 +61,7 @@ dbm_nextkey (DBM *dbm)
   if (dbm->_dbm_memory.dptr != NULL)
     free (dbm->_dbm_memory.dptr);
   dbm->_dbm_memory = ret_val;
-
+  __gdbm_error_to_ndbm (dbm);
   /* Return the new value. */
   return ret_val;
 }

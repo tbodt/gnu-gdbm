@@ -219,7 +219,7 @@ dbm_open (char *file, int flags, int mode)
     {
       open_flags = GDBM_WRCREAT;
     }
-  else if ( (flags & O_TRUNC) == O_TRUNC)
+  else if ((flags & O_TRUNC) == O_TRUNC)
     {
       open_flags = GDBM_NEWDB;
     }
