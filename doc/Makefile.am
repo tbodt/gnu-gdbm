@@ -69,10 +69,10 @@ check-format: check-tabs check-sentence-spacing
 check-docs: check-format check-fixmes
 
 untabify:
-	emacs -batch -l untabify.el $(info_TEXINFOS) $(cfpeek_TEXINFOS)
+	emacs -batch -l untabify.el $(info_TEXINFOS) $(gdbm_TEXINFOS)
 
 fix-sentence-spacing:
-	for file in $(info_TEXINFOS) $(cfpeek_TEXINFOS); \
+	for file in $(info_TEXINFOS) $(gdbm_TEXINFOS); \
 	do \
 		if grep -q '\. [@A-Z]' $$file; then \
 			mv $$file $${file}~; \
