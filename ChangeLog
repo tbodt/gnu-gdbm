@@ -1,5 +1,12 @@
 2011-08-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Update the docs.
+
+	* doc/gdbm.texinfo: Document compatibility functions,
+	provide more cross-references.
+	
+2011-08-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Implement dbm_error and dbm_clearerr.
 	
 	* compat/ndbm.h (__gdbm_error_to_ndbm): New macro

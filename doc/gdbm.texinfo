@@ -250,6 +250,8 @@ installation of @code{gdbm}.)
 @node Open
 @chapter Opening the database.
 
+@cindex opening the database
+@cindex database, opening or creating
 @deftypefn {gdbm interface} GDBM_FILE gdbm_open (const char *@var{name}, int @var{block_size}, @
   int @var{flags}, int @var{mode}, void (*fatal_func)(const char *))
 Initializes @code{gdbm} system.  If the file has a size of zero bytes, a file
@@ -332,6 +334,8 @@ returned from @code{gdbm_open}.
 
 @node Close
 @chapter Closing the database.
+@cindex closing database
+@cindex database, closing
 
 It is important that every file opened is also closed.  This is needed to
 update the reader/writer count on the file:
@@ -348,6 +352,8 @@ The pointer returned by @code{gdbm_open}.
 
 @node Store
 @chapter Inserting and replacing records in the database.
+@cindex storing records
+@cindex records, storing
 
 @deftypefn {gdbm interface} int gdbm_store (GDBM_FILE @var{dbf}, datum @var{key}, @
            datum @var{content}, int @var{flag})
@@ -403,6 +409,9 @@ data can be as large as you want.
 
 @node Fetch
 @chapter Searching for records in the database.
+@cindex fetching records
+@cindex looking up records
+@cindex record, fetching
 
 @deftypefn {gdbm interface} datum gdbm_fetch (GDBM_FILE @var{dbf}, datum @var{key})
 Looks up a given @var{key} and returns the information associated with it.
@@ -436,6 +445,7 @@ else
   @}
 @end example
 
+@cindex records, testing existence
 You may also search for a particular key without retrieving it:
 
 @deftypefn {gdbm interface} int gdbm_exists (GDBM_FILE @var{dbf}, datum @var{key})
@@ -454,6 +464,8 @@ The search key.
 
 @node Delete
 @chapter Removing records from the database.
+@cindex deleting records
+@cindex record, deleting
 
 To remove some data from the database, use the @code{gdbm_delete}
 function.
@@ -478,6 +490,9 @@ requester is a reader.  The return of @samp{0} marks a successful delete.
 
 @node Sequential
 @chapter Sequential access to records.
+@cindex sequential access
+@cindex iterating over records
+@cindex records, iterating over
 
 The next two functions allow for accessing all items in the database.  This
 access is not @code{key} sequential, but it is guaranteed to visit every
@@ -512,6 +527,7 @@ Otherwise, @samp{dptr} points to a memory block obtained from
 for freeing this memory block when no longer needed.
 @end deftypefn
 
+@cindex iteration loop
 These functions were intended to visit the database in read-only algorithms,
 for instance, to validate the database or similar operations.  The
 usual algorithm for sequential access is:
@@ -536,6 +552,9 @@ usual algorithm for sequential access is:
 @end group
 @end example
 
+@cindex iteration and @code{gdbm_delete}
+@cindex deletion in iteration loops
+@cindex @code{gdbm_delete} and sequential access
 Care should be taken when the @code{gdbm_delete} function is used in
 such a loop.  File visiting is based on a @dfn{hash table}.  The
 @code{gdbm_delete} function re-arranges the hash table to make sure
@@ -563,6 +582,8 @@ will not be visited if a loop like the following is executed:
 
 @node Reorganization
 @chapter Database reorganization.
+@cindex database reorganization
+@cindex reorganization, database
 
 The following function should be used very seldom.
 
@@ -591,6 +612,8 @@ reorganization.
 
 @node Sync
 @chapter Database Synchronization
+@cindex database synchronization
+@cindex synchronization, database
 
 @kwindex GDBM_SYNC
 Unless your database was opened with the @samp{GDBM_SYNC} flag,
@@ -691,6 +714,7 @@ See also @ref{gdbmexport}, @ref{testgdbm export}, and
 
 @node Errors
 @chapter Error strings.
+@cindex error strings
 
 To convert a @code{gdbm} error code into English text, use this
 routine:
@@ -705,7 +729,9 @@ The @var{errno} argument is usually the value of the global variable
 @end deftypefn
 
 @node Options
-@chapter Setting options.
+@chapter Setting options
+@cindex database options
+@cindex options, database
 
 @code{Gdbm} supports the ability to set certain options on an already
 open database.
@@ -795,6 +821,7 @@ ret = gdbm_setopt(dbf, GDBM_CACHESIZE, &value, sizeof(int));
 
 @node Locking
 @chapter File Locking.
+@cindex locking
 
 @kwindex GDBM_NOLOCK
 With locking disabled (if @code{gdbm_open} was called with @samp{GDBM_NOLOCK}),
@@ -812,6 +839,7 @@ calls.
 
 @node testgdbm
 @chapter Test and modify a GDBM database.
+@cindex testgdbm
 
 The @command{testgdbm} utility allows you to view and modify an
 existing @acronym{GDBM} database or to create a new one.
@@ -847,6 +875,7 @@ exists, it will be deleted, so use it sparingly.
 
 @node invocation
 @section testgdbm invocation
+@cindex command line options, @command{testgdbm}
 
 The following table summarizes all @command{testgdbm} command line
 options:
@@ -872,6 +901,8 @@ Print program version and licensing information and exit.
 
 @node shell
 @section testgdbm interactive mode
+@cindex interactive mode, @command{testgdbm}
+
 After successful startup, @command{testgdbm} starts a loop, in which
 it reads commands from the user, executes them and prints the results
 on the standard output.  If the standard input is attached to a console,
@@ -931,11 +962,16 @@ by using @code{z} (for keys) and @code{Z} (for data) commands.
 The following table summarizes all available commands:
 
 @table @code
+@kindex c, testgdbm command
 @item c
 Print the number of entries in the database.
+
+@kindex d, testgdbm command
 @item d @var{key}
 Delete entry with a given @var{key}
 @anchor{testgdbm export}
+
+@kindex e, testgdbm command
 @item e @var{file-name} [truncate]
 Export the database to the flat file @var{file-name}.  @xref{Flat files},
 for a description of the flat file format and its purposes.  This
@@ -944,21 +980,26 @@ command will not overwrite an existing file, unless the word
 
 See also @ref{gdbmexport}.
 
+@kindex f, testgdbm command
 @item f @var{key}
 Fetch and display a record with the given @var{key}.
 
 @anchor{testgdbm import}
+@kindex i, testgdbm command
 @item i @var{file-name} [replace]
 Import data from a flat dump file @var{file-name}
 (@pxref{Flat files}).  If the word @samp{replace} is given
 as the second argument, any records with the same keys as the already
 existing ones will replace them.
 
+@kindex l, testgdbm command
 @item l
 List the contents of the database (@pxref{pager}).
 
+@kindex n, testgdbm command
+@kindex 2, testgdbm command
 @item n [@var{key}]
-@itemx 2
+@itemx 2 [@var{key}]
 Sequential access: fetch and display a next record.  If @var{key} is
 given, a record following one with this key will be fetched.
 Otherwise, the key supplied by the latest @code{1}, @code{2} or
@@ -970,52 +1011,66 @@ See also @code{1}, below.
 
 @xref{Sequential}, for more information on sequential access.
 
+@kindex q, testgdbm command
 @item q
 Close the database and quit the utility.
 
+@kindex s, testgdbm command
 @item s @var{key} @var{data}
 Store the @var{data} with @var{key} in the database.  If @var{key}
 already exists, its data will be replaced.
 
+@kindex 1, testgdbm command
 @item 1
 Fetch and display the first record in the database.  Subsequent
 records can be fetched using @code{n} (or @code{2}) command (see above). 
 @xref{Sequential}, for more information on sequential access.
 
+@kindex <, testgdbm command
 @item < @var{file} [replace]
 Read entries from @var{file} and store them in the database.  If the
 word @samp{replace} is given as the second argument, any existing
 records with matching keys will be replaced.
 
+@kindex r, testgdbm command
 @item r
 Reorganize the database (@pxref{Reorganization}).
 
+@kindex z, testgdbm command
 @item z
 Toggle key nul-termination.  Use @code{S} to inspect the current
 state.  @xref{nul-termination}.
 
+@kindex A, testgdbm command
 @item A
 Print the @dfn{avail list}.
 
+@kindex B, testgdbm command
 @item B @var{num} 
 Print the bucket number @var{num}.  This command uses pager
 (@pxref{pager}).
 
+@kindex C, testgdbm command
 @item C
 Print the current bucket.  This command uses pager (@pxref{pager}).
 
+@kindex D, testgdbm command
 @item D
 Print hash directory.  Uses pager (@pxref{pager}).
 
+@kindex F, testgdbm command
 @item F
 Print file header.
 
+@kindex H, testgdbm command
 @item H @var{key}
 Compute and display the hash value for the given @var{key}.
 
+@kindex H, testgdbm command
 @item K
 Print the bucket cache.  Uses pager (@pxref{pager}).
 
+@kindex S, testgdbm command
 @item S
 Print current program status.  The following example shows the
 information displayed:
@@ -1026,26 +1081,28 @@ Zero terminated keys: yes
 Zero terminated data: yes
 @end example
 
+@kindex V, testgdbm command
 @item V
 Print the version of @command{gdbm}.
 
+@kindex Z, testgdbm command
 @item Z
 Toggle data nul-termination.  Use @command{S} to examine the current
 status.
 
 @xref{nul-termination}.
 
+@kindex ?, testgdbm command
 @item ?
 Print a concise command summary, showing each command letter with its
 parameters and a short description of what it does.  Optional
 arguments are enclosed in square brackets.
 
-@item q
-Quit the program.
 @end table
 
 @node gdbmexport
 @chapter Export a database into a portable format.
+@pindex gdbmexport
 
 The @command{gdbmexport} utility converts the database into a portable
 @dfn{flat format}.  Files in this format can be used to populate
@@ -1111,6 +1168,7 @@ The minimum error code used by @code{gdbm}.
 The maximum error code used by @code{gdbm}.
 @end defvr
 
+@cindex version number
 @deftypevar {const char *} gdbm_version
 A string containing the version information.
 @end deftypevar
@@ -1172,6 +1230,7 @@ gdbm_version_cmp (a, b) @result{} -1
 
 @node Error codes
 @chapter Error codes
+@cindex error codes
 
 This chapter summarizes the error codes which can be set by the
 functions in @code{gdbm} library.
@@ -1310,70 +1369,258 @@ Set by the @code{gdbm_export} function if supplied an invalid
 @node Compatibility
 @chapter Compatibility with standard @code{dbm} and @code{ndbm}.
 
-GNU @code{dbm} files are not @code{sparse}.  You can copy them with the UNIX
-@code{cp} command and they will not expand in the copying process.
+@cindex compatibility layer
+@code{Gdbm} includes a compatibility layer, which provides traditional
+@samp{ndbm} and older @samp{dbm} functions.  The layer is compiled and
+installed if the @option{--enable-libgdbm-compat} option is used when
+configuring the package.
 
-There is a compatibility mode for use with programs that already use UNIX
-@code{dbm} and UNIX @code{ndbm}.
+@findex ndbm.h
+@findex dbm.h
+@findex libgdbm_compat
+The compatibility layer consists of two header files: @file{ndbm.h}
+and @file{dbm.h} and the @file{libgdbm_compat} library.
 
-GNU @code{dbm} has compatibility functions for @code{dbm}.  For @code{dbm}
-compatibility functions, you need the include file @file{dbm.h}.
-
-In this compatibility mode, no @code{gdbm} file pointer is required
-by the user, and only one file may be opened at a time.  All users in
-compatibility mode are assumed to be writers.  If the @code{gdbm} file is a
-read only one, it will fail as a writer, but the library will try to open it
-as a reader.  All returned pointers in datum structures point to data
-that @code{gdbm} @emph{will} free.  They should be treated as static
-pointers (as standard UNIX @code{dbm} does).  The compatibility
-function names are the same as the UNIX @code{dbm} function
-names.  Their definitions follow:
-
-@example
-int     dbminit (char *file);
-datum   fetch (datum key);
-int     store (datum key, datum content);
-int     delete (datum key);
-datum   firstkey (void);
-datum   nextkey (datum key);
-int     dbmclose (void);
-@end example
-
-Standard UNIX @code{dbm} and GNU @code{dbm} do not have the same data
-format in the file.  You cannot access a standard UNIX @code{dbm} file
-with GNU @code{dbm}!
-
-Also, GNU @code{dbm} has compatibility functions for @code{ndbm}.  For
-@code{ndbm} compatibility functions, you need the include file @code{ndbm.h}.
-
-Again, just like @code{ndbm}, any returned datum can be assumed to be static
-storage.  You do not have to free that memory, the @code{ndbm} compatibility
-functions will do it for you.
-
-The functions are:
-
-@example
-DBM     *dbm_open (char *file, int flags, int mode);
-void     dbm_close (DBM *dbf);
-datum    dbm_fetch (DBM *dbf, datum key);
-int      dbm_store (DBM *dbf, datum key, datum content, int flags);
-int      dbm_delete (DBM *dbf, datum key);
-datum    dbm_firstkey (DBM *dbf);
-datum    dbm_nextkey (DBM *dbf);
-int dbm_error(DBM *dbf);
-void dbm_clearerr(DBM *dbf)
-int      dbm_dirfno (DBM *dbf);
-int      dbm_pagfno (DBM *dbf);
-int      dbm_rdonly (DBM *dbf);
-@end example
-
-If you want to compile an old C program that used UNIX @code{dbm} or
-@code{ndbm} and want to use @code{gdbm} files, execute the following
-@code{cc} command:
+Older programs using @code{ndbm} or @code{dbm} interfaces can
+use @file{libgdbm_compat} without any changes.  To link a program with
+the compatibility library, add the following two options to the
+@command{cc} invocation: @option{-lgdbm -lgdbm_compat}.  A @option{-L}
+option may also be required, depending on where @code{gdbm} is
+installed, e.g.:
 
 @example
 cc ... -L/usr/local/lib -lgdbm -lgdbm_compat
 @end example
+
+@cindex @samp{dir} file
+@cindex @samp{pag} file
+The databases created and manipulated by the compatibility interfaces
+consist of two different files: @file{@var{file}.dir} and
+@file{@var{file}.pag}.  This is required by the @acronym{POSIX}
+specification and corresponds to the traditional usage.  Note,
+however, that despite the similarity of the naming convention,
+actual data stored in these files has not the same format as
+in the databases created by other @code{dbm} or @code{ndbm}
+libraries.  In other words, you cannot access a standard UNIX
+@code{dbm} file with GNU @code{dbm}!
+
+GNU @code{dbm} files are not @code{sparse}.  You can copy them with
+the usual @code{cp} command and they will not expand in the copying
+process.
+
+@menu
+* ndbm::  NDBM interface functions.
+* dbm::   DBM interface functions.
+@end menu
+
+@node ndbm
+@section NDBM interface functions.
+@cindex NDBM functions
+
+The functions below implement the @acronym{POSIX} @samp{ndbm} interface:
+
+@deftypefn {ndbm} {DBM *} dbm_open (char *@var{file}, int @var{flags}, int @var{mode})
+Opens a database.  The @var{file} argument is the full name of the
+database file to be opened.  The function opens two files:
+@file{@var{file}.pag} and @file{@var{file}.dir}.  The @var{flags} and
+@var{mode} arguments have the same meaning as the second and third arguments of 
+@ifhtml
+@uref{http://www.manpagez.com/man/2/open,,open(2)},
+@end ifhtml
+@ifnothtml
+@code{open} (@pxref{open,,open a file,open(2), open(2) man page}),
+@end ifnothtml
+except that a database opened for write-only access opens the files
+for read and write access and the behavior of the @code{O_APPEND} flag is
+unspecified.
+
+The function returns a pointer to the @code{DBM} structure describing
+the database.  This pointer is used to refer to this database in all
+operations described below.
+@end deftypefn
+
+@deftypefn {ndbm} void dbm_close (DBM *@var{dbf})
+Closes the database.  The @var{dbf} argument must be a pointer
+returned by an earlier call to @code{dbm_open}.
+@end deftypefn
+
+@deftypefn {ndbm} datum dbm_fetch (DBM *@var{dbf}, datum @var{key})
+Reads a record from the database with the matching key.  The @var{key}
+argument supplies the key that is being looked for.
+
+If no matching record is found, the @code{dptr} member of the returned
+datum is @samp{NULL}.  Otherwise, the @code{dptr} member of the
+returned datum points to the memory managed by the compatibility
+library.  The application should never free it.
+@end deftypefn
+
+@deftypefn {ndbm} int dbm_store (DBM *@var{dbf}, datum @var{key}, @
+                                 datum @var{content}, int @var{mode})
+Writes a key/value pair to the database.  The argument @var{dbf} is a
+pointer to the @code{DBM} structure returned from a call to
+@code{dbm_open}.  The @var{key} and @var{content} provide the values
+for the record key and content.  The @var{mode} argument controls
+the behavior of @code{dbm_store} in case a matching record already
+exists in the database.  It can have one of the following two values:
+
+@table @code
+@kwindex DBM_REPLACE
+@item DBM_REPLACE
+Replace existing record with the new one.
+
+@kwindex DBM_INSERT
+@item DBM_INSERT
+The existing record is left unchanged, and the function returns
+@samp{1}.
+@end table
+
+If no matching record exists in the database, new record will be
+inserted no matter what the value of the @var{mode} is.
+@end deftypefn
+                                 
+@deftypefn {ndbm} int dbm_delete (DBM *@var{dbf}, datum @var{key})
+Deletes the record with the matching key from the database.  If the
+function succeeds, @samp{0} is returned.  Otherwise, if no matching
+record is found or if an error occurs, @samp{-1} is returned.
+@end deftypefn
+
+@deftypefn {ndbm} datum dbm_firstkey (DBM *@var{dbf})
+Initializes iteration over the keys from the database and returns
+the first key.  Note, that the word @samp{first} does not imply any
+specific ordering of the keys.
+
+If there are no records in the database, the @code{dptr} member of the
+returned datum is @samp{NULL}.  Otherwise, the @code{dptr} member of
+the returned datum points to the memory managed by the compatibility
+library.  The application should never free it.
+@end deftypefn
+
+@deftypefn {ndbm} datum dbm_nextkey (DBM *@var{dbf})
+Continues the iteration started by @code{dbm_firstkey}.  Returns the
+next key in the database.  If the iteration covered all keys in the
+database, the @code{dptr} member of the returned datum is @samp{NULL}.
+Otherwise, the @code{dptr} member of the returned datum points to the
+memory managed by the compatibility library.  The application should
+never free it.
+
+@cindex sequential access, using @samp{NDBM}
+@cindex iteration loop, using @samp{NDBM}
+The usual way of iterating over all the records in the database is:
+
+@example
+for (key = dbm_firstkey (dbf);
+     key.ptr;
+     key = dbm_nextkey (dbf))
+  @{
+    /* do something with the key */
+  @}
+@end example
+
+The loop above should not try to delete any records from the database,
+otherwise the iteration is not guaranteed to cover all the keys.
+@xref{Sequential}, for a detailed discussion of this.
+@end deftypefn
+
+@deftypefn {ndbm} int dbm_error (DBM *@var{dbf})
+Returns the error condition of the database: @samp{0} if no errors
+occurred so far while manipulating the database, and a non-zero value
+otherwise.
+@end deftypefn
+
+@deftypefn {ndbm} void dbm_clearerr (DBM *@var{dbf})
+Clears the error condition of the database.
+@end deftypefn
+
+@deftypefn {ndbm} int dbm_dirfno (DBM *@var{dbf})
+Returns the file descriptor of the @samp{dir} file of the database.
+It is guaranteed to be different from the descriptor returned by
+the @code{dbm_pagfno} function (see below).
+
+The application can lock this descriptor to serialize accesses to the
+database.
+@end deftypefn
+
+@deftypefn {ndbm} int dbm_pagfno (DBM *@var{dbf})
+Returns the file descriptor of the @samp{pag} file of the database.
+See also @code{dbm_dirfno}.
+@end deftypefn
+
+@deftypefn {ndbm} int dbm_rdonly (DBM *@var{dbf})
+Returns @samp{1} if the database @var{dbf} is open in a read-only mode
+and @samp{0} otherwise.
+@end deftypefn
+
+@node dbm
+@section DBM interface functions.
+@cindex DBM functions
+
+The functions below are provided for compatibility with the old
+UNIX @samp{DBM} interface.  Only one database at a time can be
+manipulated using them.
+
+@deftypefn {dbm} int dbminit (char *@var{file})
+Opens a database.  The @var{file} argument is the full name of the
+database file to be opened.  The function opens two files:
+@file{@var{file}.pag} and @file{@var{file}.dir}.  If any of
+them does not exist, the function fails.  It never attempts to create
+the files.
+
+The database is opened in the read-write mode, if its disk permissions
+permit.
+
+The application must ensure that the functions described below in
+this section are called only after a successful call to @code{dbminit}.
+@end deftypefn
+
+@deftypefn {dbm} int dbmclose (void)
+Closes the database opened by an earlier call to @code{dbminit}.
+@end deftypefn
+
+@deftypefn {dbm} datum fetch (datum @var{key})
+Reads a record from the database with the matching key.  The @var{key}
+argument supplies the key that is being looked for.
+
+If no matching record is found, the @code{dptr} member of the returned
+datum is @samp{NULL}.  Otherwise, the @code{dptr} member of the
+returned datum points to the memory managed by the compatibility
+library.  The application should never free it.
+@end deftypefn
+
+@deftypefn {dbm} int store (datum @var{key}, datum @var{content})
+Stores the key/value pair in the database.  If a record with the
+matching key already exists, its content will be replaced with the new
+one.
+
+Returns @samp{0} on success and @samp{-1} on error.
+@end deftypefn
+
+@deftypefn {dbm} int delete (datum @var{key})
+Deletes a record with the matching key. 
+
+If the function succeeds, @samp{0} is returned.  Otherwise, if no
+matching record is found or if an error occurs, @samp{-1} is
+returned.
+@end deftypefn
+
+@deftypefn {dbm} datum firstkey (void)
+Initializes iteration over the keys from the database and returns
+the first key.  Note, that the word @samp{first} does not imply any
+specific ordering of the keys.
+
+If there are no records in the database, the @code{dptr} member of the
+returned datum is @samp{NULL}.  Otherwise, the @code{dptr} member of
+the returned datum points to the memory managed by the compatibility
+library.  The application should never free it.
+@end deftypefn
+
+@deftypefn {dbm} datum nextkey (datum @var{key})
+Continues the iteration started by a call to @code{firstkey}.  Returns
+the next key in the database.  If the iteration covered all keys in the
+database, the @code{dptr} member of the returned datum is @samp{NULL}.
+Otherwise, the @code{dptr} member of the returned datum points to the
+memory managed by the compatibility library.  The application should
+never free it.
+@end deftypefn
 
 @node Bugs
 @chapter Problems and bugs.
