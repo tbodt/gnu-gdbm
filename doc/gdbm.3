@@ -13,8 +13,8 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM 3 "August 4, 2011" "GDBM" "GDBM User Reference"
-.ds ve 1.8.3
+.TH GDBM 3 "August 9, 2011" "GDBM" "GDBM User Reference"
+.ds ve 1.9
 .SH NAME
 GDBM - The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
 compatability. (Version \*(ve.)
@@ -60,7 +60,7 @@ compatability. (Version \*(ve.)
 .SS DBM Compatability routines:
 .PP
 .B #include <dbm.h>
-.br
+.sp
 .BI "int dbminit (const char *" name ");"
 .br
 .BI "int store (datum " key ", datum " content );
@@ -78,7 +78,7 @@ compatability. (Version \*(ve.)
 .SS NDBM Compatability routines:
 .PP
 .B #include <ndbm.h>
-.br
+.sp
 .BI "DBM *dbm_open (const char *" name ", int " flags ", int " mode );
 .br
 .BI "void dbm_close (DBM *" file );
@@ -108,7 +108,7 @@ retrieval, and deletion by key and a non-sorted traversal of all
 keys.  A process is allowed to use multiple data files at the
 same time.
 
-This manpage is a short description of the \fBGDBM\fR daemon.
+This manpage is a short description of the \fBGDBM\fR library.
 For a detailed discussion, including examples of the configuration and
 usage recommendations, refer to the \fBGDBM Manual\fR available in
 Texinfo format.  To access it, run:
@@ -343,7 +343,7 @@ be set to either TRUE or FALSE.
 \fINOTICE: This feature is still under study.\fR
 .TP
 .B GDBM_COALESCEBLKS
- Set \fBfree block merging\fR to either on or off.
+Set \fBfree block merging\fR to either on or off.
 The default is off, which is how previous versions of \fBGdbm\fR
 handled free blocks. If set, this option causes adjacent free blocks
 to be merged.  This can become a CPU expensive process with time, though,
@@ -416,14 +416,14 @@ you must link in the \fIgdbm_compat\fR library as well.  For example:
 gcc -o prog proc.c -lgdbm -lgdbm_compat
 .in
 .fi
-.SH BUGS
+.\" .SH BUGS
 
 .SH "BUG REPORTS"
 Send bug reports to <bug-gdbm@gnu.org>.
 .SH "SEE ALSO"
 dbm, ndbm
 .SH AUTHOR
-by Philip A. Nelson and Jason Downs.
+by Philip A. Nelson, Jason Downs and Sergey Poznyakoff.
 .SH COPYRIGHT
 Copyright \(co 1990 - 2011 Free Software Foundation, Inc.
 
@@ -452,9 +452,12 @@ Western Washington University
 .br
 Bellingham, WA 98226
 
-You may contact the current maintainer by:
+You may contact the current maintainers by:
 .br
    e-mail:  downsj@downsj.com
+.br
+and
+   e-mail:  gray@gnu.org
 
 .\" Local variables:
 .\" eval: (add-hook 'write-file-hooks 'time-stamp)
