@@ -84,7 +84,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->bucket_cache = NULL;
   dbf->cache_size = 0;
 
-  dbf->mmap_inited = FALSE;
+  dbf->memory_mapping = FALSE;
   dbf->mapped_size_max = SIZE_T_MAX;
   dbf->mapped_region = NULL;
   dbf->mapped_size = 0;
@@ -109,7 +109,6 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->file_locking = TRUE;	/* Default to doing file locking. */
   dbf->central_free = FALSE;	/* Default to not using central_free. */
   dbf->coalesce_blocks = FALSE; /* Default to not coalescing blocks. */
-  dbf->allow_mmap = TRUE;	/* Default to using mmap(). */
   
   /* GDBM_FAST used to determine whether or not we set fast_write. */
   if (flags & GDBM_SYNC)
@@ -120,10 +119,6 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   if (flags & GDBM_NOLOCK)
     {
       dbf->file_locking = FALSE;
-    }
-  if (flags & GDBM_NOMMAP)
-    {
-      dbf->allow_mmap = FALSE;
     }
 
   /* Open the file. */
@@ -395,10 +390,10 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     }
 
 #if HAVE_MMAP
-  if (dbf->allow_mmap)
+  if (!(flags & GDBM_NOMMAP))
     {
       if (_gdbm_mapped_init (dbf) == 0)
-	dbf->mmap_inited = TRUE;
+	dbf->memory_mapping = TRUE;
       else
 	{
 	  /* gdbm_errno should already be set. */

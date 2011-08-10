@@ -176,7 +176,7 @@ gdbm_reorganize (GDBM_FILE dbf)
   }
 
   /* Re-initialize mapping if required */
-  if (dbf->allow_mmap)
+  if (dbf->memory_mapping)
     _gdbm_mapped_init (dbf);
   
   dbf->desc           = new_dbf->desc;

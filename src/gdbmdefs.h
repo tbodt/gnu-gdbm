@@ -150,8 +150,7 @@ struct gdbm_file_info {
 	unsigned file_locking :1;
 
 	/* Whether or not we're allowing mmap() use. */
-	unsigned allow_mmap :1;
-        unsigned mmap_inited :1;
+        unsigned memory_mapping :1;
   
 	/* Type of file locking in use. */
 	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,

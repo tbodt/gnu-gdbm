@@ -208,7 +208,7 @@ _gdbm_mapped_init (GDBM_FILE dbf)
 ssize_t
 _gdbm_mapped_read (GDBM_FILE dbf, void *buffer, size_t len)
 {
-  if (dbf->mmap_inited)
+  if (dbf->memory_mapping)
     {
       ssize_t total = 0;
       char *cbuf = buffer;
@@ -225,7 +225,7 @@ _gdbm_mapped_read (GDBM_FILE dbf, void *buffer, size_t len)
 		{
 		  int rc;
 
-		  dbf->mmap_inited = FALSE;
+		  dbf->memory_mapping = FALSE;
 		  if (lseek (dbf->desc, pos, SEEK_SET) != pos)
 		    return total > 0 ? total : -1;
 		  rc = read (dbf->desc, cbuf, len);
@@ -258,7 +258,7 @@ _gdbm_mapped_read (GDBM_FILE dbf, void *buffer, size_t len)
 ssize_t
 _gdbm_mapped_write (GDBM_FILE dbf, void *buffer, size_t len)
 {
-  if (dbf->mmap_inited)
+  if (dbf->memory_mapping)
     {
       ssize_t total = 0;
       char *cbuf = buffer;
@@ -275,7 +275,7 @@ _gdbm_mapped_write (GDBM_FILE dbf, void *buffer, size_t len)
 		{
 		  int rc;
 
-		  dbf->mmap_inited = FALSE;
+		  dbf->memory_mapping = FALSE;
 		  if (lseek (dbf->desc, pos, SEEK_SET) != pos)
 		    return total > 0 ? total : -1;
 		  rc = write (dbf->desc, cbuf, len);
@@ -312,7 +312,7 @@ _gdbm_mapped_write (GDBM_FILE dbf, void *buffer, size_t len)
 off_t
 _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
 {
-  if (dbf->mmap_inited)
+  if (dbf->memory_mapping)
     {
       off_t needle;
       

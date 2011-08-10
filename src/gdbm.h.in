@@ -35,6 +35,8 @@
 #define GDBM_WRITER	1	/* A writer. */
 #define GDBM_WRCREAT	2	/* A writer.  Create the db if needed. */
 #define GDBM_NEWDB	3	/* A writer.  Always create a new db. */
+#define GDBM_OPENMASK	7	/* Mask for the above. */
+
 #define GDBM_FAST	0x10	/* Write fast! => No fsyncs.  OBSOLETE. */
 #define GDBM_SYNC	0x20	/* Sync operations to the disk. */
 #define GDBM_NOLOCK	0x40	/* Don't do file locking operations. */
@@ -46,12 +48,28 @@
 #define GDBM_REPLACE	1	/* Always replace old data with new. */
 
 /* Parameters to gdbm_setopt, specifing the type of operation to perform. */
-#define GDBM_CACHESIZE	1	/* Set the cache size. */
-#define GDBM_FASTMODE	2	/* Toggle fast mode.  OBSOLETE. */
-#define GDBM_SYNCMODE	3	/* Turn on or off sync operations. */
-#define GDBM_CENTFREE	4	/* Keep all free blocks in the header. */
-#define GDBM_COALESCEBLKS 5	/* Attempt to coalesce free blocks. */
-#define GDBM_SETMAXMAPSIZE 6    /* Set maximum mapped memory size */
+#define GDBM_SETCACHESIZE    1  /* Set the cache size. */
+#define GDBM_FASTMODE	     2	/* Toggle fast mode.  OBSOLETE. */
+#define GDBM_SETSYNCMODE     3  /* Turn on or off sync operations. */
+#define GDBM_SETCENTFREE     4  /* Keep all free blocks in the header. */
+#define GDBM_SETCOALESCEBLKS 5  /* Attempt to coalesce free blocks. */
+#define GDBM_SETMAXMAPSIZE   6  /* Set maximum mapped memory size */
+#define GDBM_SETMMAP         7
+
+/* Compatibility defines: */
+#define GDBM_CACHESIZE	     GDBM_SETCACHESIZE
+#define GDBM_SYNCMODE	     GDBM_SETSYNCMODE
+#define GDBM_CENTFREE        GDBM_SETCENTFREE
+#define GDBM_COALESCEBLKS    GDBM_SETCENTFREE
+
+#define GDBM_GETFLAGS        8
+#define GDBM_GETMMAP         9
+#define GDBM_GETCACHESIZE    10
+#define GDBM_GETSYNCMODE     11
+#define GDBM_GETCENTFREE     12
+#define GDBM_GETCOALESCEBLKS 13
+#define GDBM_GETMAXMAPSIZE   14
+
 
 /* The data and key structure. */
 typedef struct {

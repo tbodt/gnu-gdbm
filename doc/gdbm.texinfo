@@ -739,7 +739,7 @@ open database.
 
 @deftypefn {gdbm interface} int gdbm_setopt (GDBM_FILE @var{dbf}, int @var{option}, @
            void *@var{value}, int @var{size})
-Sets an option on the database.
+Sets an option on the database or returns the value of an option.
 
 The parameters are:
 
@@ -747,9 +747,10 @@ The parameters are:
 @item dbf
 The pointer returned by @code{gdbm_open}.
 @item option
-The option to be set.
+The option to be set or retreived.
 @item value
-A pointer to the value to which @var{option} will be set.
+A pointer to the value to which @var{option} will be set or where to
+place the option value (depending on the option).
 @item size
 The length of the data pointed to by @var{value}.
 @end table
@@ -759,11 +760,29 @@ The valid options are:
 
 @table @asis
 @kwindex GDBM_CACHESIZE
-@item GDBM_CACHESIZE
+@kwindex GDBM_SETCACHESIZE
+@item GDBM_SETCACHESIZE
+@itemx GDBM_CACHESIZE
 Set the size of the internal bucket cache.  This option may only be
 set once on each GDBM_FILE descriptor, and is set automatically to 100
 upon the first access to the database.  The @var{value} should point
-to an integer holding the desired cache size.
+to a @code{size_t} holding the desired cache size.
+
+The @samp{GDBM_CACHESIZE} option is provided for compatibility with
+earlier versions.
+
+@kwindex GDBM_GETCACHESIZE
+@item GDBM_GETCACHESIZE
+Return the size of the internal bucket cache.  The @var{value} should
+point to a @code{size_t} variable, where the size will be stored.
+
+@kwindex GDBM_GETFLAGS
+@item GDBM_GETFLAGS
+Return the flags describing the state of the database.  The @var{value} should
+point to a @code{int} variable where to store the flags.  The return
+is the same as the flags used when opening the database (@pxref{Open,
+gdbm_open}), except that it reflects the current state (which may have
+been altered by another calls to @code{gdbm_setopt}.
 
 @kwindex GDBM_FASTMODE
 @item GDBM_FASTMODE
@@ -773,22 +792,34 @@ to an integer: @samp{TRUE} to enable fast mode, and @samp{FALSE} to
 disable it.
 
 This option is retained for compatibility with previous versions of
-@code{gdbm}.  Its effect is the reverse of @code{GDBM_SYNCMODE}
+@code{gdbm}.  Its effect is the reverse of @code{GDBM_SETSYNCMODE}
 (see below).
 
+@kwindex GDBM_SETSYNCMODE
 @kwindex GDBM_SYNCMODE
-@item GDBM_SYNCMODE
+@item GDBM_SETSYNCMODE
+@itemx GDBM_SYNCMODE
 Turn on or off file system synchronization operations.  This
 setting defaults to off.  The @var{value} should point
 to an integer: @samp{TRUE} to turn synchronization on, and @samp{FALSE} to
 turn it off.
 
 Note, that this option is a reverse of @code{GDBM_FASTMODE},
-i.e. calling @code{GDBM_SYNCMODE} with @samp{TRUE} has the same effect
+i.e. calling @code{GDBM_SETSYNCMODE} with @samp{TRUE} has the same effect
 as calling @code{GDBM_FASTMODE} with @samp{FALSE}.
 
+The @samp{GDBM_SYNCMODE} option is provided for compatibility with
+earlier versions.
+
+@kwindex GDBM_GETSYNCMODE
+@item GDBM_GETSYNCMODE
+Return the current synchronization status.  The @var{value} should
+point to an @code{int} where the status will be stored.
+
+@kwindex GDBM_SETCENTFREE
 @kwindex GDBM_CENTFREE
-@item GDBM_CENTFREE
+@item GDBM_SETCENTFREE
+@itemx GDBM_CENTFREE
 @emph{NOTICE: This feature is still under study.}
 
 Set central free block pool to either on or off.  The default is off,
@@ -798,8 +829,13 @@ set, this option causes all subsequent free blocks to be placed in the
 more quickly.  The @var{value} should point to an integer: @samp{TRUE} to
 turn central block pool on, and @samp{FALSE} to turn it off.
 
+The @samp{GDBM_CENTFREE} option is provided for compatibility with
+earlier versions.
+
+@kwindex GDBM_SETCOALESCEBLKS
 @kwindex GDBM_COALESCEBLKS
-@item GDBM_COALESCEBLKS
+@item GDBM_SETCOALESCEBLKS
+@itemx GDBM_COALESCEBLKS
 @emph{NOTICE: This feature is still under study.}
 
 Set free block merging to either on or off.  The default is off, which
@@ -810,13 +846,34 @@ used in conjunction with GDBM_CENTFREE.  The @var{value} should point
 to an integer: @samp{TRUE} to turn free block merging on, and @samp{FALSE} to
 turn it off.
 
+@kwindex GDBM_GETCOALESCEBLKS
+@item GDBM_GETCOALESCEBLKS
+Return the current status of free block merging.  The @var{value} should
+point to an @code{int} where the status will be stored.
+
 @kwindex GDBM_SETMAXMAPSIZE
 @item GDBM_SETMAXMAPSIZE
-Sets maximum size of the memory mapped region.  The @var{value} should
+Sets maximum size of a memory mapped region.  The @var{value} should
 point to a value of type @code{size_t}, @code{unsigned long} or
 @code{unsigned}.  The actual value is rounded to the nearest page
 boundary (the page size is obtained from
 @code{sysconf(_SC_PAGESIZE)}).
+
+@kwindex GDBM_GETMAXMAPSIZE
+@item GDBM_GETMAXMAPSIZE
+Return the maximum size of a memory mapped region.  The @var{value} should
+point to a value of type @code{size_t} where to return the data.
+
+@kwindex GDBM_SETMMAP
+@item GDBM_SETMMAP
+Enable or disable memory mapping mode.  The @var{value} should point
+to an integer: @samp{TRUE} to enable memory mapping or @samp{FALSE} to
+disable it.
+
+@kwindex GDBM_GETMMAP
+@item GDBM_GETMMAP
+Check whether memory mapping is enabled.  The @var{value} should point
+to an integer where to return the status.
 @end table
 
 The return value will be @samp{-1} upon failure, or @samp{0} upon

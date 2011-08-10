@@ -1,5 +1,23 @@
 2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Improve gdbm_setopt interface.
+	
+	* src/gdbm.h.in (GDBM_OPENMASK): New constant.
+	* src/gdbmconst.h: Remove constants duplicated in
+	gdbm.h.in.
+	* src/gdbmdefs.h (gdbm_file_info) <allow_mmap>
+	<mmap_inited>: Replace with a single member: memory_mapping.
+	All callers updated.
+	(GDBM_SETCACHESIZE,GDBM_SETSYNCMODE)
+	(GDBM_SETCENTFREE,GDBM_SETCOALESCEBLKS): New option names.
+	(GDBM_SETMMAP,GDBM_GETMMAP,GDBM_GETFLAGS)
+	(GDBM_GETCACHESIZE,GDBM_GETSYNCMODE,GDBM_GETCENTFREE)
+	(GDBM_GETCOALESCEBLKS,GDBM_GETMAXMAPSIZE): New option codes.
+	* src/gdbmsetopt.c: Implement new options.
+	* doc/gdbm.texinfo: Document new options.
+
+2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	Improve memory mapping support.
 
 	The new code is more flexible and performs better when
