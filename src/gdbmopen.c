@@ -109,7 +109,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->coalesce_blocks = FALSE; /* Default to not coalescing blocks. */
   dbf->allow_mmap = TRUE;	/* Default to using mmap(). */
 
-  /* GDBM_FAST used to determine whethere or not we set fast_write. */
+  /* GDBM_FAST used to determine whether or not we set fast_write. */
   if (flags & GDBM_SYNC)
     {
       /* If GDBM_SYNC has been requested, don't do fast_write. */

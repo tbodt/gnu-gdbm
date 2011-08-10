@@ -63,6 +63,19 @@ Build gdbmexport with gdbm.h from the specified directory.
 
 Please report bugs to <bug-gdbm@gnu.org>
 
+* Documentation, updates etc.
+
+For the latest updates, visit <http://www.gnu.org/software/gdbm>,
+
+In particular, a copy of GDBM documentation in various formats is
+available online at <http://www.gnu.org/software/gdbm/manual>.
+
+Latest versions of GDBM can be downloaded from anonymous
+ftp://ftp.gnu.org/gnu/gdbm.
+
+To track the development, visit 
+<http://puszcza.gnu.org.ua/projects/gdbm>.
+
 
 * Copyright information:
 

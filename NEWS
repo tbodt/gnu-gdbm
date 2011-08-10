@@ -4,7 +4,7 @@ See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
 
-Version 1.9, 2011-08-09
+Version 1.9
 
 * Use of mmap
 

@@ -145,6 +145,7 @@ Other topics:
 * Variables::                  Two useful variables.
 * Compatibility::              Compatibility with UNIX dbm and ndbm.
 * Bugs::                       Problems and bugs.
+* Resources::                  Additional resources,
 
 * GNU Free Documentation License::      Document license.
 * Index::                       Index
@@ -766,13 +767,14 @@ to an integer holding the desired cache size.
 
 @kwindex GDBM_FASTMODE
 @item GDBM_FASTMODE
-@emph{This option is now obsolete and has no effect.  The following
-description reflects its historical usage:}
+Enable or disable the @dfn{fast writes mode}, i.e. writes without
+subsequent synchronization.  The @var{value} should point
+to an integer: @samp{TRUE} to enable fast mode, and @samp{FALSE} to
+disable it.
 
-Enable or disable the fast mode.  This allows fast mode to be toggled
-on an already open and active database.  The @var{value} should point
-to an integer: @samp{TRUE} to enable fast mode, and @samp{FALSE} to disable
-it.
+This option is retained for compatibility with previous versions of
+@code{gdbm}.  Its effect is the reverse of @code{GDBM_SYNCMODE}
+(see below).
 
 @kwindex GDBM_SYNCMODE
 @item GDBM_SYNCMODE
@@ -780,6 +782,10 @@ Turn on or off file system synchronization operations.  This
 setting defaults to off.  The @var{value} should point
 to an integer: @samp{TRUE} to turn synchronization on, and @samp{FALSE} to
 turn it off.
+
+Note, that this option is a reverse of @code{GDBM_FASTMODE},
+i.e. calling @code{GDBM_SYNCMODE} with @samp{TRUE} has the same effect
+as calling @code{GDBM_FASTMODE} with @samp{FALSE}.
 
 @kwindex GDBM_CENTFREE
 @item GDBM_CENTFREE
@@ -1653,6 +1659,29 @@ You may contact the authors and maintainers by e-mail:
 @example
 @email{phil@@cs.wwu.edu}, @email{downsj@@downsj.com}, @email{gray@@gnu.org.ua}
 @end example
+
+@node Resources
+@chapter Additional resources
+
+For the latest updates and pointers to additional resources, visit
+@uref{http://www.gnu.org/software/gdbm}.
+
+In particular, a copy of @code{gdbm} documentation in various formats
+is available online at @uref{http://www.gnu.org/software/gdbm/manual}.
+
+Latest versions of @code{gdbm} can be downloaded from anonymous FTP:
+@uref{ftp://ftp.gnu.org/gnu/gdbm}, or via HTTP from
+@uref{http://ftp.gnu.org/gnu/gdbm}, or from any
+@ifhtml
+@uref{http://www.gnu.org/order/ftp.html,,GNU mirror} worldwide.
+@end ifhtml
+@ifnothtml
+GNU mirror worldwide.  See @uref{http://www.gnu.org/order/ftp.html},
+for a list of mirrors.
+@end ifnothtml
+
+To track @code{gdbm} development, visit
+@uref{http://puszcza.gnu.org.ua/projects/gdbm}.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
