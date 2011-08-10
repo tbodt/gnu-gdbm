@@ -738,7 +738,7 @@ The @var{errno} argument is usually the value of the global variable
 open database.
 
 @deftypefn {gdbm interface} int gdbm_setopt (GDBM_FILE @var{dbf}, int @var{option}, @
-           int *@var{value}, int @var{size})
+           void *@var{value}, int @var{size})
 Sets an option on the database.
 
 The parameters are:
@@ -809,6 +809,14 @@ a @acronym{CPU} expensive process with time, though, especially if
 used in conjunction with GDBM_CENTFREE.  The @var{value} should point
 to an integer: @samp{TRUE} to turn free block merging on, and @samp{FALSE} to
 turn it off.
+
+@kwindex GDBM_SETMAXMAPSIZE
+@item GDBM_SETMAXMAPSIZE
+Sets maximum size of the memory mapped region.  The @var{value} should
+point to a value of type @code{size_t}, @code{unsigned long} or
+@code{unsigned}.  The actual value is rounded to the nearest page
+boundary (the page size is obtained from
+@code{sysconf(_SC_PAGESIZE)}).
 @end table
 
 The return value will be @samp{-1} upon failure, or @samp{0} upon

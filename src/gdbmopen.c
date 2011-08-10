@@ -28,7 +28,7 @@
 #elif SIZEOF_OFF_T == 8
 #define GDBM_MAGIC	GDBM_MAGIC64
 #elif
-#error "Unsupport off_t size, contact GDBM maintainer.  What crazy system is this?!?"
+#error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
 #endif
 
 /* Initialize dbm system.  FILE is a pointer to the file name.  If the file
@@ -84,6 +84,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->bucket_cache = NULL;
   dbf->cache_size = 0;
 
+  dbf->mmap_inited = FALSE;
+  dbf->mapped_size_max = SIZE_T_MAX;
   dbf->mapped_region = NULL;
   dbf->mapped_size = 0;
   dbf->mapped_pos = 0;
@@ -108,7 +110,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->central_free = FALSE;	/* Default to not using central_free. */
   dbf->coalesce_blocks = FALSE; /* Default to not coalescing blocks. */
   dbf->allow_mmap = TRUE;	/* Default to using mmap(). */
-
+  
   /* GDBM_FAST used to determine whether or not we set fast_write. */
   if (flags & GDBM_SYNC)
     {
@@ -395,7 +397,9 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 #if HAVE_MMAP
   if (dbf->allow_mmap)
     {
-      if (_gdbm_mapped_init (dbf) == -1)
+      if (_gdbm_mapped_init (dbf) == 0)
+	dbf->mmap_inited = TRUE;
+      else
 	{
 	  /* gdbm_errno should already be set. */
 	  close (dbf->desc);
@@ -424,7 +428,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
 /* Initialize the bucket cache. */
 int
-_gdbm_init_cache(GDBM_FILE dbf, int size)
+_gdbm_init_cache(GDBM_FILE dbf, size_t size)
 {
   int index;
 

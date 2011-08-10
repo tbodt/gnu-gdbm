@@ -38,8 +38,8 @@ write_header (GDBM_FILE dbf)
   if (num_bytes != dbf->header->block_size)
     _gdbm_fatal (dbf, "write error");
 
-  /* Sync the file if fast_write is FALSE or it's mapped. */
-  if (dbf->mapped_region != NULL || dbf->fast_write == FALSE)
+  /* Sync the file if fast_write is FALSE. */
+  if (dbf->fast_write == FALSE)
     __fsync (dbf);
 }
 
@@ -85,8 +85,7 @@ _gdbm_end_update (GDBM_FILE dbf)
       if (num_bytes != dbf->header->dir_size)
 	_gdbm_fatal (dbf, "write error");
       dbf->directory_changed = FALSE;
-      if (!dbf->header_changed &&
-	  (dbf->fast_write == FALSE || dbf->mapped_region != NULL))
+      if (!dbf->header_changed && dbf->fast_write == FALSE)
 	__fsync (dbf);
     }
 

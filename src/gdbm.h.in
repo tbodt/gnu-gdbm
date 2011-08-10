@@ -51,6 +51,7 @@
 #define GDBM_SYNCMODE	3	/* Turn on or off sync operations. */
 #define GDBM_CENTFREE	4	/* Keep all free blocks in the header. */
 #define GDBM_COALESCEBLKS 5	/* Attempt to coalesce free blocks. */
+#define GDBM_SETMAXMAPSIZE 6    /* Set maximum mapped memory size */
 
 /* The data and key structure. */
 typedef struct {
@@ -89,7 +90,7 @@ extern datum gdbm_nextkey (GDBM_FILE, datum);
 extern int gdbm_reorganize (GDBM_FILE);
 extern void gdbm_sync (GDBM_FILE);
 extern int gdbm_exists (GDBM_FILE, datum);
-extern int gdbm_setopt (GDBM_FILE, int, int *, int);
+extern int gdbm_setopt (GDBM_FILE, int, void *, int);
 extern int gdbm_fdesc (GDBM_FILE);
 extern int gdbm_export (GDBM_FILE, const char *, int, int);
 extern int gdbm_import (GDBM_FILE, const char *, int);
@@ -136,6 +137,7 @@ extern "C" {
 #endif
 
 extern const char *gdbm_strerror (gdbm_error);
+extern int gdbm_version_cmp (int const a[], int const b[]);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 }

@@ -124,8 +124,6 @@ typedef struct {
 	data_cache_elem ca_data;
       } cache_elem;
 
-
-
 /* This final structure contains all main memory based information for
    a gdbm file.  This allows multiple gdbm files to be opened at the same
    time by one program. */
@@ -153,7 +151,8 @@ struct gdbm_file_info {
 
 	/* Whether or not we're allowing mmap() use. */
 	unsigned allow_mmap :1;
-
+        unsigned mmap_inited :1;
+  
 	/* Type of file locking in use. */
 	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,
 		LOCKING_FCNTL } lock_type;
@@ -173,7 +172,7 @@ struct gdbm_file_info {
 
 	/* The bucket cache. */
 	cache_elem *bucket_cache;
-	int cache_size;
+        size_t cache_size;
 	int last_read;
 
 	/* Points to the current hash bucket in the cache. */
@@ -193,15 +192,12 @@ struct gdbm_file_info {
 	unsigned second_changed :1;
 
 	/* Mmap info */
+        size_t mapped_size_max;/* Max. allowed value for mapped_size */
 	void  *mapped_region;  /* Mapped region */
 	size_t mapped_size;    /* Size of the region */
 	off_t  mapped_pos;     /* Current offset in the region */
 	off_t  mapped_off;     /* Position in the file where the region
 				  begins */
-	int    mapped_remap;   /* When set, any call to
-				  _gdbm_mapped_{write|read} will remap the
-				  region according to the above fields. */
-	
       };
 
 /* Now define all the routines in use. */

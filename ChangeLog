@@ -1,3 +1,49 @@
+2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Improve memory mapping support.
+
+	The new code is more flexible and performs better when
+	lots of inserts are being made (e.g. when populating the
+	database with new data).
+	
+	* src/gdbm.h.in (GDBM_SETMAXMAPSIZE): New constant.
+	* src/gdbmconst.h (SIZE_T_MAX): New define.
+	* src/gdbmdefs.h (gdbm_file_info) <cache_size>: Change type
+	to size_t.
+	<mmap_inited,mapped_size_max>: New member.
+	<mapped_remap>: Remove.
+	* src/gdbmopen.c: Fix a typo.
+	(gdbm_open): Initialize new members.
+	(_gdbm_init_cache): Second argument is size_t.
+	* src/gdbmsetopt.c (gdbm_setopt): Optval argument is void*.
+	Handle GDBM_SETMAXMAPSIZE.
+	Improve error checking.
+	* src/mmap.c (_GDBM_IN_MAPPED_REGION_P): Fix comparison with
+	the lower bound.
+	(_GDBM_NEED_REMAP): Return true if mapped_region is NULL.
+	(SUM_FILE_SIZE): Rewrite.
+	(_gdbm_mapped_unmap): Don't call msync.
+	(_gdbm_internal_remap): Take 2 arguments, the second one
+	giving the new mapped size.
+	Unmap the region prior to remapping it.
+	Always pass NULL as the argument to mmap.
+	(_gdbm_mapped_remap): Rewrite the logic. Change semantics of the
+	third argument. All uses updated.
+	(_gdbm_mapped_init): Reflect the above changes.
+	(_gdbm_mapped_read,_gdbm_mapped_write): Use mmap_inited to decide
+	whether to use mmap, because mapped_region can be reset to zero
+	by another functions (namely, _gdbm_mapped_lseek).
+	Reset mmap_inited to FALSE, if _gdbm_mapped_remap fails.
+	(_gdbm_mapped_lseek): Rewrite offset computations. Invalidate
+	the mapped region.
+	* src/proto.h (_gdbm_init_cache): Change prototype.
+	* src/update.c (write_header, _gdbm_end_update): Remove checks
+	for dbf->mapped_region.
+	* tests/gtload.c: Implement the -maxmap option (set maximal
+	mapped memory size).
+	
+	* doc/gdbm.texinfo: Document GDBM_SETMAXMAPSIZE.
+
 2011-08-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Update the docs.

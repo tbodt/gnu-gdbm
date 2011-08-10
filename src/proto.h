@@ -41,7 +41,7 @@ void _gdbm_end_update   (GDBM_FILE);
 void _gdbm_fatal	(GDBM_FILE, const char *);
 
 /* From gdbmopen.c */
-int _gdbm_init_cache	(GDBM_FILE, int);
+int _gdbm_init_cache	(GDBM_FILE, size_t);
 
 /* From mmap.c */
 int _gdbm_mapped_init	(GDBM_FILE);

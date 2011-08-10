@@ -23,10 +23,48 @@
 
 /* operate on an already open descriptor. */
 
-/* ARGSUSED */
-int
-gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
+static int
+getbool (void *optval, int optlen)
 {
+  int n;
+  
+  if (!optval || optlen != sizeof (int) ||
+      (((n = *(int*)optval) != TRUE) && n != FALSE))
+    {
+      gdbm_errno = GDBM_OPT_ILLEGAL;
+      return -1;
+    }
+  return n;
+}
+
+static int
+get_size (void *optval, int optlen, size_t *ret)
+{
+  if (!optval)
+    {
+      gdbm_errno = GDBM_OPT_ILLEGAL;
+      return -1;
+    }
+  if (optlen == sizeof (unsigned))
+    *ret = *(unsigned*) optval;
+  else if (optlen == sizeof (unsigned long))
+    *ret = *(unsigned long*) optval;
+  else if (optlen == sizeof (size_t))
+    *ret = *(size_t*) optval;
+  else
+    {
+      gdbm_errno = GDBM_OPT_ILLEGAL;
+      return -1;
+    }
+  return 0;
+}
+
+int
+gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
+{
+  int n;
+  size_t sz;
+  
   switch (optflag)
     {
       case GDBM_CACHESIZE:
@@ -37,52 +75,50 @@ gdbm_setopt(GDBM_FILE dbf, int optflag, int *optval, int optlen)
             return -1;
           }
 
-        return _gdbm_init_cache(dbf, ((*optval) > 9) ? (*optval) : 10);
+	if (get_size (optval, optlen, &sz))
+	  return -1;
+        return _gdbm_init_cache (dbf, (sz > 9) ? sz : 10);
 
       case GDBM_FASTMODE:
       	/* Obsolete form of SYNCMODE. */
-	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
-	  {
-	    gdbm_errno = GDBM_OPT_ILLEGAL;
-	    return -1;
-	  }
-
-	dbf->fast_write = *optval;
+	if ((n = getbool (optval, optlen)) == -1)
+	  return -1;
+	dbf->fast_write = n;
 	break;
 
       case GDBM_SYNCMODE:
       	/* Optval will point to either true or false. */
-	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
-	  {
-	    gdbm_errno = GDBM_OPT_ILLEGAL;
-	    return -1;
-	  }
-
-	dbf->fast_write = !(*optval);
+	if ((n = getbool (optval, optlen)) == -1)
+	  return -1;
+	dbf->fast_write = !n;
 	break;
 
       case GDBM_CENTFREE:
       	/* Optval will point to either true or false. */
-	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
-	  {
-	    gdbm_errno = GDBM_OPT_ILLEGAL;
-	    return -1;
-	  }
-
-	dbf->central_free = *optval;
+	if ((n = getbool (optval, optlen)) == -1)
+	  return -1;
+	dbf->central_free = n;
 	break;
 
       case GDBM_COALESCEBLKS:
       	/* Optval will point to either true or false. */
-	if (!optval || ((*optval != TRUE) && (*optval != FALSE)))
-	  {
-	    gdbm_errno = GDBM_OPT_ILLEGAL;
-	    return -1;
-	  }
-
-	dbf->coalesce_blocks = *optval;
+	if ((n = getbool (optval, optlen)) == -1)
+	  return -1;
+	dbf->coalesce_blocks = n;
 	break;
 
+      case GDBM_SETMAXMAPSIZE:
+	{
+	  size_t page_size = sysconf (_SC_PAGESIZE);
+
+	  if (get_size (optval, optlen, &sz))
+	    return -1;
+	  dbf->mapped_size_max = ((sz + page_size - 1) / page_size) *
+	                          page_size;
+	  _gdbm_mapped_init (dbf);
+	  break;
+	}
+	
       default:
         gdbm_errno = GDBM_OPT_ILLEGAL;
         return -1;

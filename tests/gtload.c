@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "gdbm.h"
 #include "progname.h"
 
@@ -37,6 +38,7 @@ main (int argc, char **argv)
   GDBM_FILE dbf;
   int delim = '\t';
   int data_z = 0;
+  size_t mapped_size_max = 0;
   
   while (--argc)
     {
@@ -44,7 +46,7 @@ main (int argc, char **argv)
 
       if (strcmp (arg, "-h") == 0)
 	{
-	  printf ("usage: %s [-replace] [-clear] [-blocksize=N] [-null] [-nolock] [-nommap] [-sync] [-delim=CHR] DBFILE\n", progname);
+	  printf ("usage: %s [-replace] [-clear] [-blocksize=N] [-null] [-nolock] [-nommap] [-maxmap=N] [-sync] [-delim=CHR] DBFILE\n", progname);
 	  exit (0);
 	}
       else if (strcmp (arg, "-replace") == 0)
@@ -61,6 +63,26 @@ main (int argc, char **argv)
 	flags |= GDBM_SYNC;
       else if (strncmp (arg, "-blocksize=", 11) == 0)
 	block_size = atoi (arg + 11);
+      else if (strncmp (arg, "-maxmap=", 8) == 0)
+	{
+	  char *p;
+
+	  errno = 0;
+	  mapped_size_max = strtoul (arg + 8, &p, 10);
+	  
+	  if (errno)
+	    {
+	      fprintf (stderr, "%s: ", progname);
+	      perror ("maxmap");
+	      exit (1);
+	    }
+
+	  if (*p)
+	    {
+	      fprintf (stderr, "%s: bad maxmap\n", progname);
+	      exit (1);
+	    }
+	}
       else if (strncmp (arg, "-delim=", 7) == 0)
 	delim = arg[7];
       else if (strcmp (arg, "--") == 0)
@@ -92,6 +114,17 @@ main (int argc, char **argv)
       exit (1);
     }
 
+  if (mapped_size_max)
+    {
+      if (gdbm_setopt (dbf, GDBM_SETMAXMAPSIZE, &mapped_size_max,
+		       sizeof (mapped_size_max)))
+	{
+	  fprintf (stderr, "gdbm_setopt failed: %s\n",
+		   gdbm_strerror (gdbm_errno));
+	  exit (1);
+	}
+    }  
+  
   while (fgets (buf, sizeof buf, stdin))
     {
       size_t i, j;
