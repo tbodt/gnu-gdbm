@@ -144,7 +144,9 @@ gdbm_reorganize (GDBM_FILE dbf)
   _gdbm_end_update (new_dbf);
   gdbm_sync (new_dbf);
 
+#if HAVE_MMAP
   _gdbm_mapped_unmap (dbf);
+#endif
   
   /* Move the new file to old name. */
 
@@ -175,9 +177,11 @@ gdbm_reorganize (GDBM_FILE dbf)
     free (dbf->bucket_cache);
   }
 
+#if HAVE_MMAP
   /* Re-initialize mapping if required */
   if (dbf->memory_mapping)
     _gdbm_mapped_init (dbf);
+#endif
   
   dbf->desc           = new_dbf->desc;
   dbf->header         = new_dbf->header;

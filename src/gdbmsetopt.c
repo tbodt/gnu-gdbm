@@ -151,6 +151,7 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
 
 	/* Mmap mode */
       case GDBM_SETMMAP:
+#if HAVE_MMAP
 	if ((n = getbool (optval, optlen)) == -1)
 	  return -1;
 	__fsync (dbf);
@@ -168,6 +169,10 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
 	    _gdbm_mapped_unmap (dbf);
 	    dbf->memory_mapping = FALSE;
 	  }
+#else
+	gdbm_errno = GDBM_OPT_ILLEGAL;
+	return -1;
+#endif
 	break;
 	
       case GDBM_GETMMAP:
@@ -181,6 +186,7 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
 
 	/* Maximum size of a memory mapped region */
       case GDBM_SETMAXMAPSIZE:
+#if HAVE_MMAP
 	{
 	  size_t page_size = sysconf (_SC_PAGESIZE);
 
@@ -191,6 +197,10 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
 	  _gdbm_mapped_init (dbf);
 	  break;
 	}
+#else
+	gdbm_errno = GDBM_OPT_ILLEGAL;
+	return -1;
+#endif
 	
       case GDBM_GETMAXMAPSIZE:
 	if (!optval || optlen != sizeof (size_t))
