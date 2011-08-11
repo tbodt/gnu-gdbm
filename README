@@ -40,7 +40,7 @@ UNIX-like dbm and ndbm interfaces.
 
 ** --enable-gdbm-export
 
-Build and install gdbmexport with specified gdbm 1.8 library.
+Build and install gdbmexport with the specified gdbm 1.8 library.
 
 ** --with-gdbm183-library=LIB
 
