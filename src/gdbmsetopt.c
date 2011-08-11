@@ -231,6 +231,24 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
 	  }
 	break;
 
+      case GDBM_GETDBNAME:
+	if (!optval || optlen != sizeof (char*))
+	  {
+	    gdbm_errno = GDBM_OPT_ILLEGAL;
+	    return -1;
+	  }
+	else
+	  {
+	    char *p = strdup (dbf->name);
+	    if (!p)
+	      {
+		gdbm_errno = GDBM_MALLOC_ERROR;
+		return -1;
+	      }
+	    *(char**) optval = p;
+	  }
+	break;
+	
       default:
         gdbm_errno = GDBM_OPT_ILLEGAL;
         return -1;

@@ -874,6 +874,30 @@ disable it.
 @item GDBM_GETMMAP
 Check whether memory mapping is enabled.  The @var{value} should point
 to an integer where to return the status.
+
+@kwindex GDBM_GETDBNAME
+@item GDBM_GETDBNAME
+Return the name of the database disk file.  The @var{value} should
+point to a variable of type @code{char**}.  A pointer to the newly
+allocated copy of the file name will be placed there.  The caller is
+responsible for freeing this memory when no longer needed.  For
+example:
+
+@example
+char *name;
+
+if (gdbm_setopt (dbf, GDBM_GETDBNAME, &name, sizeof (name)))
+  @{
+     fprintf (stderr, "gdbm_setopt failed: %s\n",
+	      gdbm_strerror (gdbm_errno));
+  @}
+else
+  @{
+    printf ("database name: %s\n", name);
+    free (name);
+  @}
+@end example
+
 @end table
 
 The return value will be @samp{-1} upon failure, or @samp{0} upon
@@ -886,7 +910,7 @@ code could be used:
 @example
 @group
 int value = 10;
-ret = gdbm_setopt(dbf, GDBM_CACHESIZE, &value, sizeof(int));
+ret = gdbm_setopt (dbf, GDBM_CACHESIZE, &value, sizeof (int));
 @end group
 @end example
 

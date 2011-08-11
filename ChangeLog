@@ -1,5 +1,13 @@
 2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	New option GDBM_GETDBNAME.
+	
+	* src/gdbm.h.in (GDBM_GETDBNAME): New option.
+	* src/gdbmsetopt.c (gdbm_setopt): Handle GDBM_GETDBNAME.
+	* doc/gdbm.texinfo (Options): Document GDBM_GETDBNAME.
+
+2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	Improve gdbm_setopt interface.
 	
 	* src/gdbm.h.in (GDBM_OPENMASK): New constant.

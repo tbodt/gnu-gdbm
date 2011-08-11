@@ -54,7 +54,7 @@
 #define GDBM_SETCENTFREE     4  /* Keep all free blocks in the header. */
 #define GDBM_SETCOALESCEBLKS 5  /* Attempt to coalesce free blocks. */
 #define GDBM_SETMAXMAPSIZE   6  /* Set maximum mapped memory size */
-#define GDBM_SETMMAP         7
+#define GDBM_SETMMAP         7  /* Toggle mmap mode */
 
 /* Compatibility defines: */
 #define GDBM_CACHESIZE	     GDBM_SETCACHESIZE
@@ -62,14 +62,14 @@
 #define GDBM_CENTFREE        GDBM_SETCENTFREE
 #define GDBM_COALESCEBLKS    GDBM_SETCOALESCEBLKS
 
-#define GDBM_GETFLAGS        8
-#define GDBM_GETMMAP         9
-#define GDBM_GETCACHESIZE    10
-#define GDBM_GETSYNCMODE     11
-#define GDBM_GETCENTFREE     12
-#define GDBM_GETCOALESCEBLKS 13
-#define GDBM_GETMAXMAPSIZE   14
-
+#define GDBM_GETFLAGS        8  /* Get gdbm_open flags */
+#define GDBM_GETMMAP         9  /* Get mmap status */
+#define GDBM_GETCACHESIZE    10 /* Get current cache side */
+#define GDBM_GETSYNCMODE     11 /* Get synch mode */
+#define GDBM_GETCENTFREE     12 /* Get "centfree" status */
+#define GDBM_GETCOALESCEBLKS 13 /* Get free block coalesce status */
+#define GDBM_GETMAXMAPSIZE   14 /* Get maximum mapped memory size */
+#define GDBM_GETDBNAME       15 /* Return database file name */
 
 /* The data and key structure. */
 typedef struct {
