@@ -60,6 +60,8 @@ TESTSUITE_AT = \
  delete02.at\
  fetch00.at\
  fetch01.at\
+ setopt00.at\
+ setopt01.at\
  version.at
 
 TESTSUITE = $(srcdir)/testsuite
@@ -97,6 +99,7 @@ check_PROGRAMS = \
  gtdump\
  gtfetch\
  gtload\
+ gtopt\
  gtver\
  num2word\
  $(DBMPROGS)
@@ -108,6 +111,7 @@ gtload_LDADD = ../src/libgdbm.la
 gtdump_LDADD = ../src/libgdbm.la
 gtfetch_LDADD = ../src/libgdbm.la
 gtver_LDADD = ../src/libgdbm.la
+gtopt_LDADD = ../src/libgdbm.la
 
 dtload_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdump_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la

@@ -1,5 +1,16 @@
 2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Add testcases for gdbm_setopt.
+	
+	* tests/gtopt.c: New file
+	* tests/.cvsignore: Update.
+	* tests/setopt00.at: New testcase.
+	* tests/setopt01.at: New testcase.
+	* tests/Makefile.am: Build gtopt. Add setopt00.at and setopt01.at.
+	* tests/testsuite.at: Include setopt00.at and setopt01.at.
+	
+2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	New option GDBM_GETDBNAME.
 	
 	* src/gdbm.h.in (GDBM_GETDBNAME): New option.

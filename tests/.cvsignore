@@ -13,6 +13,7 @@ gtdel
 gtdump
 gtfetch
 gtload
+gtopt
 gtver
 num2word
 package.m4
