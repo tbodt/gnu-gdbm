@@ -27,7 +27,7 @@ MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
 ## package.m4.  ##
 ## ------------ ##
 
-$(srcdir)/package.m4: $(top_srcdir)/configure.ac $(srcdir)/Makefile
+$(srcdir)/package.m4: $(top_srcdir)/configure.ac $(srcdir)/Makefile.am
 	$(AM_V_GEN){                                      \
 	  echo '# Signature of the current package.'; \
 	  echo 'm4_define([AT_PACKAGE_NAME],      [@PACKAGE_NAME@])'; \

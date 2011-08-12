@@ -27,7 +27,7 @@
 #define GDBM_MAGIC	GDBM_MAGIC32
 #elif SIZEOF_OFF_T == 8
 #define GDBM_MAGIC	GDBM_MAGIC64
-#elif
+#else
 #error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
 #endif
 
