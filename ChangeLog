@@ -1,5 +1,9 @@
 2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Release 1.9
+
+2011-08-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Add testcases for gdbm_setopt.
 	
 	* tests/gtopt.c: New file
