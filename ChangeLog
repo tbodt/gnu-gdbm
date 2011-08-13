@@ -1,5 +1,14 @@
 2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Improve release checking: use gnits.
+	
+	* configure.ac (AM_INIT_AUTOMAKE): Use gnits.
+	(AC_INIT): Remove extra quoting from around version number
+	to pacify gnits.
+	* THANKS: New file.
+
+2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	Verify preprocessor directives. Pass them through cppi to
 	reflect their nesting level. Affected files:
 
