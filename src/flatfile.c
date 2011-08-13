@@ -19,11 +19,11 @@
 #ifndef _GDBMEXPORT_
 
 /* Include system configuration before all else. */
-#include "autoconf.h"
-#include <arpa/inet.h>
+# include "autoconf.h"
+# include <arpa/inet.h>
 
-#include "gdbmdefs.h"
-#include "gdbm.h"
+# include "gdbmdefs.h"
+# include "gdbm.h"
 
 #endif
 

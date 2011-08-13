@@ -1,9 +1,25 @@
 2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Verify preprocessor directives. Pass them through cppi to
+	reflect their nesting level. Affected files:
+
+	* src/flatfile.c
+	* src/gdbmconst.h
+	* src/gdbm.h.in
+	* src/gdbmconst.h
+	* src/gdbmopen.c
+	* src/gdbmreorg.c
+	* src/lock.c
+	* src/mmap.c
+	* src/systems.h
+	* src/testgdbm.c
+
+2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* NEWS, configure.ac: Version 1.9.1
 
 2011-08-12  Sergey Poznyakoff  <gray@gnu.org.ua>
-
+	
 	Bugfixes (pointed out by Matthew Burgess
 	<matthew@linuxfromscratch.org>).
 	

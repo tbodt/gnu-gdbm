@@ -24,11 +24,11 @@
 
 /* Determine our native magic number and bail if we can't. */
 #if SIZEOF_OFF_T == 4
-#define GDBM_MAGIC	GDBM_MAGIC32
+# define GDBM_MAGIC	GDBM_MAGIC32
 #elif SIZEOF_OFF_T == 8
-#define GDBM_MAGIC	GDBM_MAGIC64
+# define GDBM_MAGIC	GDBM_MAGIC64
 #else
-#error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
+# error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
 #endif
 
 /* Initialize dbm system.  FILE is a pointer to the file name.  If the file

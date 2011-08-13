@@ -24,27 +24,27 @@
 #include <errno.h>
 
 #if HAVE_FLOCK
-#ifndef LOCK_SH
-#define LOCK_SH 1
-#endif
+# ifndef LOCK_SH
+#  define LOCK_SH 1
+# endif
 
-#ifndef LOCK_EX
-#define LOCK_EX 2
-#endif
+# ifndef LOCK_EX
+#  define LOCK_EX 2
+# endif
 
-#ifndef LOCK_NB
-#define LOCK_NB 4
-#endif
+# ifndef LOCK_NB
+#  define LOCK_NB 4
+# endif
 
-#ifndef LOCK_UN
-#define LOCK_UN 8
-#endif
+# ifndef LOCK_UN
+#  define LOCK_UN 8
+# endif
 #endif
 
 #if defined(F_SETLK) && defined(F_RDLCK) && defined(F_WRLCK)
-#define HAVE_FCNTL_LOCK 1
+# define HAVE_FCNTL_LOCK 1
 #else
-#define HAVE_FCNTL_LOCK 0
+# define HAVE_FCNTL_LOCK 0
 #endif
 
 #if 0

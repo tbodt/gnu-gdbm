@@ -18,8 +18,8 @@
    along with GDBM. If not, see <http://www.gnu.org/licenses/>.   */
 
 /* Start with the constant definitions.  */
-#define  TRUE    1
-#define  FALSE   0
+#define TRUE    1
+#define FALSE   0
 
 /* Header magic numbers.  Since we don't have space for flags or versions, we
    use different static numbers to determine what kind of file it is.

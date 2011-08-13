@@ -18,32 +18,32 @@
 
 #if HAVE_MMAP
 
-#include "gdbmdefs.h"
+# include "gdbmdefs.h"
 
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <stdio.h>
+# include <sys/types.h>
+# include <sys/time.h>
+# include <sys/file.h>
+# include <sys/stat.h>
+# include <sys/mman.h>
+# include <stdio.h>
 
 /* Some systems fail to define this */
-#ifndef MAP_FAILED
-# define MAP_FAILED ((void*)-1)
-#endif
+# ifndef MAP_FAILED
+#  define MAP_FAILED ((void*)-1)
+# endif
 
 /* Translate current offset in the mapped region into the absolute position */
-#define _GDBM_MMAPPED_POS(dbf) ((dbf)->mapped_off + (dbf)->mapped_pos)
+# define _GDBM_MMAPPED_POS(dbf) ((dbf)->mapped_off + (dbf)->mapped_pos)
 /* Return true if the absolute offset OFF lies within the currentlty mmapped
    region */
-#define _GDBM_IN_MAPPED_REGION_P(dbf, off) \
+# define _GDBM_IN_MAPPED_REGION_P(dbf, off) \
   ((off) >= (dbf)->mapped_off \
    && ((off) - (dbf)->mapped_off) < (dbf)->mapped_size)
 /* Return true if the current region needs to be remapped */
-#define _GDBM_NEED_REMAP(dbf) \
+# define _GDBM_NEED_REMAP(dbf) \
   (!(dbf)->mapped_region || (dbf)->mapped_pos == (dbf)->mapped_size)
 /* Return the sum of the currently mapped size and DELTA */
-#define SUM_FILE_SIZE(dbf, delta) \
+# define SUM_FILE_SIZE(dbf, delta) \
   ((dbf)->mapped_off + (dbf)->mapped_size + (delta))
 
 /* Store the size of the GDBM file DBF in *PSIZE.
@@ -107,9 +107,9 @@ _gdbm_internal_remap (GDBM_FILE dbf, size_t size)
   return 0;
 }
 
-#define _REMAP_DEFAULT 0
-#define _REMAP_EXTEND  1
-#define _REMAP_END     2
+# define _REMAP_DEFAULT 0
+# define _REMAP_EXTEND  1
+# define _REMAP_END     2
 
 /* Remap the GDBM file so that its mapped region ends on SIZEth byte.
    If the file is opened with write permissions, FLAG controls how

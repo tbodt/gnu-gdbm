@@ -29,7 +29,7 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_TERMIOS_H
-#include <sys/termios.h>
+# include <sys/termios.h>
 #endif
 #include <stdarg.h>
 

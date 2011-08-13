@@ -43,7 +43,7 @@ _gdbm_rename (char *old_name, char *new_name)
 
 }
 
-#define rename _gdbm_rename
+# define rename _gdbm_rename
 #endif
 
 
