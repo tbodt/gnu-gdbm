@@ -1,8 +1,16 @@
-GNU dbm NEWS -- history of user-visible changes. 2011-08-12
+GNU dbm NEWS -- history of user-visible changes. 2011-08-13
 Copyright (C) 1990-2011 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
+
+Version 1.9.1
+
+* Bugfix
+
+Improperly used preprocessor directive caused compilation failure
+when using gcc 4.4.4 or newer.
+
 
 Version 1.9, 2011-08-12
 

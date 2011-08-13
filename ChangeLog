@@ -1,3 +1,7 @@
+2011-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* NEWS, configure.ac: Version 1.9.1
+
 2011-08-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Bugfixes (pointed out by Matthew Burgess
