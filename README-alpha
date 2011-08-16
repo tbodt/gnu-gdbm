@@ -1,0 +1,86 @@
+This file is part of GDBM.
+See end of file for copying conditions.
+
+* Introduction
+
+This is a *pre-release* version, and not ready for production use yet.
+If you are taking source from CVS, you will need to have several
+special tools to help contribute.  See the file README-hacking for more
+information.  See chapter `Building' for the detailed instructions on
+how to build the package.
+
+Please, note that the accompanying documentation may be inaccurate
+or incomplete. The ChangeLog file is the authoritative documentation of
+all recent changes.
+
+Please, send comments and problem reports to <bug-gdbm@gnu.org>.
+
+* Checking Out the Sources
+
+The following instructions apply if you wish to obtain sources from
+the repository.  There are several repositories:
+
+1. CVS at Puszcza.gnu.org.ua - master repository
+   <https://puszcza.gnu.org.ua/cvs/?group=gdbm>
+2. Git at Puszcza.gnu.org.ua - slave
+   <http://puszcza.gnu.org.ua/git/?group=gdbm>
+3. CVS at Savannah.gnu.org - slave
+   <http://savannah.gnu.org/cvs/?group=gdbm>
+4. Git at Savannah.gnu.org - slave
+   <http://savannah.gnu.org/git/?group=gdbm>
+
+Slave repositories are synchronized with the master 8 times a day.
+
+** CVS
+
+To checkout the source tree from CVS issue the following command:
+
+  cvs -d:pserver:anonymous@cvs.gnu.org.ua:/cvsroot/gdbm co gdbm
+
+Or, to checkout the sources from CVS mirror at Savannah, issue the
+following command:
+
+  cvs -d :pserver:anoncvs@cvs.savannah.gnu.org:/cvsroot/gdbm checkout gdbm
+
+** Git  
+
+To clone the Git repository, run:
+
+  git clone git://git.gnu.org.ua/gdbm.git
+
+Or, to clone the secondary GDBM Git mirrror repo, run:
+
+  git clone git://git.savannah.gnu.org/gdbm.git
+
+In all cases, this will give you read-only access.  If you think you need
+write access, contact <bug-gdbm@gnu.org>.
+
+* Building
+
+Usual procedures apply:
+
+ ./configure
+ make
+ make install
+
+See the files INSTALL and README for the detailed instructions.
+
+* Copyright information:
+Copyright information:
+
+Copyright (C) 1990-2011 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:

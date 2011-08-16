@@ -1,5 +1,13 @@
 2011-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Minor housekeeping for Gnits compliance.
+	
+	* README-alpha: New file.
+	* README-hacking: New file.
+	* bootstrap: Update.
+
+2011-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Internationalization.
 	
 	* Makefile.am (SUBDIRS): Add po.

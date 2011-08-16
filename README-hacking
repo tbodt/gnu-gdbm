@@ -1,0 +1,52 @@
+These notes intend to help people working on the development version of
+GDBM.
+
+* Requirements
+
+You need the following packages to build the CVS version of GNU
+DBM.  We do not make any efforts to accommodate older versions of
+these packages, so please make sure that you have the latest stable
+version. 
+
+- Automake <http://www.gnu.org/software/automake/>
+- Autoconf <http://www.gnu.org/software/autoconf/>
+- Libtool <http://www.gnu.org/software/libtool/>
+- Gettext <http://www.gnu.org/software/gettext/>
+- Texinfo <http://www.gnu.org/software/texinfo>
+
+* Bootstrapping
+
+Obviously, if you are reading these notes, you did manage to checkout
+GDBM from the repository.  The next step is to get other files needed
+to build, which are extracted from other source packages: 
+
+1. Change to the source tree directory
+
+   cd gdbm
+
+2. Run
+
+   ./bootstrap 
+
+Once done, proceed as described in the file README.
+
+
+* Copyright information
+
+Copyright (C) 2011 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+Local Variables:
+mode: outline
+paragraph-separate: "[	]*$"
+version-control: never
+End:
