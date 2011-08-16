@@ -1,3 +1,31 @@
+2011-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Internationalization.
+	
+	* Makefile.am (SUBDIRS): Add po.
+	(EXTRA_DIST): Add build-aux/config.rpath.
+	* configure.ac (AC_CONFIG_FILES): Add po/Makefile.in.
+	* bootstrap: New file.
+	* src/Makefile.am (AM_CPPFLAGS): Define LOCALEDIR
+	(noinst_HEADERS): Add gettext.h
+	(LIBADD): New variable.
+	* src/gettext.h: New file.
+	* po/.cvsignore: New file.
+	* po/Makevars: New file.
+	* po/POTFILES.in: New file.
+	* src/gdbmdefs.h: Define DEFAULT_TEXT_DOMAIN, _, N_
+	Include gettext.h
+	* src/bucket.c: Add NLS markers.
+	* src/falloc.c: Likewise.
+	* src/findkey.c: Likewise.
+	* src/gdbmerrno.c: Likewise.
+	* src/gdbmfetch.c: Likewise.
+	* src/gdbmseq.c: Likewise.
+	* src/gdbmstore.c: Likewise.
+	* src/update.c: Likewise.
+	* src/testgdbm.c: Add NLS markers.
+	(main): Initialize I18N.
+
 2011-08-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* compat/Makefile.am (libgdbm_compat_la_LIBADD): Link against

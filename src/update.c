@@ -33,10 +33,10 @@ write_header (GDBM_FILE dbf)
   off_t file_pos;	/* Return value for lseek. */
 
   file_pos = __lseek (dbf, 0L, L_SET);
-  if (file_pos != 0) _gdbm_fatal (dbf, "lseek error");
+  if (file_pos != 0) _gdbm_fatal (dbf, _("lseek error"));
   num_bytes = __write (dbf, dbf->header, dbf->header->block_size);
   if (num_bytes != dbf->header->block_size)
-    _gdbm_fatal (dbf, "write error");
+    _gdbm_fatal (dbf, _("write error"));
 
   /* Sync the file if fast_write is FALSE. */
   if (dbf->fast_write == FALSE)
@@ -80,10 +80,10 @@ _gdbm_end_update (GDBM_FILE dbf)
   if (dbf->directory_changed)
     {
       file_pos = __lseek (dbf, dbf->header->dir, L_SET);
-      if (file_pos != dbf->header->dir) _gdbm_fatal (dbf, "lseek error");
+      if (file_pos != dbf->header->dir) _gdbm_fatal (dbf, _("lseek error"));
       num_bytes = __write (dbf, dbf->dir, dbf->header->dir_size);
       if (num_bytes != dbf->header->dir_size)
-	_gdbm_fatal (dbf, "write error");
+	_gdbm_fatal (dbf, _("write error"));
       dbf->directory_changed = FALSE;
       if (!dbf->header_changed && dbf->fast_write == FALSE)
 	__fsync (dbf);
@@ -108,10 +108,7 @@ _gdbm_fatal (GDBM_FILE dbf, const char *val)
     (*dbf->fatal_err) (val);
   else
     {
-      write (STDERR_FILENO, "gdbm fatal: ", 12);
-      if (val != NULL)
-	write (STDERR_FILENO, val, strlen(val));
-      write (STDERR_FILENO, "\n", 1);
+      fprintf (stderr, _("gdbm fatal: %s\n"), val ? val : "");
     }
   exit (1);
   /* NOTREACHED */

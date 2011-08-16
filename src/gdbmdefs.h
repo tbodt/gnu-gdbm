@@ -20,6 +20,11 @@
 #include "systems.h"
 #include "gdbmconst.h"
 #include "gdbm.h"
+#define DEFAULT_TEXT_DOMAIN PACKAGE
+#include "gettext.h"
+
+#define _(s) gettext (s)
+#define N_(s) s
 
 /* The type definitions are next.  */
 

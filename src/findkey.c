@@ -54,15 +54,15 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
     data_ca->dptr = (char *) malloc (1);
   else
     data_ca->dptr = (char *) malloc (key_size+data_size);
-  if (data_ca->dptr == NULL) _gdbm_fatal (dbf, "malloc error");
+  if (data_ca->dptr == NULL) _gdbm_fatal (dbf, _("malloc error"));
 
 
   /* Read into the cache. */
   file_pos = __lseek (dbf, dbf->bucket->h_table[elem_loc].data_pointer, L_SET);
   if (file_pos != dbf->bucket->h_table[elem_loc].data_pointer)
-    _gdbm_fatal (dbf, "lseek error");
+    _gdbm_fatal (dbf, _("lseek error"));
   num_bytes = __read (dbf, data_ca->dptr, key_size+data_size);
-  if (num_bytes != key_size+data_size) _gdbm_fatal (dbf, "read error");
+  if (num_bytes != key_size+data_size) _gdbm_fatal (dbf, _("read error"));
   
   return data_ca->dptr;
 }

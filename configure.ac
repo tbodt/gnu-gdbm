@@ -76,7 +76,8 @@ AC_ARG_WITH([gdbm183-includedir],
     [Build gdbmexport with gdbm.h in the specified directory.]),
     [GDBM183_INCLUDEDIR=$withval],
     [GDBM183_INCLUDEDIR="/usr/local/include"])
-
+    
+dnl Check for programs
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
@@ -86,11 +87,15 @@ dnl AC_PROG_RANLIB
 dnl AC_C_BIGENDIAN([])
 AC_C_CONST
 
-AC_CHECK_HEADERS([stdlib.h string.h sys/file.h unistd.h fcntl.h sys/types.h memory.h sys/termios.h])
+dnl Internationalization macros.
+AM_GNU_GETTEXT([external], [need-ngettext])
+AM_GNU_GETTEXT_VERSION(0.18)
+
+AC_CHECK_HEADERS([stdlib.h string.h sys/file.h unistd.h fcntl.h sys/types.h memory.h sys/termios.h locale.h])
 
 AC_CHECK_LIB(dbm, main)
 AC_CHECK_LIB(ndbm, main)
-AC_CHECK_FUNCS([rename ftruncate flock lockf fsync])
+AC_CHECK_FUNCS([rename ftruncate flock lockf fsync setlocale])
 
 if test x$mapped_io = xyes
 then
@@ -109,7 +114,7 @@ AM_CONDITIONAL([ENABLE_EXPORT], [test "$want_export" = yes])
 
 # Initialize the test suite.
 AC_CONFIG_TESTDIR(tests)
-AC_CONFIG_FILES([tests/Makefile tests/atlocal])
+AC_CONFIG_FILES([tests/Makefile tests/atlocal po/Makefile.in])
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 AC_CONFIG_FILES([Makefile

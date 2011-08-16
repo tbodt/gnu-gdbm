@@ -19,7 +19,7 @@
 /* Include system configuration before all else. */
 #include "autoconf.h"
 
-#include "gdbm.h"
+#include "gdbmdefs.h"
 
 /* The dbm error number is placed in the variable GDBM_ERRNO. */
 gdbm_error gdbm_errno = GDBM_NO_ERROR;
@@ -28,41 +28,41 @@ gdbm_error gdbm_errno = GDBM_NO_ERROR;
    like. it must be in the same order as the error codes! */
 
 const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
-  "No error",                    /* GDBM_NO_ERROR               */
-  "Malloc error",		 /* GDBM_MALLOC_ERROR       	*/
-  "Block size error",		 /* GDBM_BLOCK_SIZE_ERROR   	*/
-  "File open error",		 /* GDBM_FILE_OPEN_ERROR    	*/
-  "File write error",		 /* GDBM_FILE_WRITE_ERROR   	*/
-  "File seek error",		 /* GDBM_FILE_SEEK_ERROR    	*/
-  "File read error",		 /* GDBM_FILE_READ_ERROR    	*/
-  "Bad magic number",		 /* GDBM_BAD_MAGIC_NUMBER   	*/
-  "Empty database",		 /* GDBM_EMPTY_DATABASE     	*/
-  "Can't be reader",		 /* GDBM_CANT_BE_READER     	*/
-  "Can't be writer",		 /* GDBM_CANT_BE_WRITER     	*/
-  "Reader can't delete",	 /* GDBM_READER_CANT_DELETE 	*/
-  "Reader can't store",		 /* GDBM_READER_CANT_STORE  	*/
-  "Reader can't reorganize",	 /* GDBM_READER_CANT_REORGANIZE */
-  "Unknown update",		 /* GDBM_UNKNOWN_UPDATE     	*/
-  "Item not found",		 /* GDBM_ITEM_NOT_FOUND     	*/
-  "Reorganize failed",		 /* GDBM_REORGANIZE_FAILED  	*/
-  "Cannot replace",		 /* GDBM_CANNOT_REPLACE     	*/
-  "Illegal data",		 /* GDBM_ILLEGAL_DATA       	*/
-  "Option already set",		 /* GDBM_OPT_ALREADY_SET    	*/
-  "Illegal option",		 /* GDBM_OPT_ILLEGAL        	*/
-  "Byte-swapped file",		 /* GDBM_BYTE_SWAPPED       	*/
-  "Wrong file offset",		 /* GDBM_BAD_FILE_OFFSET    	*/
-  "Bad file flags"		 /* GDBM_BAD_OPEN_FLAGS     	*/
+  N_("No error"),                /* GDBM_NO_ERROR               */
+  N_("Malloc error"),		 /* GDBM_MALLOC_ERROR       	*/
+  N_("Block size error"),	 /* GDBM_BLOCK_SIZE_ERROR   	*/
+  N_("File open error"),	 /* GDBM_FILE_OPEN_ERROR    	*/
+  N_("File write error"),	 /* GDBM_FILE_WRITE_ERROR   	*/
+  N_("File seek error"),	 /* GDBM_FILE_SEEK_ERROR    	*/
+  N_("File read error"),	 /* GDBM_FILE_READ_ERROR    	*/
+  N_("Bad magic number"),	 /* GDBM_BAD_MAGIC_NUMBER   	*/
+  N_("Empty database"),		 /* GDBM_EMPTY_DATABASE     	*/
+  N_("Can't be reader"),	 /* GDBM_CANT_BE_READER     	*/
+  N_("Can't be writer"),	 /* GDBM_CANT_BE_WRITER     	*/
+  N_("Reader can't delete"),	 /* GDBM_READER_CANT_DELETE 	*/
+  N_("Reader can't store"),	 /* GDBM_READER_CANT_STORE  	*/
+  N_("Reader can't reorganize"), /* GDBM_READER_CANT_REORGANIZE */
+  N_("Unknown update"),		 /* GDBM_UNKNOWN_UPDATE     	*/
+  N_("Item not found"),		 /* GDBM_ITEM_NOT_FOUND     	*/
+  N_("Reorganize failed"),	 /* GDBM_REORGANIZE_FAILED  	*/
+  N_("Cannot replace"),		 /* GDBM_CANNOT_REPLACE     	*/
+  N_("Illegal data"),		 /* GDBM_ILLEGAL_DATA       	*/
+  N_("Option already set"),	 /* GDBM_OPT_ALREADY_SET    	*/
+  N_("Illegal option"),		 /* GDBM_OPT_ILLEGAL        	*/
+  N_("Byte-swapped file"),	 /* GDBM_BYTE_SWAPPED       	*/
+  N_("Wrong file offset"),	 /* GDBM_BAD_FILE_OFFSET    	*/
+  N_("Bad file flags")		 /* GDBM_BAD_OPEN_FLAGS     	*/
 };
 
 const char *
-gdbm_strerror(gdbm_error error)
+gdbm_strerror (gdbm_error error)
 {
-  if(((int)error < _GDBM_MIN_ERRNO) || ((int)error > _GDBM_MAX_ERRNO))
+  if (((int)error < _GDBM_MIN_ERRNO) || ((int)error > _GDBM_MAX_ERRNO))
     {
-      return("Unknown error");
+      return _("Unknown error");
     }
   else
     {
-      return(gdbm_errlist[(int)error]);
+      return gettext (gdbm_errlist[(int)error]);
     }
 }

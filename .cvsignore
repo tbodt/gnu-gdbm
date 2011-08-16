@@ -1,5 +1,6 @@
 .emacs*
 *.tar.*
+ABOUT-NLS
 Makefile
 Makefile.in
 aclocal.m4

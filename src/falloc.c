@@ -178,13 +178,13 @@ pop_avail_block (GDBM_FILE dbf)
 
   /* Allocate space for the block. */
   new_blk = (avail_block *) malloc (new_el.av_size);
-  if (new_blk == NULL) _gdbm_fatal(dbf, "malloc failed");
+  if (new_blk == NULL) _gdbm_fatal(dbf, _("malloc failed"));
 
   /* Read the block. */
   file_pos = __lseek (dbf, new_el.av_adr, L_SET);
-  if (file_pos != new_el.av_adr)  _gdbm_fatal (dbf, "lseek error");
+  if (file_pos != new_el.av_adr)  _gdbm_fatal (dbf, _("lseek error"));
   num_bytes = __read (dbf, new_blk, new_el.av_size);
-  if (num_bytes != new_el.av_size) _gdbm_fatal (dbf, "read error");
+  if (num_bytes != new_el.av_size) _gdbm_fatal (dbf, _("read error"));
 
   /* Add the elements from the new block to the header. */
   index = 0;
@@ -256,7 +256,7 @@ push_avail_block (GDBM_FILE dbf)
 
   /* Split the header block. */
   temp = (avail_block *) malloc (av_size);
-  if (temp == NULL) _gdbm_fatal (dbf, "malloc error");
+  if (temp == NULL) _gdbm_fatal (dbf, _("malloc error"));
   /* Set the size to be correct AFTER the pop_avail_block. */
   temp->size = dbf->header->avail.size;
   temp->count = 0;
@@ -279,9 +279,9 @@ push_avail_block (GDBM_FILE dbf)
 
   /* Update the disk. */
   file_pos = __lseek (dbf, av_adr, L_SET);
-  if (file_pos != av_adr) _gdbm_fatal (dbf, "lseek error");
+  if (file_pos != av_adr) _gdbm_fatal (dbf, _("lseek error"));
   num_bytes = __write (dbf, temp, av_size);
-  if (num_bytes != av_size) _gdbm_fatal (dbf, "write error");
+  if (num_bytes != av_size) _gdbm_fatal (dbf, _("write error"));
   free (temp);
 }
 

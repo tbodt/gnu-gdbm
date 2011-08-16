@@ -15,14 +15,14 @@
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = NOTE-WARNING
+EXTRA_DIST = build-aux/config.rpath  NOTE-WARNING
 if COMPAT_OPT
   MAYBE_COMPAT = compat
 endif
 if ENABLE_EXPORT
   MAYBE_EXPORT = export
 endif
-SUBDIRS = src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
+SUBDIRS = po src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-libgdbm-compat
 

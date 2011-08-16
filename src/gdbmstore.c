@@ -138,11 +138,11 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 
   /* Write the data to the file. */
   file_pos = __lseek (dbf, file_adr, L_SET);
-  if (file_pos != file_adr) _gdbm_fatal (dbf, "lseek error");
+  if (file_pos != file_adr) _gdbm_fatal (dbf, _("lseek error"));
   num_bytes = __write (dbf, key.dptr, key.dsize);
-  if (num_bytes != key.dsize) _gdbm_fatal (dbf, "write error");
+  if (num_bytes != key.dsize) _gdbm_fatal (dbf, _("write error"));
   num_bytes = __write (dbf, content.dptr, content.dsize);
-  if (num_bytes != content.dsize) _gdbm_fatal (dbf, "write error");
+  if (num_bytes != content.dsize) _gdbm_fatal (dbf, _("write error"));
 
   /* Current bucket has changed. */
   dbf->cache_entry->ca_changed = TRUE;

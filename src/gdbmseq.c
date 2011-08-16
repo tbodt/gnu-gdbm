@@ -70,7 +70,7 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
     return_val->dptr = (char *) malloc (1);
   else
     return_val->dptr = (char *) malloc (return_val->dsize);
-  if (return_val->dptr == NULL) _gdbm_fatal (dbf, "malloc error");
+  if (return_val->dptr == NULL) _gdbm_fatal (dbf, _("malloc error"));
   memcpy (return_val->dptr, find_data, return_val->dsize);
 }
 
