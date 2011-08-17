@@ -152,8 +152,17 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     }
 
   /* Get the status of the file. */
-  fstat (dbf->desc, &file_stat);
-
+  if (fstat (dbf->desc, &file_stat))
+    {
+      int ec = errno;
+      close (dbf->desc);
+      free (dbf->name);
+      free (dbf);
+      gdbm_errno = GDBM_FILE_STAT_ERROR;
+      errno = ec;
+      return NULL;
+    }
+  
   /* Zero-length file can't be a reader... */
   if (((flags & GDBM_OPENMASK) == GDBM_READER) && (file_stat.st_size == 0))
     {

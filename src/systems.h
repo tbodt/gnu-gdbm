@@ -40,6 +40,7 @@
 #if HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#include <errno.h>
 
 #ifndef SEEK_SET
 # define SEEK_SET        0

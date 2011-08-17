@@ -1,3 +1,20 @@
+2011-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Introduce new error code.
+	
+	* configure.ac, NEWS: Raise patchlevel to 90.
+	* src/gdbm.h.in: Enclose entire file in conditional
+	extern "C".
+	(GDBM_FILE_STAT_ERROR): New error code.
+	(_GDBM_MAX_ERRNO): Update.
+	* src/gdbmerrno.c (gdbm_errlist): Update.
+	* src/gdbmopen.c: Set GDBM_FILE_STAT_ERROR on fstat
+	failure.
+	* src/gdbmreorg.c: Likewise.
+	* src/mmap.c: Likewise.
+	* src/systems.h: Include errno.h
+	* gdbm.texinfo: Document GDBM_FILE_STAT_ERROR.
+	
 2011-08-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Minor housekeeping for Gnits compliance.

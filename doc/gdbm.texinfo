@@ -1459,6 +1459,11 @@ the file it tries to open has a wrong magic number.
 @item GDBM_BAD_OPEN_FLAGS
 Set by the @code{gdbm_export} function if supplied an invalid
 @var{flags} argument.  @xref{Flat files}.
+
+@kwindex GDBM_FILE_STAT_ERROR
+@item GDBM_FILE_STAT_ERROR
+Getting information about a disk file failed.  The system @code{errno}
+will give more details about the error.
 @end table
 
 @node Compatibility

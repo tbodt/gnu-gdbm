@@ -134,9 +134,10 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
 
   if (_gdbm_file_size (dbf, &file_size))
     {
-      gdbm_errno = GDBM_MALLOC_ERROR; /* FIXME: Need a special error code?
-				       */
+      int ec = errno;
+      gdbm_errno = GDBM_FILE_STAT_ERROR;
       _gdbm_mapped_unmap (dbf);
+      errno = ec;
       return -1; 
     }
 
@@ -331,8 +332,9 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
  	    off_t file_size;
 	    if (_gdbm_file_size (dbf, &file_size))
 	      {
-		gdbm_errno = GDBM_MALLOC_ERROR; /* FIXME: Need a special error
-						   code? */
+		int ec = errno;
+		gdbm_errno = GDBM_FILE_STAT_ERROR;
+		errno = ec;
 		return -1;
 	      }
 	    needle = file_size - offset; 
