@@ -145,8 +145,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     }
   if (dbf->desc < 0)
     {
-      free (dbf->name);
-      free (dbf);
+      SAVE_ERRNO (free (dbf->name);
+                  free (dbf));
       gdbm_errno = GDBM_FILE_OPEN_ERROR;
       return NULL;
     }
@@ -154,12 +154,10 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   /* Get the status of the file. */
   if (fstat (dbf->desc, &file_stat))
     {
-      int ec = errno;
-      close (dbf->desc);
-      free (dbf->name);
-      free (dbf);
+      SAVE_ERRNO (close (dbf->desc);
+		  free (dbf->name);
+		  free (dbf));
       gdbm_errno = GDBM_FILE_STAT_ERROR;
-      errno = ec;
       return NULL;
     }
   
@@ -286,7 +284,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       num_bytes = __write (dbf, dbf->header, dbf->header->block_size);
       if (num_bytes != dbf->header->block_size)
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
 	  return NULL;
 	}
@@ -295,7 +293,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       num_bytes = __write (dbf, dbf->dir, dbf->header->dir_size);
       if (num_bytes != dbf->header->dir_size)
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
 	  return NULL;
 	}
@@ -304,7 +302,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       num_bytes = __write (dbf, dbf->bucket, dbf->header->bucket_size);
       if (num_bytes != dbf->header->bucket_size)
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_WRITE_ERROR;
 	  return NULL;
 	}
@@ -325,7 +323,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       num_bytes = __read (dbf, &partial_header, sizeof (gdbm_file_header));
       if (num_bytes != sizeof (gdbm_file_header))
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_READ_ERROR;
 	  return NULL;
 	}
@@ -365,7 +363,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 			  dbf->header->block_size-sizeof (gdbm_file_header));
       if (num_bytes != dbf->header->block_size-sizeof (gdbm_file_header))
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_READ_ERROR;
 	  return NULL;
 	}
@@ -383,7 +381,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       file_pos = __lseek (dbf, dbf->header->dir, L_SET);
       if (file_pos != dbf->header->dir)
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_SEEK_ERROR;
 	  return NULL;
 	}
@@ -391,7 +389,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       num_bytes = __read (dbf, dbf->dir, dbf->header->dir_size);
       if (num_bytes != dbf->header->dir_size)
 	{
-	  gdbm_close (dbf);
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_errno = GDBM_FILE_READ_ERROR;
 	  return NULL;
 	}

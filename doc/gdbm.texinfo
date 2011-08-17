@@ -1350,22 +1350,34 @@ The library was not able to open a disk file.  This can be set by
 @code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
 @code{gdbm_import} functions (@pxref{Flat files}).
 
+Inspect the value of the system @code{errno} variable to get more
+detailed diagnostics.
+
 @kwindex GDBM_FILE_WRITE_ERROR
 @item GDBM_FILE_WRITE_ERROR
 Writing to a disk file failed.  This can be set by
 @code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
 @code{gdbm_import} functions.
 
+Inspect the value of the system @code{errno} variable to get more
+detailed diagnostics.
+
 @kwindex GDBM_FILE_SEEK_ERROR
 @item GDBM_FILE_SEEK_ERROR
 Positioning in a disk file failed.  This can be set by
 @code{gdbm_open} (@pxref{Open}) function.
+
+Inspect the value of the system @code{errno} variable to get a more
+detailed diagnostics.
 
 @kwindex GDBM_FILE_READ_ERROR
 @item GDBM_FILE_READ_ERROR
 Reading from a disk file failed.  This can be set by
 @code{gdbm_open} (@pxref{Open}), @code{gdbm_export} and
 @code{gdbm_import} functions.
+
+Inspect the value of the system @code{errno} variable to get a more
+detailed diagnostics.
 
 @kwindex GDBM_BAD_MAGIC_NUMBER
 @item GDBM_BAD_MAGIC_NUMBER
@@ -1464,6 +1476,9 @@ Set by the @code{gdbm_export} function if supplied an invalid
 @item GDBM_FILE_STAT_ERROR
 Getting information about a disk file failed.  The system @code{errno}
 will give more details about the error.
+
+This error can be set by the following functions: @code{gdbm_open},
+@code{gdbm_reorganize}.
 @end table
 
 @node Compatibility

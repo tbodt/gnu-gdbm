@@ -1,5 +1,18 @@
 2011-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Make sure errno is preserved, if it can contain details about the
+	gdbm error.
+	
+	* src/gdbmdefs.h (SAVE_ERRNO): New macro.
+	* src/gdbmopen.c: Use SAVE_ERRNO where it is important to
+	preserve system errno.
+	* src/mmap.c: Likewise.
+		
+	* doc/gdbm.texinfo: Document which gdbm errors can
+	be detailed by inspecting the system errno.
+
+2011-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+	
 	Introduce new error code.
 	
 	* configure.ac, NEWS: Raise patchlevel to 90.

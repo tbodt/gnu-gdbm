@@ -204,5 +204,15 @@ struct gdbm_file_info {
 				  begins */
       };
 
+/* Execute CODE without clobbering errno */
+#define SAVE_ERRNO(code)			\
+  do						\
+    {						\
+      int __ec = errno;				\
+      code;					\
+      errno = __ec;				\
+    }						\
+  while (0)					\
+
 /* Now define all the routines in use. */
 #include "proto.h"
