@@ -1,3 +1,8 @@
+2011-08-18  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* bootstrap: Get PO files; create LINGUAS list
+	* po/.cvsignore: Add LINGUAS.
+
 2011-08-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Make sure errno is preserved, if it can contain details about the

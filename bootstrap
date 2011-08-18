@@ -1,5 +1,45 @@
 #! /bin/sh
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GDBM is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# GDBM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
+
 force=0
+
+refdir=po/.reference
+
+get_po() {
+  test -d $refdir || mkdir $refdir
+  # Get PO files.
+  rsync --delete -Lrtvz translationproject.org::tp/latest/gdbm/ $refdir
+  langs=`cd $refdir && ls *.po | sed 's/\.po$//' | sort`
+  if test "$langs" != '*'; then
+    for lang in $langs
+    do
+      if test -f po/$lang.po && cmp po/$lang.po $refdir/$lang.po
+      then
+        :
+      else
+        cp $refdir/$lang.po po
+      fi
+    done
+  fi
+  # Create LINGUAS
+  (echo "# This file is generated automatically; don't edit"
+   ls po/*.po 2>/dev/null | sed 's^.*/^^;s/\.po$//' | sort) > po/LINGUAS
+}  
+
+################
 
 if test $# -eq 0; then
   :;
@@ -24,6 +64,8 @@ if ! test -f README-hacking && test $force -eq 0; then
   echo >&2 "$0: bootstrapping from a non-checked-out distribution is risky"
   exit 1
 fi
+
+get_po
 
 test -d m4 || mkdir m4
 autoreconf -f -i -s
