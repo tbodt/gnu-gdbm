@@ -26,7 +26,7 @@ get_po() {
   if test "$langs" != '*'; then
     for lang in $langs
     do
-      if test -f po/$lang.po && cmp po/$lang.po $refdir/$lang.po
+      if test -f po/$lang.po && cmp po/$lang.po $refdir/$lang.po >/dev/null
       then
         :
       else

@@ -408,34 +408,6 @@ fetch_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
     fprintf (stderr, _("No such item found.\n"));
 }
 
-/* n [key] - next key */
-void
-nextkey_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
-{
-  if (arg[0])
-    {
-      if (key_data.dptr != NULL)
-	free (key_data.dptr);
-      key_data.dptr = strdup (arg[0]);
-      key_data.dsize = strlen (arg[0]) + key_z;
-    }
-  return_data = gdbm_nextkey (gdbm_file, key_data);
-  if (return_data.dptr != NULL)
-    {
-      key_data = return_data;
-      fprintf (fp, "%.*s\n", key_data.dsize, key_data.dptr);
-      return_data = gdbm_fetch (gdbm_file, key_data);
-      fprintf (fp, "%.*s\n", return_data.dsize, return_data.dptr);
-      free (return_data.dptr);
-    }
-  else
-    {
-      fprintf (stderr, _("No such item found.\n"));
-      free (key_data.dptr);
-      key_data.dptr = NULL;
-    }
-}
-
 /* s key data - store */
 void
 store_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
@@ -470,15 +442,20 @@ firstkey_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
     fprintf (fp, _("No such item found.\n"));
 }
 
-/* 2 - continue iteration */
+/* n [key] - next key */
 void
-next_on_last_handler (char *arg[NARGS] ARG_UNUSED, FILE *fp,
-		      void *call_data ARG_UNUSED)
+nextkey_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
 {
+  if (arg[0])
+    {
+      if (key_data.dptr != NULL)
+	free (key_data.dptr);
+      key_data.dptr = strdup (arg[0]);
+      key_data.dsize = strlen (arg[0]) + key_z;
+    }
   return_data = gdbm_nextkey (gdbm_file, key_data);
   if (return_data.dptr != NULL)
     {
-      free (key_data.dptr);
       key_data = return_data;
       fprintf (fp, "%.*s\n", key_data.dsize, key_data.dptr);
       return_data = gdbm_fetch (gdbm_file, key_data);
@@ -486,7 +463,11 @@ next_on_last_handler (char *arg[NARGS] ARG_UNUSED, FILE *fp,
       free (return_data.dptr);
     }
   else
-    fprintf (stderr, _("No such item found.\n"));
+    {
+      fprintf (stderr, _("No such item found.\n"));
+      free (key_data.dptr);
+      key_data.dptr = NULL;
+    }
 }
 
 /* r - reorganize */
@@ -786,7 +767,9 @@ int help_begin (char *arg[NARGS], size_t *exp_count, void **data);
 
 struct command
 {
-  int abbrev;
+  char *name;           /* Command name */
+  size_t minlen;        /* Minimal unambiguous length */
+  int abbrev;           /* Single-letter shortkey (optional) */
   int  (*begin) (char *[NARGS], size_t *, void **);
   void (*handler) (char *[NARGS], FILE *fp, void *call_data);
   void (*end) (void *data);
@@ -796,61 +779,133 @@ struct command
 
 
 struct command command_tab[] = {
-  { 'c', NULL, count_handler, NULL,
+  { "count", 0, 'c',
+    NULL, count_handler, NULL,
     { NULL, NULL, }, N_("count (number of entries)") },
-  { 'd', NULL, delete_handler, NULL,
+  { "delete", 0, 'd',
+    NULL, delete_handler, NULL,
     { N_("key"), NULL, }, N_("delete") },
-  { 'e', NULL, export_handler, NULL,
+  { "export", 0, 'e',
+    NULL, export_handler, NULL,
     { N_("file"), "[truncate]", }, N_("export") },
-  { 'f', NULL, fetch_handler, NULL,
+  { "fetch", 0, 'f',
+    NULL, fetch_handler, NULL,
     { N_("key"), NULL }, N_("fetch") },
-  { 'i', NULL, import_handler, NULL,
+  { "import", 0, 'i',
+    NULL, import_handler, NULL,
     { N_("file"), "[replace]", }, N_("import") },
-  { 'l', list_begin, list_handler, NULL,
+  { "list", 0, 'l',
+    list_begin, list_handler, NULL,
     { NULL, NULL }, N_("list") },
-  { 'n', NULL, nextkey_handler, NULL,
+  { "next", 0, 'n',
+    NULL, nextkey_handler, NULL,
     { N_("[key]"), NULL }, N_("nextkey") },
-  { 's', NULL, store_handler, NULL,
+  { "store", 0, 's',
+    NULL, store_handler, NULL,
     { N_("key"), N_("data") }, N_("store") },
-  { '1', NULL, firstkey_handler, NULL,
+  { "first", 0, '1',
+    NULL, firstkey_handler, NULL,
     { NULL, NULL }, N_("firstkey") },
-  { '2', NULL, next_on_last_handler, NULL,
-    { NULL, NULL, },
-    N_("nextkey on last key (from n, 1 or 2)") },
-  { '<', NULL, read_handler, NULL,
+  { "read", 0, '<',
+    NULL, read_handler, NULL,
     { N_("file"), "[replace]" },
     N_("read entries from file and store") },
-  { 'r', NULL, reorganize_handler, NULL,
+  { "reorganize", 0, 'r',
+    NULL, reorganize_handler, NULL,
     { NULL, NULL, }, N_("reorganize") },
-  { 'z', NULL, key_z_handler, NULL,
+  { "key-zero", 0, 'z',
+    NULL, key_z_handler, NULL,
     { NULL, NULL }, N_("toggle key nul-termination") },
-  { 'A', avail_begin, avail_handler, NULL,
+  { "avail", 0, 'A',
+    avail_begin, avail_handler, NULL,
     { NULL, NULL, }, N_("print avail list") }, 
-  { 'B', print_bucket_begin, print_current_bucket_handler, NULL,
+  { "bucket", 0, 'B',
+    print_bucket_begin, print_current_bucket_handler, NULL,
     { N_("bucket-number"), NULL, }, N_("print a bucket") },
-  { 'C', print_current_bucket_begin, print_current_bucket_handler, NULL,
+  { "current", 0, 'C',
+    print_current_bucket_begin, print_current_bucket_handler, NULL,
     { NULL, NULL, },
     N_("print current bucket") },
-  { 'D', print_dir_begin, print_dir_handler, NULL,
+  { "dir", 0, 'D',
+    print_dir_begin, print_dir_handler, NULL,
     { NULL, NULL, }, N_("print hash directory") },
-  { 'F', print_header_begin , print_header_handler, NULL,
+  { "header", 0, 'F',
+    print_header_begin , print_header_handler, NULL,
     { NULL, NULL, }, N_("print file header") },
-  { 'H', NULL, hash_handler, NULL,
+  { "hash", 0, 'H',
+    NULL, hash_handler, NULL,
     { N_("key"), NULL, }, N_("hash value of key") },
-  { 'K', print_cache_begin, print_cache_handler, NULL,
+  { "cache", 0, 'K',
+    print_cache_begin, print_cache_handler, NULL,
     { NULL, NULL, }, N_("print the bucket cache") },
-  { 'S', NULL, status_handler, NULL,
+  { "status", 0, 'S',
+    NULL, status_handler, NULL,
     { NULL, NULL }, N_("print current program status") },
-  { 'V', NULL, print_version_handler, NULL,
+  { "version", 0, 'v',
+    NULL, print_version_handler, NULL,
     { NULL, NULL, }, N_("print version of gdbm") },
-  { 'Z', NULL, data_z_handler, NULL,
+  { "data-zero", 0, 'Z',
+    NULL, data_z_handler, NULL,
     { NULL, NULL }, N_("toggle data nul-termination") },
-  { '?', help_begin, help_handler, NULL,
+  { "help", 0, '?',
+    help_begin, help_handler, NULL,
     { NULL, NULL, }, N_("print this help list") },
-  { 'q', NULL, quit_handler, NULL,
+  { "quit", 0, 'q',
+    NULL, quit_handler, NULL,
     { NULL, NULL, }, N_("quit the program") },
   { 0 }
 };
+
+static int
+cmdcmp (const void *a, const void *b)
+{
+  struct command const *ac = a;
+  struct command const *bc = b;
+  return strcmp (ac->name, bc->name);
+}
+
+void
+set_minimal_abbreviations ()
+{
+  struct command *cmd;
+
+  qsort (command_tab, sizeof (command_tab) / sizeof (command_tab[0]) - 1,
+	 sizeof (command_tab[0]), cmdcmp);
+
+  /* Initialize minimum abbreviation
+     lengths to 1. */
+  for (cmd = command_tab; cmd->name; cmd++)
+    cmd->minlen = 1;
+  /* Determine minimum abbreviations */
+  for (cmd = command_tab; cmd->name; cmd++)
+    {
+      const char *sample = cmd->name;
+      size_t sample_len = strlen (sample);
+      size_t minlen = cmd->minlen;
+      struct command *p;
+
+      for (p = cmd + 1; p->name; p++)
+	{
+	  size_t len = strlen (p->name);
+	  if (len >= minlen && memcmp (p->name, sample, minlen) == 0)
+	    do
+	      {
+		minlen++;
+		if (minlen <= len)
+		  p->minlen = minlen;
+		if (minlen == sample_len)
+		  break;
+	      }
+	    while (len >= minlen && memcmp (p->name, sample, minlen) == 0);
+	  else if (p->name[0] == sample[0])
+	    p->minlen = minlen;
+	  else
+	    break;
+	}
+      if (minlen <= sample_len)
+	cmd->minlen = minlen;
+    }
+}
 
 
 /* ? - help handler */
@@ -869,10 +924,20 @@ help_handler (char *arg[NARGS], FILE *fp, void *call_data)
 {
   struct command *cmd;
   
-  for (cmd = command_tab; cmd->abbrev; cmd++)
+  for (cmd = command_tab; cmd->name; cmd++)
     {
       int i;
-      int n = fprintf (fp, " %c", cmd->abbrev);
+      int n;
+
+      if (cmd->abbrev)
+	n = fprintf (fp, " %c, ", cmd->abbrev);
+      else
+	n = fprintf (fp, " ");
+      if (cmd->name[cmd->minlen])
+	n += fprintf (fp, "%.*s(%s)", cmd->minlen, cmd->name,
+		      cmd->name + cmd->minlen);
+      else
+	n += fprintf (fp, "%s", cmd->name);
 
       for (i = 0; i < NARGS && cmd->args[i]; i++)
 	n += fprintf (fp, " %s", gettext (cmd->args[i]));
@@ -885,17 +950,23 @@ help_handler (char *arg[NARGS], FILE *fp, void *call_data)
 }
 
 struct command *
-find_command (char *p)
+find_command (char *str)
 {
   struct command *cmd;
-  if (p[1])
+  size_t len = strlen (str);
+  
+  if (len > 1)
     {
-      printf (_("Multicharacter commands are not yet implemented.\n"));
-      return NULL;
+      for (cmd = command_tab; cmd->name; cmd++)
+	if (len >= cmd->minlen && memcmp (cmd->name, str, len) == 0)
+	  return cmd;
     }
-  for (cmd = command_tab; cmd->abbrev; cmd++)
-    if (cmd->abbrev == *p)
-      return cmd;
+  else
+    {
+      for (cmd = command_tab; cmd->name; cmd++)
+	if (cmd->abbrev == *str)
+	  return cmd;
+    }
   return NULL;
 }
 
@@ -946,6 +1017,8 @@ main (int argc, char *argv[])
   setlocale (LC_ALL, "");
 #endif
   bindtextdomain (PACKAGE, LOCALEDIR);
+
+  set_minimal_abbreviations ();
   
   /* Argument checking. */
   if (argc == 2)
@@ -1099,7 +1172,7 @@ main (int argc, char *argv[])
 		/* Optional argument */
 		break;
 	      if (!interactive)
-		error (1, _("%c: not enough arguments"), cmd->abbrev);
+		error (1, _("%s: not enough arguments"), cmd->name);
 
 	      
 	      printf ("%s? ", arg);

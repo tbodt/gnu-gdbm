@@ -1005,18 +1005,24 @@ on the standard output.  If the standard input is attached to a console,
 @dfn{prompt}:
 
 @example
-com -> _
+testgdbm> _
 @end example
 
-The utility finishes when it reads the @samp{q} command (see below) or
-it detects end-of-file on its standard input, whichever occurs first.
+The utility finishes when it reads the @samp{quit} command (see below) or
+detects end-of-file on its standard input, whichever occurs first.
 
-A @command{testgdbm} command consists of a @dfn{command letter},
+A @command{testgdbm} command consists of a @dfn{command verb},
 optionally followed by one or two @dfn{arguments}, separated by any
-amount of white space.  An argument is any sequence of non-whitespace
-characters.  Notice, that currently there is no way to enter arguments
-containing white space.  This limitation will be removed in future
-releases.
+amount of white space.  A command verb can be entered either in full
+or in an abbreviated form, as long as that abbreviation does not match
+any other verb.  For example, @samp{co} can be used instead of
+@samp{count} and @samp{ca} instead of @samp{cache}.  Furthermore,
+many command verbs also have single-letter forms, called @dfn{command
+letters}.
+
+An argument is any sequence of non-whitespace characters.  Notice,
+that currently there is no way to enter arguments containing white
+space.  This limitation will be removed in future releases.
 
 Each command letter takes at most two @dfn{formal parameters}, which can be
 optional or mandatory.  If the number of actual arguments is less than the
@@ -1027,9 +1033,9 @@ would be prompted twice to supply the necessary data, as shown in
 example below:
 
 @example
-com -> @kbd{s}
-key -> @kbd{three}
-data -> @kbd{3}
+testgdbm> @kbd{s}
+key> @kbd{three}
+data> @kbd{3}
 @end example
 
 However, such prompting is possible only in interactive mode.  In
@@ -1056,117 +1062,147 @@ by using @code{z} (for keys) and @code{Z} (for data) commands.
 
 The following table summarizes all available commands:
 
-@table @code
-@kindex c, testgdbm command
-@item c
+@deffn {command verb} count
+@deffnx {command abbrev} co
+@deffnx {command letter} c
 Print the number of entries in the database.
+@end deffn
 
-@kindex d, testgdbm command
-@item d @var{key}
+@deffn {command verb} delete @var{key}
+@deffnx {command abbrev} de @var{key}
+@deffnx {command letter} d @var{key}
 Delete entry with a given @var{key}
-@anchor{testgdbm export}
+@end deffn
 
-@kindex e, testgdbm command
-@item e @var{file-name} [truncate]
+@anchor{testgdbm export}
+@deffn {command verb} export @var{file-name} [truncate]
+@deffnx {command abbrev} e @var{file-name} [truncate]
 Export the database to the flat file @var{file-name}.  @xref{Flat files},
 for a description of the flat file format and its purposes.  This
 command will not overwrite an existing file, unless the word
 @samp{truncate} is given as its second argument.
 
 See also @ref{gdbmexport}.
+@end deffn
 
-@kindex f, testgdbm command
-@item f @var{key}
+@deffn {command verb} fetch @var{key}
+@deffnx {command abbrev} fe @var{key}
+@deffnx {command letter} f @var{key}
 Fetch and display a record with the given @var{key}.
+@end deffn
 
 @anchor{testgdbm import}
-@kindex i, testgdbm command
-@item i @var{file-name} [replace]
+@deffn {command verb} import @var{file-name} [replace]
+@deffnx {command abbrev} i @var{file-name} [replace]
 Import data from a flat dump file @var{file-name}
 (@pxref{Flat files}).  If the word @samp{replace} is given
 as the second argument, any records with the same keys as the already
 existing ones will replace them.
+@end deffn
 
-@kindex l, testgdbm command
-@item l
+@deffn {command verb} list
+@deffnx {command abbrev} l
 List the contents of the database (@pxref{pager}).
+@end deffn
 
-@kindex n, testgdbm command
-@kindex 2, testgdbm command
-@item n [@var{key}]
-@itemx 2 [@var{key}]
+@deffn {command verb} next [@var{key}]
+@deffnx {command abbrev} n [@var{key}]
 Sequential access: fetch and display a next record.  If @var{key} is
 given, a record following one with this key will be fetched.
 Otherwise, the key supplied by the latest @code{1}, @code{2} or
 @var{n} command will be used.
 
-The second form, @code{2} is a synonym for @code{n} without arguments.
-
-See also @code{1}, below.
+See also @code{first}, below.
 
 @xref{Sequential}, for more information on sequential access.
+@end deffn
 
-@kindex q, testgdbm command
-@item q
+@deffn {command verb} quit
+@deffnx {command abbrev} q
 Close the database and quit the utility.
+@end deffn
 
-@kindex s, testgdbm command
-@item s @var{key} @var{data}
+@deffn {command verb} store @var{key} @var{data}
+@deffnx {command abbrev} sto @var{key} @var{data}
+@deffnx {command letter} s @var{key} @var{data}
 Store the @var{data} with @var{key} in the database.  If @var{key}
 already exists, its data will be replaced.
+@end deffn
 
-@kindex 1, testgdbm command
-@item 1
+@deffn {command verb} first
+@deffnx {command abbrev} fi 
+@deffnx {command letter} 1
 Fetch and display the first record in the database.  Subsequent
-records can be fetched using @code{n} (or @code{2}) command (see above). 
+records can be fetched using @code{next} command (see above). 
 @xref{Sequential}, for more information on sequential access.
+@end deffn
 
-@kindex <, testgdbm command
-@item < @var{file} [replace]
+@deffn {command verb} read @var{file} [replace]
+@deffnx {command abbrev} rea @var{file} [replace] 
+@deffnx {command letter} < @var{file} [replace] 
 Read entries from @var{file} and store them in the database.  If the
 word @samp{replace} is given as the second argument, any existing
 records with matching keys will be replaced.
+@end deffn
 
-@kindex r, testgdbm command
-@item r
+@deffn {command verb} reorganize
+@deffnx {command abbrev} reo 
+@deffnx {command letter} r
 Reorganize the database (@pxref{Reorganization}).
+@end deffn
 
-@kindex z, testgdbm command
-@item z
-Toggle key nul-termination.  Use @code{S} to inspect the current
+@deffn {command verb} key-zero
+@deffnx {command abbrev} k
+@deffnx {command letter} z
+Toggle key nul-termination.  Use @code{status} to inspect the current
 state.  @xref{nul-termination}.
+@end deffn
 
-@kindex A, testgdbm command
-@item A
+@deffn {command verb} avail
+@deffnx {command abbrev} a
+@deffnx {command letter} A
 Print the @dfn{avail list}.
+@end deffn
 
-@kindex B, testgdbm command
-@item B @var{num} 
-Print the bucket number @var{num}.  This command uses pager
-(@pxref{pager}).
+@deffn {command verb} bucket
+@deffnx {command abbrev} b
+@deffnx {command letter} B
+Print the bucket number @var{num}.
+@end deffn
 
-@kindex C, testgdbm command
-@item C
-Print the current bucket.  This command uses pager (@pxref{pager}).
+@deffn {command verb} current
+@deffnx {command abbrev} cu
+@deffnx {command letter} C
+Print the current bucket.
+@end deffn
 
-@kindex D, testgdbm command
-@item D
-Print hash directory.  Uses pager (@pxref{pager}).
+@deffn {command verb} dir
+@deffnx {command abbrev} di
+@deffnx {command letter} D
+Print hash directory.
+@end deffn
 
-@kindex F, testgdbm command
-@item F
+@deffn {command verb} header
+@deffnx {command abbrev} hea
+@deffnx {command letter} F
 Print file header.
+@end deffn
 
-@kindex H, testgdbm command
-@item H @var{key}
+@deffn {command verb} hash @var{key}
+@deffnx {command abbrev} ha @var{key}
+@deffnx {command letter} H @var{key}
 Compute and display the hash value for the given @var{key}.
+@end deffn
 
-@kindex H, testgdbm command
-@item K
-Print the bucket cache.  Uses pager (@pxref{pager}).
+@deffn {command verb} cache
+@deffnx {command abbrev} ca
+@deffnx {command letter} K
+Print the bucket cache.
+@end deffn
 
-@kindex S, testgdbm command
-@item S
+@deffn {command verb} status
+@deffnx {command abbrev} sta
+@deffnx {command letter} S
 Print current program status.  The following example shows the
 information displayed:
 
@@ -1175,25 +1211,29 @@ Database file: junk.gdbm
 Zero terminated keys: yes
 Zero terminated data: yes
 @end example
+@end deffn
 
-@kindex V, testgdbm command
-@item V
+@deffn {command verb} version
+@deffnx {command abbrev} v
 Print the version of @command{gdbm}.
+@end deffn
 
-@kindex Z, testgdbm command
-@item Z
-Toggle data nul-termination.  Use @command{S} to examine the current
+@deffn {command verb} data-zero
+@deffnx {command abbrev} da 
+@deffnx {command letter} Z
+Toggle data nul-termination.  Use @code{status} to examine the current
 status.
 
 @xref{nul-termination}.
+@end deffn
 
-@kindex ?, testgdbm command
-@item ?
-Print a concise command summary, showing each command letter with its
-parameters and a short description of what it does.  Optional
+@deffn {command verb} help
+@deffnx {command abbrev} hel
+@deffnx {command letter} ?
+Print a concise command summary, showing each command letter and verb
+with its parameters and a short description of what it does.  Optional
 arguments are enclosed in square brackets.
-
-@end table
+@end deffn
 
 @node gdbmexport
 @chapter Export a database into a portable format.

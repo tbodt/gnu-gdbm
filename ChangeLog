@@ -1,3 +1,11 @@
+2011-08-24  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Implement multi-character commands in testgdbm.
+	
+	* bootstrap (get_po): Discard output from cmp.
+	* src/testgdbm.c: Implement multi-character commands.
+	* doc/gdbm.texinfo: Update.
+
 2011-08-18  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* bootstrap: Get PO files; create LINGUAS list
