@@ -728,7 +728,7 @@ import_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
 }
 
 static const char *
-boolstr(int val)
+boolstr (int val)
 {
   return val ? _("yes") : _("no");
 }
@@ -955,13 +955,11 @@ find_command (char *str)
   struct command *cmd;
   size_t len = strlen (str);
   
-  if (len > 1)
-    {
-      for (cmd = command_tab; cmd->name; cmd++)
-	if (len >= cmd->minlen && memcmp (cmd->name, str, len) == 0)
-	  return cmd;
-    }
-  else
+  for (cmd = command_tab; cmd->name; cmd++)
+    if (len >= cmd->minlen && memcmp (cmd->name, str, len) == 0)
+      return cmd;
+  
+  if (len == 1)
     {
       for (cmd = command_tab; cmd->name; cmd++)
 	if (cmd->abbrev == *str)
