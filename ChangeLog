@@ -1,3 +1,8 @@
+2011-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/gdbmopen.c (gdbm_open): Initialize memory used for file
+	header.  This fixes bug #151.
+
 2011-08-24  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement multi-character commands in testgdbm.

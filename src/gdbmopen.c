@@ -210,8 +210,9 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       else
 	file_block_size = block_size;
 
-      /* Get space for the file header. */
-      dbf->header = (gdbm_file_header *) malloc (file_block_size);
+      /* Get space for the file header. It will be written to disk, so
+         make sure there's no garbage in it. */
+      dbf->header = (gdbm_file_header *) calloc (1, file_block_size);
       if (dbf->header == NULL)
 	{
 	  gdbm_close (dbf);
