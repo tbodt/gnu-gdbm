@@ -29,14 +29,14 @@ static void write_header (GDBM_FILE);
 static void
 write_header (GDBM_FILE dbf)
 {
-  int  num_bytes;	/* Return value for write. */
   off_t file_pos;	/* Return value for lseek. */
-
+  int rc;
+  
   file_pos = __lseek (dbf, 0L, L_SET);
   if (file_pos != 0) _gdbm_fatal (dbf, _("lseek error"));
-  num_bytes = __write (dbf, dbf->header, dbf->header->block_size);
-  if (num_bytes != dbf->header->block_size)
-    _gdbm_fatal (dbf, _("write error"));
+  rc = _gdbm_full_write (dbf, dbf->header, dbf->header->block_size);
+  if (rc)
+    _gdbm_fatal (dbf, gdbm_strerror (rc));
 
   /* Sync the file if fast_write is FALSE. */
   if (dbf->fast_write == FALSE)
@@ -49,9 +49,8 @@ write_header (GDBM_FILE dbf)
 void
 _gdbm_end_update (GDBM_FILE dbf)
 {
-  int  num_bytes;	/* Return value for write. */
   off_t file_pos;	/* Return value for lseek. */
-  
+  int rc;
   
   /* Write the current bucket. */
   if (dbf->bucket_changed && (dbf->cache_entry != NULL))
@@ -81,9 +80,9 @@ _gdbm_end_update (GDBM_FILE dbf)
     {
       file_pos = __lseek (dbf, dbf->header->dir, L_SET);
       if (file_pos != dbf->header->dir) _gdbm_fatal (dbf, _("lseek error"));
-      num_bytes = __write (dbf, dbf->dir, dbf->header->dir_size);
-      if (num_bytes != dbf->header->dir_size)
-	_gdbm_fatal (dbf, _("write error"));
+      rc = _gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size);
+      if (rc)
+	_gdbm_fatal (dbf, gdbm_strerror (rc));
       dbf->directory_changed = FALSE;
       if (!dbf->header_changed && dbf->fast_write == FALSE)
 	__fsync (dbf);

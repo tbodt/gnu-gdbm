@@ -53,6 +53,7 @@ libgdbm_la_SOURCES = \
  falloc.c\
  findkey.c\
  flatfile.c\
+ fullio.c\
  hash.c\
  lock.c\
  mmap.c\

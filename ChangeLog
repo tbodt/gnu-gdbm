@@ -1,5 +1,26 @@
 2011-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Fix bug #150.
+
+	Tolerate I/O operations returning less bytes than expected.  Retry I/O
+	if possible.
+	
+	* src/fullio.c: New file.
+	* src/Makefile.am (libgdbm_la_SOURCES): Add fullio.c
+	* src/proto.h (_gdbm_full_read)
+	(_gdbm_full_write): New protos.
+	* src/gdbmerrno.c (gdbm_errlist): Add entry for GDBM_FILE_EOF.
+
+	* src/bucket.c: Use _gdbm_full_{read|write}.
+	* src/falloc.c: Likewise.
+	* src/findkey.c: Likewise.
+	* src/gdbmopen.c: Likewise.
+	* src/gdbmstore.c: Likewise.
+	* src/testgdbm.c: Likewise.
+	* src/update.c: Likewise.
+	
+2011-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* src/gdbmopen.c (gdbm_open): Initialize memory used for file
 	header.  This fixes bug #151.
 

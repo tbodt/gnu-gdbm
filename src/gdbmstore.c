@@ -42,12 +42,11 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   int  elem_loc;		/* The location in hash bucket. */
   off_t file_adr;		/* The address of new space in the file.  */
   off_t file_pos;		/* The position after a lseek. */
-  int  num_bytes;		/* Used for error detection. */
   off_t free_adr;		/* For keeping track of a freed section. */
   int  free_size;
   int   new_size;		/* Used in allocating space. */
   char *temp;			/* Used in _gdbm_findkey call. */
-
+  int rc;
 
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
@@ -139,10 +138,12 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* Write the data to the file. */
   file_pos = __lseek (dbf, file_adr, L_SET);
   if (file_pos != file_adr) _gdbm_fatal (dbf, _("lseek error"));
-  num_bytes = __write (dbf, key.dptr, key.dsize);
-  if (num_bytes != key.dsize) _gdbm_fatal (dbf, _("write error"));
-  num_bytes = __write (dbf, content.dptr, content.dsize);
-  if (num_bytes != content.dsize) _gdbm_fatal (dbf, _("write error"));
+  rc = _gdbm_full_write (dbf, key.dptr, key.dsize);
+  if (rc)
+    _gdbm_fatal (dbf, gdbm_strerror (rc));
+  rc = _gdbm_full_write (dbf, content.dptr, content.dsize);
+  if (rc)
+    _gdbm_fatal (dbf, gdbm_strerror (rc));
 
   /* Current bucket has changed. */
   dbf->cache_entry->ca_changed = TRUE;

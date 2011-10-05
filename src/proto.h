@@ -55,4 +55,8 @@ int _gdbm_mapped_sync	(GDBM_FILE);
 void _gdbm_unlock_file	(GDBM_FILE);
 int _gdbm_lock_file	(GDBM_FILE);
 
+/* From fullio.c */
+int _gdbm_full_read (GDBM_FILE, void *, size_t);
+int _gdbm_full_write (GDBM_FILE, void *, size_t);
+
 
