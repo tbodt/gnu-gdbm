@@ -138,9 +138,10 @@ extern int gdbm_import (GDBM_FILE, const char *, int);
 # define GDBM_BAD_FILE_OFFSET	22
 # define GDBM_BAD_OPEN_FLAGS	23
 # define GDBM_FILE_STAT_ERROR   24
+# define GDBM_FILE_EOF          25
 
 # define _GDBM_MIN_ERRNO		0
-# define _GDBM_MAX_ERRNO		GDBM_FILE_STAT_ERROR
+# define _GDBM_MAX_ERRNO		GDBM_FILE_EOF
 typedef int gdbm_error;		/* For compatibilities sake. */
 extern gdbm_error gdbm_errno;
 extern const char * const gdbm_errlist[];
