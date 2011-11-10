@@ -47,8 +47,12 @@ AT_BANNER([Compatibility library (dbm/ndbm)])
 
 m4_include([dbmcreate00.at])
 
+m4_include([dbmcvt.at])
+
 m4_include([dbmfetch00.at])
 m4_include([dbmfetch01.at])
+m4_include([dbmfetch02.at])
+m4_include([dbmfetch03.at])
 
 m4_include([dbmdel00.at])
 m4_include([dbmdel01.at])

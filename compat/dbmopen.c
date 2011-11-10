@@ -104,7 +104,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 	}
       else
 	{
-	  fd = open (file_name, O_RDWR);
+	  fd = open (file_name, mode == GDBM_READER ? O_RDONLY : O_RDWR);
 	  if (fd == -1)
 	    {
 	      gdbm_errno = GDBM_FILE_OPEN_ERROR;

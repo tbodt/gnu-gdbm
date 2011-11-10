@@ -52,8 +52,11 @@ TESTSUITE_AT = \
  dbmdel00.at\
  dbmdel01.at\
  dbmdel02.at\
+ dbmcvt.at\
  dbmfetch00.at\
  dbmfetch01.at\
+ dbmfetch02.at\
+ dbmfetch03.at\
  create00.at\
  delete00.at\
  delete01.at\

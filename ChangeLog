@@ -1,3 +1,15 @@
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix handling of NDBM databases in read-only mode.
+	
+	* compat/dbmopen.c (ndbm_open_dir_file0): Open dir file in
+	read-only mode if the database is being opened as GDBM_READER.
+	* tests/dbmcvt.at: New file.
+	* tests/dbmfetch02.at: New file.
+	* tests/dbmfetch03.at: New file.
+	* tests/Makefile.am (TESTSUITE_AT): Add new files.
+	* tests/testsuite.at: Include new testcases.
+
 2011-10-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Fix bug #150.
