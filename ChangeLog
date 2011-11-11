@@ -1,5 +1,30 @@
 2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Implement cloexec in gdbm_reorganize.  Add test cases.
+	
+	* compat/dbmopen.c: Apply O_CLOEXEC for newly created dir
+	file, if requested.
+
+	* src/gdbmdefs.h (gdbm_file_info) <cloexec>: New member.
+	* src/gdbmopen.c (gdbm_open): Initialize cloexec member.
+	* src/gdbmreorg.c (gdbm_reorganize): Propagate cloexec bit
+	to the new database.
+
+	* tests/.cvsignore: Update.
+	* tests/cloexec00.at: New test case.
+	* tests/cloexec01.at: Likewise.
+	* tests/cloexec02.at: Likewise.
+	* tests/cloexec03.at: Likewise.
+	* fdop.c: New auxiliary program.
+	* g_open_ce: New test program.
+	* g_reorg_ce: New test program.
+	* d_creat_ce: New test program.
+	* tests/Makefile.am: Add new test cases and test programs.
+	* tests/testsuite.at: Include new test cases.
+	* doc/gdbm.texinfo: Minor change.
+	
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Use SEEK_SET instead of L_SET in all sources.
 
 2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>

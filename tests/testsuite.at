@@ -63,4 +63,11 @@ AT_BANNER([DB options])
 m4_include([setopt00.at])
 m4_include([setopt01.at])
 
+AT_BANNER([Cloexec])
+
+m4_include([cloexec00.at])
+m4_include([cloexec01.at])
+m4_include([cloexec02.at])
+m4_include([cloexec03.at])
+
 # End of testsuite.at

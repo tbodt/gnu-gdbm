@@ -122,7 +122,13 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       dbf->file_locking = FALSE;
     }
   if (flags & GDBM_CLOEXEC)
-    fbits = O_CLOEXEC;
+    {
+      fbits = O_CLOEXEC;
+      dbf->cloexec = TRUE;
+    }
+  else
+    dbf->cloexec = FALSE;
+  
   /* Open the file. */
   need_trunc = FALSE;
   switch (flags & GDBM_OPENMASK)

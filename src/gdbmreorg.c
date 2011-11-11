@@ -102,7 +102,8 @@ gdbm_reorganize (GDBM_FILE dbf)
   new_name[len] = '#';
 
   /* Open the new database. */  
-  new_dbf = gdbm_open (new_name, dbf->header->block_size, GDBM_WRCREAT,
+  new_dbf = gdbm_open (new_name, dbf->header->block_size,
+		       GDBM_WRCREAT | (dbf->cloexec ? GDBM_CLOEXEC : 0),
 		       fileinfo.st_mode, dbf->fatal_err);
 
   if (new_dbf == NULL)

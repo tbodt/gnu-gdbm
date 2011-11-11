@@ -156,6 +156,9 @@ struct gdbm_file_info {
 
 	/* Whether or not we're allowing mmap() use. */
         unsigned memory_mapping :1;
+
+        /* Whether the database was open with GDBM_CLOEXEC flag */
+        unsigned cloexec :1;
   
 	/* Type of file locking in use. */
 	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,

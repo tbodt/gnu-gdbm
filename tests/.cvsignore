@@ -5,10 +5,14 @@ Makefile
 Makefile.in
 atconfig
 atlocal
+d_creat_ce
 dtdel
 dtdump
 dtfetch
 dtload
+fdop
+g_open_ce
+g_reorg_ce
 gtdel
 gtdump
 gtfetch

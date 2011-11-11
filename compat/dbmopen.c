@@ -63,6 +63,11 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
   int fd = -1;
   struct stat st, pagst;
   unsigned char dirbuf[DEF_DIR_SIZE];
+  int flags = (mode & GDBM_OPENMASK) == GDBM_READER ?
+                O_RDONLY : O_RDWR;
+
+  if (mode & GDBM_CLOEXEC)
+    flags |= O_CLOEXEC;
       
   if (fstat (pagfd, &pagst))
     {
@@ -104,12 +109,6 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 	}
       else
 	{
-	  int flags = (mode & GDBM_OPENMASK) == GDBM_READER ?
-	                  O_RDONLY : O_RDWR;
-
-	  if (mode & GDBM_CLOEXEC)
-	    flags |= O_CLOEXEC;
-
 	  fd = open (file_name, flags);
 	  if (fd == -1)
 	    {
@@ -142,7 +141,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
     }
   
   /* File does not exist.  Create it. */
-  fd = open (file_name, O_RDWR | O_CREAT, pagst.st_mode & 0777);
+  fd = open (file_name, flags | O_CREAT, pagst.st_mode & 0777);
   if (fd >= 0)
     {
       putint (dirbuf, GDBM_DIR_MAGIC);

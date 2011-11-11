@@ -1603,6 +1603,10 @@ unspecified.
 The function returns a pointer to the @code{DBM} structure describing
 the database.  This pointer is used to refer to this database in all
 operations described below.
+
+Any error detected will cause a return value of @samp{NULL} and an
+appropriate value will be stored in @code{gdbm_errno}
+(@pxref{Variables}).
 @end deftypefn
 
 @deftypefn {ndbm} void dbm_close (DBM *@var{dbf})

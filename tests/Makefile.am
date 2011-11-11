@@ -48,6 +48,10 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac $(srcdir)/Makefile.am
 
 TESTSUITE_AT = \
  testsuite.at\
+ cloexec00.at\
+ cloexec01.at\
+ cloexec02.at\
+ cloexec03.at\
  dbmcreate00.at\
  dbmdel00.at\
  dbmdel01.at\
@@ -94,10 +98,13 @@ check-local: atconfig atlocal $(TESTSUITE)
 
 if COMPAT_OPT
  DBMINCLUDES = -I$(top_srcdir)/compat
- DBMPROGS = dtload dtdump dtfetch dtdel
+ DBMPROGS = dtload dtdump dtfetch dtdel d_creat_ce
 endif 
 
 check_PROGRAMS = \
+ fdop\
+ g_open_ce\
+ g_reorg_ce\
  gtdel\
  gtdump\
  gtfetch\
@@ -116,9 +123,13 @@ gtfetch_LDADD = ../src/libgdbm.la
 gtver_LDADD = ../src/libgdbm.la
 gtopt_LDADD = ../src/libgdbm.la
 
+g_open_ce_LDADD = ../src/libgdbm.la
+g_reorg_ce_LDADD = ../src/libgdbm.la
+
 dtload_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdump_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtfetch_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdel_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
+d_creat_ce_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 
 
