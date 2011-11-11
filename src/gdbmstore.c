@@ -136,7 +136,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   dbf->bucket->h_table[elem_loc].data_size = content.dsize;
 
   /* Write the data to the file. */
-  file_pos = __lseek (dbf, file_adr, L_SET);
+  file_pos = __lseek (dbf, file_adr, SEEK_SET);
   if (file_pos != file_adr) _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_write (dbf, key.dptr, key.dsize);
   if (rc)

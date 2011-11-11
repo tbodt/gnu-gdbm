@@ -381,7 +381,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 	}
 
       /* Read the hash table directory. */
-      file_pos = __lseek (dbf, dbf->header->dir, L_SET);
+      file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));

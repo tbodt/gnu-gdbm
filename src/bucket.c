@@ -92,7 +92,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       dbf->cache_entry->ca_changed = FALSE;
 
       /* Read the bucket. */
-      file_pos = __lseek (dbf, bucket_adr, L_SET);
+      file_pos = __lseek (dbf, bucket_adr, SEEK_SET);
       if (file_pos != bucket_adr)
 	_gdbm_fatal (dbf, _("lseek error"));
       
@@ -306,7 +306,7 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
   int rc;
   off_t file_pos;	/* The return value for lseek. */
   
-  file_pos = __lseek (dbf, ca_entry->ca_adr, L_SET);
+  file_pos = __lseek (dbf, ca_entry->ca_adr, SEEK_SET);
   if (file_pos != ca_entry->ca_adr)
     _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size);

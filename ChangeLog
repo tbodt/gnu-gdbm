@@ -1,5 +1,9 @@
 2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Use SEEK_SET instead of L_SET in all sources.
+
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Support close-on-exec flag for gdbm_open call.
 	
 	* src/gdbm.h.in (GDBM_CLOEXEC): New flag.

@@ -46,10 +46,6 @@
 # define SEEK_SET        0
 #endif
 
-#ifndef L_SET
-# define L_SET SEEK_SET
-#endif
-
 #ifndef O_CLOEXEC
 # define O_CLOEXEC 0
 #endif

@@ -181,7 +181,7 @@ pop_avail_block (GDBM_FILE dbf)
   if (new_blk == NULL) _gdbm_fatal(dbf, _("malloc failed"));
 
   /* Read the block. */
-  file_pos = __lseek (dbf, new_el.av_adr, L_SET);
+  file_pos = __lseek (dbf, new_el.av_adr, SEEK_SET);
   if (file_pos != new_el.av_adr)  _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_read (dbf, new_blk, new_el.av_size);
   if (rc)
@@ -278,7 +278,7 @@ push_avail_block (GDBM_FILE dbf)
   _gdbm_free (dbf, new_loc.av_adr, new_loc.av_size);
 
   /* Update the disk. */
-  file_pos = __lseek (dbf, av_adr, L_SET);
+  file_pos = __lseek (dbf, av_adr, SEEK_SET);
   if (file_pos != av_adr) _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_write (dbf, temp, av_size);
   if (rc)

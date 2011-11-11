@@ -58,7 +58,8 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 
 
   /* Read into the cache. */
-  file_pos = __lseek (dbf, dbf->bucket->h_table[elem_loc].data_pointer, L_SET);
+  file_pos = __lseek (dbf, dbf->bucket->h_table[elem_loc].data_pointer, 
+                      SEEK_SET);
   if (file_pos != dbf->bucket->h_table[elem_loc].data_pointer)
     _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_read (dbf, data_ca->dptr, key_size+data_size);

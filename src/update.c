@@ -32,7 +32,7 @@ write_header (GDBM_FILE dbf)
   off_t file_pos;	/* Return value for lseek. */
   int rc;
   
-  file_pos = __lseek (dbf, 0L, L_SET);
+  file_pos = __lseek (dbf, 0L, SEEK_SET);
   if (file_pos != 0) _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_write (dbf, dbf->header, dbf->header->block_size);
   if (rc)
@@ -78,7 +78,7 @@ _gdbm_end_update (GDBM_FILE dbf)
   /* Write the directory. */
   if (dbf->directory_changed)
     {
-      file_pos = __lseek (dbf, dbf->header->dir, L_SET);
+      file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir) _gdbm_fatal (dbf, _("lseek error"));
       rc = _gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size);
       if (rc)

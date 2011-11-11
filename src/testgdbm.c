@@ -123,7 +123,7 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
   /* Traverse the stack. */
   while (temp)
     {
-      if (__lseek (dbf, temp, L_SET) != temp)
+      if (__lseek (dbf, temp, SEEK_SET) != temp)
 	{
 	  error (0, "lseek: %s", strerror (errno));
 	  break;
@@ -177,7 +177,7 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
   /* Print the stack. */
   while (temp)
     {
-      if (__lseek (dbf, temp, L_SET) != temp)
+      if (__lseek (dbf, temp, SEEK_SET) != temp)
 	{
 	  error (0, "lseek: %s", strerror (errno));
 	  break;
