@@ -296,10 +296,20 @@ The following may also be logically or'd into the database flags:
 synchronized to the disk, @samp{GDBM_NOLOCK}, which prevents the library 
 from performing any locking on the database file, and @samp{GDBM_NOMMAP},
 which disables the memory mapping mechanism.  The option @samp{GDBM_FAST} is
-now obsolete, since @code{gdbm} defaults to no-sync mode.  Any error detected
-will cause a return value of @samp{NULL} and an appropriate value will be in
-@code{gdbm_errno} (@pxref{Variables}).  If no errors occur, a pointer to the
-@code{gdbm} file descriptor will be returned.
+now obsolete, since @code{gdbm} defaults to no-sync mode.
+
+@kwindex GDBM_CLOEXEC
+@cindex close-on-exec
+If the host @samp{open} call
+@ifhtml
+(@uref{http://www.manpagez.com/man/2/open, open(2)})
+@end ifhtml
+@ifnothtml
+(@pxref{open,,,open(2),open(2) man page})
+@end ifnothtml
+supports the @samp{O_CLOEXEC} flag, the @samp{GDBM_CLOEXEC} can be
+or'd into the flags, to enable the close-on-exec flag for the
+database file descriptor.
 @item mode
 File mode (see
 @ifhtml
@@ -1578,7 +1588,8 @@ The functions below implement the @acronym{POSIX} @samp{ndbm} interface:
 Opens a database.  The @var{file} argument is the full name of the
 database file to be opened.  The function opens two files:
 @file{@var{file}.pag} and @file{@var{file}.dir}.  The @var{flags} and
-@var{mode} arguments have the same meaning as the second and third arguments of 
+@var{mode} arguments have the same meaning as the second and third
+arguments of 
 @ifhtml
 @uref{http://www.manpagez.com/man/2/open,,open(2)},
 @end ifhtml

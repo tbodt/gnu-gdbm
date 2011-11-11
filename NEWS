@@ -8,6 +8,22 @@ Version 1.9.90 (Git)
 
 * Internationalization
 
+The following localizations are available: Finnish, German, Japanese, Polish
+and Ukrainian.
+
+* Support for close-on-exec flag in gdbm_open (see GDBM_CLOEXEC in the docs).
+
+* Bugfixes
+
+** Bug #150.
+Tolerate I/O operations returning less bytes than expected.  Retry I/O
+if possible.
+
+** Bug #151
+Gdbm_open initializes with zeros the memory allocated for file header.
+
+** Fix handling of NDBM databases in read-only mode.
+
 
 Version 1.9.1
 

@@ -42,11 +42,12 @@ extern "C" {
 # define GDBM_NEWDB	3	/* A writer.  Always create a new db. */
 # define GDBM_OPENMASK	7	/* Mask for the above. */
 
-# define GDBM_FAST	0x10	/* Write fast! => No fsyncs.  OBSOLETE. */
-# define GDBM_SYNC	0x20	/* Sync operations to the disk. */
-# define GDBM_NOLOCK	0x40	/* Don't do file locking operations. */
-# define GDBM_NOMMAP	0x80	/* Don't use mmap(). */
-
+# define GDBM_FAST	0x010	/* Write fast! => No fsyncs.  OBSOLETE. */
+# define GDBM_SYNC	0x020	/* Sync operations to the disk. */
+# define GDBM_NOLOCK	0x040	/* Don't do file locking operations. */
+# define GDBM_NOMMAP	0x080	/* Don't use mmap(). */
+# define GDBM_CLOEXEC   0x100   /* Close the underlying fd on exec(3) */
+  
 /* Parameters to gdbm_store for simple insertion or replacement in the
    case that the key is already in the database. */
 # define GDBM_INSERT	0	/* Never replace old data with new. */
@@ -54,7 +55,7 @@ extern "C" {
 
 /* Parameters to gdbm_setopt, specifing the type of operation to perform. */
 # define GDBM_SETCACHESIZE    1  /* Set the cache size. */
-# define GDBM_FASTMODE	     2	/* Toggle fast mode.  OBSOLETE. */
+# define GDBM_FASTMODE	      2	/* Toggle fast mode.  OBSOLETE. */
 # define GDBM_SETSYNCMODE     3  /* Turn on or off sync operations. */
 # define GDBM_SETCENTFREE     4  /* Keep all free blocks in the header. */
 # define GDBM_SETCOALESCEBLKS 5  /* Attempt to coalesce free blocks. */
@@ -64,8 +65,8 @@ extern "C" {
 /* Compatibility defines: */
 # define GDBM_CACHESIZE	     GDBM_SETCACHESIZE
 # define GDBM_SYNCMODE	     GDBM_SETSYNCMODE
-# define GDBM_CENTFREE        GDBM_SETCENTFREE
-# define GDBM_COALESCEBLKS    GDBM_SETCOALESCEBLKS
+# define GDBM_CENTFREE       GDBM_SETCENTFREE
+# define GDBM_COALESCEBLKS   GDBM_SETCOALESCEBLKS
 
 # define GDBM_GETFLAGS        8  /* Get gdbm_open flags */
 # define GDBM_GETMMAP         9  /* Get mmap status */

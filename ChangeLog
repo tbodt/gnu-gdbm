@@ -1,5 +1,22 @@
 2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Support close-on-exec flag for gdbm_open call.
+	
+	* src/gdbm.h.in (GDBM_CLOEXEC): New flag.
+	* src/systems.h [O_CLOEXEC]: Provide a placeholder definition.
+	
+	* src/gdbmopen.c (gdbm_open): Honor the GDBM_CLOEXEC flag.
+	* compat/dbmopen.c (ndbm_open_dir_file0): Mask out open mode
+	before comparing with GDBM_READER.
+	Support GDBM_CLOEXEC.
+	(dbm_open): Translate O_CLOEXEC to GDBM_CLOEXEC.
+
+	* doc/gdbm.texinfo: Document GDBM_CLOEXEC.
+	
+	* NEWS: Update.
+	
+2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Fix handling of NDBM databases in read-only mode.
 	
 	* compat/dbmopen.c (ndbm_open_dir_file0): Open dir file in

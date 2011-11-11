@@ -64,6 +64,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   char        need_trunc;	/* Used with GDBM_NEWDB and locking to avoid
 				   truncating a file from under a reader. */
   int         rc;               /* temporary error code */ 
+  int         fbits = 0;        /* additional bits for open(2) flags */
   
   /* Initialize the gdbm_errno variable. */
   gdbm_errno = GDBM_NO_ERROR;
@@ -120,26 +121,27 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     {
       dbf->file_locking = FALSE;
     }
-
+  if (flags & GDBM_CLOEXEC)
+    fbits = O_CLOEXEC;
   /* Open the file. */
   need_trunc = FALSE;
   switch (flags & GDBM_OPENMASK)
     {
       case GDBM_READER:
-	dbf->desc = open (dbf->name, O_RDONLY, 0);
+	dbf->desc = open (dbf->name, O_RDONLY|fbits, 0);
 	break;
 
       case GDBM_WRITER:
-	dbf->desc = open (dbf->name, O_RDWR, 0);
+	dbf->desc = open (dbf->name, O_RDWR|fbits, 0);
 	break;
 
       case GDBM_NEWDB:
-	dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
+	dbf->desc = open (dbf->name, O_RDWR|O_CREAT|fbits, mode);
 	need_trunc = TRUE;
 	break;
 
       default:
-	dbf->desc = open (dbf->name, O_RDWR|O_CREAT, mode);
+	dbf->desc = open (dbf->name, O_RDWR|O_CREAT|fbits, mode);
 	break;
 
     }

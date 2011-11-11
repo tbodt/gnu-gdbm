@@ -79,7 +79,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 	    {
 	      if (unlink (file_name))
 		{
-		  if (mode == GDBM_READER)
+		  if ((mode & GDBM_OPENMASK) == GDBM_READER)
 		    /* Ok, try to cope with it. */
 		    return pagfd;
 		  else
@@ -104,7 +104,13 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 	}
       else
 	{
-	  fd = open (file_name, mode == GDBM_READER ? O_RDONLY : O_RDWR);
+	  int flags = (mode & GDBM_OPENMASK) == GDBM_READER ?
+	                  O_RDONLY : O_RDWR;
+
+	  if (mode & GDBM_CLOEXEC)
+	    flags |= O_CLOEXEC;
+
+	  fd = open (file_name, flags);
 	  if (fd == -1)
 	    {
 	      gdbm_errno = GDBM_FILE_OPEN_ERROR;
@@ -180,14 +186,20 @@ ndbm_open_dir_file (const char *base, int pagfd, int mode)
    size of zero bytes, a file initialization procedure is performed,
    setting up the initial structure in the file.  Any error detected will
    cause a return value of -1.  No errors cause the return value of 0.
-   NOTE: file.dir will be ignored and will always have a size of zero.
-   FLAGS and MODE are the same as the open (2) call.  This call will
+
+   The file.dir file is used only to ensure that the corresponding file.pag
+   was created using a compatible version of GDBM.  If file.dir is a hard
+   link to file.pag, as was in GDBM 1.8.x, it is removed and recreated in
+   the right format (see above).  If the database is being opened read-only,
+   the file.dir remains untouched.
+
+   FLAGS and MODE are the same as for the open(2) call.  This call will
    look at the FLAGS and decide what call to make to gdbm_open.  For
    FLAGS == O_RDONLY, it will be a GDBM_READER, if FLAGS == O_RDWR|O_CREAT,
    it will be a GDBM_WRCREAT (creater and writer) and if the FLAGS == O_RDWR,
    it will be a GDBM_WRITER and if FLAGS contain O_TRUNC then it will be
-   a GDBM_NEWDB.  All other values of FLAGS in the flags are
-   ignored. */
+   a GDBM_NEWDB.  The O_CLOEXEC bit raises GDBM_CLOEXEC flag.
+   All other values of FLAGS are ignored. */
 
 DBM *
 dbm_open (char *file, int flags, int mode)
@@ -195,9 +207,10 @@ dbm_open (char *file, int flags, int mode)
   char *pag_file;	    /* Used to construct "file.pag". */
   DBM *dbm = NULL;
   int open_flags;
+  int f;
   
   /* Prepare the correct name for "file.pag". */
-  pag_file = (char *) malloc (strlen (file)+5);
+  pag_file = (char *) malloc (strlen (file) + 5);
   if (!pag_file)
     {
       gdbm_errno = GDBM_MALLOC_ERROR;	/* For the hell of it. */
@@ -208,18 +221,18 @@ dbm_open (char *file, int flags, int mode)
   strcat (pag_file, ".pag");
 
   /* Call the actual routine, saving the pointer to the file information. */
-  flags &= O_RDONLY | O_RDWR | O_CREAT | O_TRUNC;
+  f = flags & (O_RDONLY | O_RDWR | O_CREAT | O_TRUNC);
 
-  if (flags == O_RDONLY)
+  if (f == O_RDONLY)
     {
       open_flags = GDBM_READER;
       mode = 0;
     }
-  else if (flags == (O_RDWR | O_CREAT))
+  else if (f == (O_RDWR | O_CREAT))
     {
       open_flags = GDBM_WRCREAT;
     }
-  else if ((flags & O_TRUNC) == O_TRUNC)
+  else if ((f & O_TRUNC) == O_TRUNC)
     {
       open_flags = GDBM_NEWDB;
     }
@@ -229,6 +242,11 @@ dbm_open (char *file, int flags, int mode)
       mode = 0;
     }
 
+  if (flags & O_CLOEXEC)
+    open_flags |= GDBM_CLOEXEC;
+
+  open_flags |= GDBM_NOLOCK;
+  
   dbm = calloc (1, sizeof (*dbm));
   if (!dbm)
     {
@@ -237,7 +255,7 @@ dbm_open (char *file, int flags, int mode)
       return NULL;
     }
       
-  dbm->file = gdbm_open (pag_file, 0, open_flags | GDBM_NOLOCK, mode, NULL);
+  dbm->file = gdbm_open (pag_file, 0, open_flags, mode, NULL);
 
   /* Did we successfully open the file? */
   if (dbm->file == NULL)

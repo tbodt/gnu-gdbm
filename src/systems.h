@@ -50,6 +50,10 @@
 # define L_SET SEEK_SET
 #endif
 
+#ifndef O_CLOEXEC
+# define O_CLOEXEC 0
+#endif
+
 /* Default block size.  Some systems do not have blocksize in their
    stat record. This code uses the BSD blocksize from stat. */
 
