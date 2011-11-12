@@ -8,10 +8,14 @@ Version 1.9.90 (Git)
 
 * Internationalization
 
-The following localizations are available: Finnish, German, Japanese, Polish
-and Ukrainian.
+This version of GDBM is internationalized.  The following localizations are
+available: Finnish, German, Japanese, Polish and Ukrainian.
 
 * Support for close-on-exec flag in gdbm_open (see GDBM_CLOEXEC in the docs).
+
+* Improve testgdbm command system
+
+The testgdbm tool now supports multicharacter commands.
 
 * Bugfixes
 

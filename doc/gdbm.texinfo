@@ -1034,30 +1034,30 @@ An argument is any sequence of non-whitespace characters.  Notice,
 that currently there is no way to enter arguments containing white
 space.  This limitation will be removed in future releases.
 
-Each command letter takes at most two @dfn{formal parameters}, which can be
+Each command takes at most two @dfn{formal parameters}, which can be
 optional or mandatory.  If the number of actual arguments is less than the
 number of mandatory parameters, @command{testgdbm} will prompt you to
-supply missing arguments.  For example, the @samp{s} command takes two
+supply missing arguments.  For example, the @samp{store} command takes two
 mandatory parameters, so if you invoked it with no arguments, you
 would be prompted twice to supply the necessary data, as shown in 
 example below:
 
 @example
-testgdbm> @kbd{s}
+testgdbm> @kbd{store}
 key> @kbd{three}
 data> @kbd{3}
 @end example
 
 However, such prompting is possible only in interactive mode.  In
 non-interactive mode (e.g. when running a script), all arguments must
-be supplied with each command, otherwise @command{testgdbm} reports an
-error and exits immediately.
+be supplied with each command, otherwise @command{testgdbm} will report an
+error and exit immediately.
 
 @anchor{pager}
 @cindex pager, @command{testgdbm}
 @cindex @env{PAGER}
 Some commands produce excessive amounts of output.  To help you follow
-it, @command{testgdbm} will use a pager utility to display such
+it, @command{testgdbm} uses a pager utility to display such
 output.  The name of the pager utility is taken from the environment
 variable @env{PAGER}.  The pager is invoked only in interactive mode
 and only if the estimated number of output lines is greater then the
@@ -1068,7 +1068,8 @@ Many of the @command{testgdbm} commands operate on database key and
 data values.  The utility assumes that both keys and data are
 @acronym{ASCII} strings, either nul-terminated or not.  By default,
 it is assumed that strings are nul-terminated.  You can change this
-by using @code{z} (for keys) and @code{Z} (for data) commands.
+by using @code{z} (@code{key-zero}, for keys) and @code{Z}
+(@code{data-zero}, for data) commands.
 
 The following table summarizes all available commands:
 
@@ -1529,6 +1530,18 @@ will give more details about the error.
 
 This error can be set by the following functions: @code{gdbm_open},
 @code{gdbm_reorganize}.
+
+@kwindex GDBM_FILE_EOF
+@item GDBM_FILE_EOF
+End of file was encountered where more data was expected to be
+present.  This error can occur when fetching data from the database
+and usually means that the database is truncated or otherwise corrupted.
+
+This error can be set by any GDBM function that does I/O.  Some of
+these functions are: @code{gdbm_delete}, @code{gdbm_exists},
+@code{gdbm_fetch}, @code{gdbm_export}, @code{gdbm_import},
+@code{gdbm_reorganize}, @code{gdbm_firstkey}, @code{gdbm_nextkey},
+@code{gdbm_store}. 
 @end table
 
 @node Compatibility
