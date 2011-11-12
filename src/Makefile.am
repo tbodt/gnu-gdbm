@@ -34,7 +34,7 @@ VI_REVISION = 0
 VI_AGE      = 0
 
 lib_LTLIBRARIES = libgdbm.la
-LIBADD = @LTLIBINTL@
+libgdbm_la_LIBADD = @LTLIBINTL@
 
 libgdbm_la_SOURCES = \
  gdbmopen.c\

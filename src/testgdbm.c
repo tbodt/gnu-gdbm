@@ -52,7 +52,7 @@ int data_z = 1;                     /* Data are nul-terminated strings */
 
 
 void
-error (int code, char *fmt, ...)
+error (int code, const char *fmt, ...)
 {
   va_list ap;
   if (!interactive)
@@ -74,7 +74,7 @@ bucket_print_lines (hash_bucket *bucket)
 
 /* Debug procedure to print the contents of the current hash bucket. */
 void
-print_bucket (FILE *fp, hash_bucket *bucket, char *mesg)
+print_bucket (FILE *fp, hash_bucket *bucket, const char *mesg)
 {
   int             index;
 
