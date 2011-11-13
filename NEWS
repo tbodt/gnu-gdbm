@@ -1,15 +1,15 @@
-GNU dbm NEWS -- history of user-visible changes. 2011-08-17
+GNU dbm NEWS -- history of user-visible changes. 2011-11-13
 Copyright (C) 1990-2011 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
 
-Version 1.9.90 (Git)
+Version 1.10, 2011-11-13
 
 * Internationalization
 
-This version of GDBM is internationalized.  The following localizations are
-available: Finnish, German, Japanese, Polish and Ukrainian.
+This version of GDBM is fully internationalized.  The following
+localizations are available: Finnish, German, Japanese, Polish and Ukrainian.
 
 * Support for close-on-exec flag in gdbm_open (see GDBM_CLOEXEC in the docs).
 
@@ -19,12 +19,17 @@ The testgdbm tool now supports multicharacter commands.
 
 * Bugfixes
 
+Bug numbers below refer to the tracker at <http://puszcza.gnu.org.ua/bugs/?N>
+
 ** Bug #150.
 Tolerate I/O operations returning less bytes than expected.  Retry I/O
 if possible.
 
 ** Bug #151
-Gdbm_open initializes with zeros the memory allocated for file header.
+Gdbm_open now initializes with zeros the memory allocated for file
+header.  Previous versions left uninitialized portions intact, so
+they contained whatever happened to be in that memory region at the
+moment of allocation.  This created undesired security implications.
 
 ** Fix handling of NDBM databases in read-only mode.
 
