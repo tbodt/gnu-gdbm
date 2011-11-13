@@ -1023,6 +1023,7 @@ main (int argc, char *argv[])
   setlocale (LC_ALL, "");
 #endif
   bindtextdomain (PACKAGE, LOCALEDIR);
+  textdomain (PACKAGE);
 
   set_minimal_abbreviations ();
   
