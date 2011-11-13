@@ -1,3 +1,10 @@
+2011-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Version 1.10
+
+	* NEWS: Raise version number.
+	* configure.ac: Raise version number.
+
 2011-11-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement cloexec in gdbm_reorganize.  Add test cases.
