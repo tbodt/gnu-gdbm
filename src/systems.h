@@ -18,28 +18,20 @@
    along with GDBM. If not, see <http://www.gnu.org/licenses/>.    */
 
 /* Include all system headers first. */
-#if HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+#include <sys/types.h>
 #include <stdio.h>
 #if HAVE_SYS_FILE_H
 # include <sys/file.h>
 #endif
 #include <sys/stat.h>
-#if HAVE_STDLIB_H
-# include <stdlib.h>
-#endif
+#include <stdlib.h>
 #if HAVE_STRING_H
 # include <string.h>
 #else
 # include <strings.h>
 #endif
-#if HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-#if HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
+#include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 
 #ifndef SEEK_SET

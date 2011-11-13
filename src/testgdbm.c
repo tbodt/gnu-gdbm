@@ -23,6 +23,7 @@
 
 #include "gdbmdefs.h"
 #include "gdbm.h"
+#include "gdbmapp.h"
 
 #include <errno.h>
 #include <ctype.h>
@@ -52,7 +53,7 @@ int data_z = 1;                     /* Data are nul-terminated strings */
 
 
 void
-error (int code, const char *fmt, ...)
+terror (int code, const char *fmt, ...)
 {
   va_list ap;
   if (!interactive)
@@ -118,23 +119,23 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
 	  + sizeof (avail_block));
   av_stk = (avail_block *) malloc (size);
   if (av_stk == NULL)
-    error (2, _("Out of memory"));
+    terror (2, _("Out of memory"));
 
   /* Traverse the stack. */
   while (temp)
     {
       if (__lseek (dbf, temp, SEEK_SET) != temp)
 	{
-	  error (0, "lseek: %s", strerror (errno));
+	  terror (0, "lseek: %s", strerror (errno));
 	  break;
 	}
       
       if ((rc = _gdbm_full_read (dbf, av_stk, size)))
 	{
 	  if (rc == GDBM_FILE_EOF)
-	    error (0, "read: %s", gdbm_strerror (rc));
+	    terror (0, "read: %s", gdbm_strerror (rc));
 	  else
-	    error (0, "read: %s (%s)", gdbm_strerror (rc), strerror (errno));
+	    terror (0, "read: %s (%s)", gdbm_strerror (rc), strerror (errno));
 	  break;
 	}
 
@@ -172,23 +173,23 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
 	  + sizeof (avail_block));
   av_stk = (avail_block *) malloc (size);
   if (av_stk == NULL)
-    error (2, _("Out of memory"));
+    terror (2, _("Out of memory"));
 
   /* Print the stack. */
   while (temp)
     {
       if (__lseek (dbf, temp, SEEK_SET) != temp)
 	{
-	  error (0, "lseek: %s", strerror (errno));
+	  terror (0, "lseek: %s", strerror (errno));
 	  break;
 	}
       
       if ((rc = _gdbm_full_read (dbf, av_stk, size)))
 	{
 	  if (rc == GDBM_FILE_EOF)
-	    error (0, "read: %s", gdbm_strerror (rc));
+	    terror (0, "read: %s", gdbm_strerror (rc));
 	  else
-	    error (0, "read: %s (%s)", gdbm_strerror (rc), strerror (errno));
+	    terror (0, "read: %s (%s)", gdbm_strerror (rc), strerror (errno));
 	  break;
 	}
 
@@ -230,37 +231,6 @@ _gdbm_print_bucket_cache (FILE *fp, GDBM_FILE dbf)
     fprintf (fp, _("Bucket cache has not been initialized.\n"));
 }
 
-void
-usage ()
-{
-  printf (_("Usage: %s OPTIONS\n"), progname);
-  printf (_("Test and modify a GDBM database.\n"));
-  printf ("\n");
-  printf (_("OPTIONS are:\n\n"));
-  printf (_("  -b SIZE            set block size\n"));
-  printf (_("  -c SIZE            set cache size\n"));
-  printf (_("  -g FILE            operate on FILE instead of `junk.gdbm'\n"));
-  printf (_("  -h                 print this help summary\n"));
-  printf (_("  -l                 disable file locking\n"));
-  printf (_("  -m                 disable file mmap\n"));
-  printf (_("  -n                 create database\n"));
-  printf (_("  -r                 open database in read-only mode\n"));
-  printf (_("  -s                 synchronize to the disk after each write\n"));
-  printf (_("  -v                 print program version\n"));
-  printf ("\n");
-  printf (_("Report bugs to <%s>.\n"), PACKAGE_BUGREPORT);
-}
-
-void
-version ()
-{
-  printf ("testgdbm (%s) %s\n", PACKAGE_NAME, PACKAGE_VERSION);
-  printf ("Copyright (C) 2007-2011 Free Software Foundation, Inc.\n");
-  printf ("License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n");
-  printf ("This is free software: you are free to change and redistribute it.\n");
-  printf ("There is NO WARRANTY, to the extent permitted by law.\n");
-}
-
 int
 trimnl (char *str)
 {
@@ -287,7 +257,7 @@ read_from_file (const char *name, int replace)
   fp = fopen (name, "r");
   if (!fp)
     {
-      error (0, _("cannot open file `%s' for reading: %s"),
+      terror (0, _("cannot open file `%s' for reading: %s"),
 	     name, strerror (errno));
       return;
     }
@@ -298,7 +268,7 @@ read_from_file (const char *name, int replace)
 
       if (!trimnl (buf))
 	{
-	  error (0, _("%s:%d: line too long"), name, line);
+	  terror (0, _("%s:%d: line too long"), name, line);
 	  continue;
 	}
 
@@ -306,7 +276,7 @@ read_from_file (const char *name, int replace)
       p = strchr (buf, ' ');
       if (!p)
 	{
-	  error (0, _("%s:%d: malformed line"), name, line);
+	  terror (0, _("%s:%d: malformed line"), name, line);
 	  continue;
 	}
 
@@ -317,7 +287,7 @@ read_from_file (const char *name, int replace)
       data.dptr = p;
       data.dsize = strlen (p) + data_z;
       if (gdbm_store (gdbm_file, key, data, flag) != 0)
-	error (0, _("%d: item not inserted: %s"),
+	terror (0, _("%d: item not inserted: %s"),
 	       line, gdbm_strerror (gdbm_errno));
     }
   fclose (fp);
@@ -392,9 +362,9 @@ delete_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
   if (gdbm_delete (gdbm_file, key_data) != 0)
     {
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-	error (0, _("Item not found"));
+	terror (0, _("Item not found"));
       else
-	error (0, _("Can't delete: %s"),  gdbm_strerror (gdbm_errno));
+	terror (0, _("Can't delete: %s"),  gdbm_strerror (gdbm_errno));
     }
 }
 
@@ -686,7 +656,7 @@ list_handler (char *arg[NARGS] ARG_UNUSED, FILE *fp, void *call_data)
 
       data = gdbm_fetch (gdbm_file, key);
       if (!data.dptr)
-	error (0, _("cannot fetch data (key %.*s)"), key.dsize, key.dptr);
+	terror (0, _("cannot fetch data (key %.*s)"), key.dsize, key.dptr);
       else
 	{
 	  fprintf (fp, "%.*s %.*s\n", key.dsize, key.dptr, data.dsize,
@@ -719,7 +689,7 @@ export_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
     flags = GDBM_NEWDB;
 
   if (gdbm_export (gdbm_file, arg[0], flags, 0600) == -1)
-    error (0, _("gdbm_export failed, %s"), gdbm_strerror (gdbm_errno));
+    terror (0, _("gdbm_export failed, %s"), gdbm_strerror (gdbm_errno));
 }
 
 /* i file [replace] - import from a flat file */
@@ -732,7 +702,7 @@ import_handler (char *arg[NARGS], FILE *fp, void *call_data ARG_UNUSED)
     flag = GDBM_REPLACE;
 
   if (gdbm_import (gdbm_file, arg[0], flag) == -1)
-    error (0, _("gdbm_import failed, %s"), gdbm_strerror (gdbm_errno));
+    terror (0, _("gdbm_import failed, %s"), gdbm_strerror (gdbm_errno));
 }
 
 static const char *
@@ -999,6 +969,23 @@ getword (char *s, char **endp)
    The commands are single letter commands.  The user is prompted for all other
    information.  See the help command (?) for a list of all commands. */
 
+char *parseopt_program_doc = "Test and modify a GDBM database";
+char *parseopt_program_args = "";
+
+struct gdbm_option optab[] = {
+  { 'b', "block-size", N_("SIZE"), N_("set block size") },
+  { 'c', "cache-size", N_("SIZE"), N_("set cache size") },
+  { 'f', "file",       N_("FILE"),
+    N_("operate on FILE instead of `junk.gdbm'") },
+  { 'g', NULL, NULL, NULL, PARSEOPT_ALIAS },
+  { 'l', "no-lock",    NULL,       N_("disable file locking") },
+  { 'm', "no-mmap",    NULL,       N_("disable file mmap") },
+  { 'n', "newdb",      NULL,       N_("create database") },
+  { 'r', "read-only",  NULL,       N_("open database in read-only mode") },
+  { 's', "synchronize", NULL,      N_("synchronize to disk after each write") },
+  { 0 }
+};
+
 int
 main (int argc, char *argv[])
 {
@@ -1012,12 +999,8 @@ main (int argc, char *argv[])
   char newdb = FALSE;
   int flags = 0;
   char *pager = getenv ("PAGER");
-
-  progname = strrchr (argv[0], '/');
-  if (progname)
-    progname++;
-  else
-    progname = argv[0];
+  
+  set_progname (argv[0]);
 
 #ifdef HAVE_SETLOCALE
   setlocale (LC_ALL, "");
@@ -1027,29 +1010,11 @@ main (int argc, char *argv[])
 
   set_minimal_abbreviations ();
   
-  /* Argument checking. */
-  if (argc == 2)
-    {
-      if (strcmp (argv[1], "--help") == 0)
-	{
-	  usage ();
-	  exit (0);
-	}
-      else if (strcmp (argv[1], "--version") == 0)
-	{
-	  version ();
-	  exit (0);
-	}
-    }
-  
-  opterr = 0;
-  while ((opt = getopt (argc, argv, "lmsrnc:b:g:hv")) != -1)
+  for (opt = parseopt_first (argc, argv, optab);
+       opt != EOF;
+       opt = parseopt_next ())
     switch (opt)
       {
-      case 'h':
-	usage ();
-	exit (0);
-
       case 'l':
 	flags = flags | GDBM_NOLOCK;
 	break;
@@ -1060,21 +1025,21 @@ main (int argc, char *argv[])
 
       case 's':
 	if (reader)
-	  error (2, _("-s is incompatible with -r"));
+	  terror (2, _("-s is incompatible with -r"));
 
 	flags = flags | GDBM_SYNC;
 	break;
 	
       case 'r':
 	if (newdb)
-	  error (2, _("-r is incompatible with -n"));
+	  terror (2, _("-r is incompatible with -n"));
 
 	reader = TRUE;
 	break;
 	
       case 'n':
 	if (reader)
-	  error (2, _("-n is incompatible with -r"));
+	  terror (2, _("-n is incompatible with -r"));
 
 	newdb = TRUE;
 	break;
@@ -1088,15 +1053,12 @@ main (int argc, char *argv[])
 	break;
 	
       case 'g':
+      case 'f':
 	file_name = optarg;
 	break;
 
-      case 'v':
-	version ();
-	exit (0);
-	  
       default:
-	error (2, _("unknown option; try `%s -h' for more info\n"), progname);
+	terror (2, _("unknown option; try `%s -h' for more info\n"), progname);
       }
 
   if (file_name == NULL)
@@ -1120,11 +1082,11 @@ main (int argc, char *argv[])
 	gdbm_open (file_name, block_size, GDBM_WRCREAT | flags, 00664, NULL);
     }
   if (gdbm_file == NULL)
-    error (2, _("gdbm_open failed: %s"), gdbm_strerror (gdbm_errno));
+    terror (2, _("gdbm_open failed: %s"), gdbm_strerror (gdbm_errno));
 
   if (gdbm_setopt (gdbm_file, GDBM_CACHESIZE, &cache_size, sizeof (int)) ==
       -1)
-    error (2, _("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
+    terror (2, _("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
 
   signal (SIGPIPE, SIG_IGN);
 
@@ -1162,7 +1124,7 @@ main (int argc, char *argv[])
       cmd = find_command (p);
       if (!cmd)
 	{
-	  error (0,
+	  terror (0,
 		 interactive ? _("Invalid command. Try ? for help.") :
 		               _("Unknown command"));
 	  continue;
@@ -1179,12 +1141,12 @@ main (int argc, char *argv[])
 		/* Optional argument */
 		break;
 	      if (!interactive)
-		error (1, _("%s: not enough arguments"), cmd->name);
+		terror (1, _("%s: not enough arguments"), cmd->name);
 
 	      
 	      printf ("%s? ", arg);
 	      if (fgets (argbuf[i], sizeof argbuf[i], stdin) == NULL)
-		error (1, _("unexpected eof"));
+		terror (1, _("unexpected eof"));
 
 	      trimnl (argbuf[i]);
 	      args[i] = argbuf[i];
@@ -1205,7 +1167,7 @@ main (int argc, char *argv[])
 	  out = popen (pager, "w");
 	  if (!out)
 	    {
-	      error (0, _("cannot run pager `%s': %s"), pager,
+	      terror (0, _("cannot run pager `%s': %s"), pager,
 		     strerror (errno));
 	      pager = NULL;
 	    }

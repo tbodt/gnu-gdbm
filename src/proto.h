@@ -59,4 +59,16 @@ int _gdbm_lock_file	(GDBM_FILE);
 int _gdbm_full_read (GDBM_FILE, void *, size_t);
 int _gdbm_full_write (GDBM_FILE, void *, size_t);
 
+/* From base64.c */
+int _gdbm_base64_encode (const unsigned char *input, size_t input_len,
+			 unsigned char **output, size_t *output_size,
+			 size_t *outbytes);
+int _gdbm_base64_decode (const unsigned char *input, size_t input_len,
+			 unsigned char **output, size_t *output_size,
+			 size_t *inbytes, size_t *outbytes);
+
+int _gdbm_load (FILE *fp, GDBM_FILE *pdbf, unsigned long *line);
+int _gdbm_dump (GDBM_FILE dbf, FILE *fp);
+
+
 

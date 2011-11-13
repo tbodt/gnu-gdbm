@@ -23,9 +23,8 @@
 
 #include <gdbm.h>
 
-/* Include flatfile.c to pull in gdbm_export() */
-#define _GDBMEXPORT_
-#include "flatfile.c"
+/* Pull in gdbm_export() */
+#include "gdbmexp.c"
 
 void
 usage (char *s)

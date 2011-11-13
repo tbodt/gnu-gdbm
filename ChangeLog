@@ -1,5 +1,54 @@
 2011-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Implement new dump format.  Add new utilities: gdbm_dump and gdbm_load.
+	
+	* configure.ac (AC_CHECK_HEADERS): Don't check for files that must
+	always be present.  Check for getopt.h.
+	(AC_CHECK_FUNCS): Add getopt_long
+	* src/systems.h: Include useless #if's. 
+
+	* src/flatfile.c: Split into two files:
+	* src/gdbmexp.c: ... this and ...
+	* src/gdbmimp.c: .., this
+	
+	* src/mem.c: New file.
+	* src/base64.c: New file.
+	* src/gdbm_dump.c: New file.
+	* src/gdbm_load.c: New file.
+	* src/gdbmapp.h: New file.
+	* src/gdbmdump.c: New file.
+	* src/gdbmload.c: New file.
+	* src/parseopt.c: New file.
+	* src/progname.c: New file.
+	* src/.cvsignore: Update.
+	* src/Makefile.am (libgdbm_la_SOURCES): Add new files.
+	(noinst_LIBRARIES): New variable. Build libgdbmapp.a.
+	(libgdbmapp_a_SOURCES): New variable.
+	(bin_PROGRAMS): Add gdbm_load and gdbm_dump
+	(testgdbm_LDADD, gdbm_load_LDADD)
+	(gdbm_dump_LDADD): Add ./libgdbmapp.a
+
+	* src/gdbm.h.in: Include <stdio.h>
+	(gdbm_export_to_file)
+	(gdbm_import_from_file): New prototypes.
+	(GDBM_DUMP_FMT_BINARY,GDBM_DUMP_FMT_ASCII): New constants.
+	(gdbm_dump,gdbm_load)
+	(gdbm_dump_to_file,gdbm_load_from_file): New prototypes.
+	(GDBM_NO_DBNAME): New error code.
+	(_GDBM_MAX_ERRNO): Update.
+	* src/gdbmdefs.h (_GDBM_MAX_DUMP_LINE_LEN): New constant.
+	* src/gdbmerrno.c (gdbm_errlist): Add entry for GDBM_NO_DBNAME.
+	* src/proto.h (_gdbm_base64_encode,_gdbm_base64_decode)
+	(_gdbm_load,_gdbm_dump): New prototypes.
+
+	* src/testgdbm.c: Use gdbmapp interface for option parsing.
+	
+	* export/export.c: Include gdbmexp.c
+	* export/.cvsignore: Update.
+	* doc/gdbm.texinfo: Update.
+	
+2011-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Version 1.10
 
 	* NEWS: Raise version number.

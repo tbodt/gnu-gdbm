@@ -7,3 +7,5 @@ gdbm.h
 *.lo
 libgdbm.la
 testgdbm
+gdbm_dump
+gdbm_load

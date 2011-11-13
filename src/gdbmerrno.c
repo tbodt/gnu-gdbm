@@ -54,6 +54,7 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   N_("Bad file flags"),		 /* GDBM_BAD_OPEN_FLAGS     	*/
   N_("Cannot stat file"),        /* GDBM_FILE_STAT_ERROR        */
   N_("Unexpected end of file"),  /* GDBM_FILE_EOF               */
+  N_("Database name not given"), /* GDBM_NO_DBNAME              */
 };
 
 const char *

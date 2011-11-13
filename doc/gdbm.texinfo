@@ -951,27 +951,34 @@ existing @acronym{GDBM} database or to create a new one.
 
 @cindex default database, @command{testgdbm} 
 @cindex @option{-g}, @command{testgdbm} option
+@cindex @option{-f}, @command{testgdbm} option
+@cindex @option{--file}, @command{testgdbm} option
 @flindex junk.gdbm
 When invoked without options, it tries to open a database file called
 @file{junk.gdbm}, located in the current working directory.  You can
-change this default using the @option{-g} command line option.  This
+change this default using the @option{--file} (@option{-f}) command
+line option@footnote{For compatibility with earlier versions, the
+@option{-g} option acts as an alias to @option{-f}}.  This 
 option takes a single argument, specifying the file name to open, e.g.:
 
 @example
-$ testgdbm -g file.db
+$ testgdbm -f file.db
 @end example
 
 @cindex read-only mode, @command{testgdbm}
 @cindex @option{-r}, @command{testgdbm} option
-The database will be opened in read-write mode, unless the @option{-r}
-option is specified, in which case it will be opened only for reading.
+@cindex @option{--read-only}, @command{testgdbm} option
+The database will be opened in read-write mode, unless the
+@option{-r} (@option{--read-only}) option is specified, in which case
+it will be opened only for reading.
 
 @cindex creating a database, @command{testgdbm}
 @cindex @option{-n}, @command{testgdbm} option
+@cindex @option{--newdb}, @command{testgdbm} option
 If the database does not exist, @command{testgdbm} will create it.
-There is a special option @option{-n}, which instructs the utility to
-create a new database.  If it is used and if the database already
-exists, it will be deleted, so use it sparingly.
+There is a special option @option{-n} (@option{--newdb}, which
+instructs the utility to create a new database.  If it is used and if
+the database already exists, it will be deleted, so use it sparingly.
 
 @menu
 * invocation::
@@ -987,21 +994,39 @@ options:
 
 @table @option
 @item -b @var{size}
+@itemx --block-size=@var{size}
 Set block size.
 @item -c @var{size}
+@itemx --cache-size=@var{size}
 Set cache size.
-@item -g @var{file}
+@item -f @var{file}
+@itemx -g @var{file}
+@itemx --file=@var{file}
 Operate on @var{file} instead of the default @file{junk.gdbm}.
 @item -h
+@itemx --help
 Print a concise help summary.
 @item -n
+@itemx --newdb
 Create the database.
+@item -l
+@itemx --no-lock
+Disable file locking.
+@item -m
+@itemx --no-mmap
+Disable mmap.
 @item -r
+@itemx --read-only
 Open the database in read-only mode.
 @item -s
+@itemx --synchronize
 Synchronize to the disk after each write.
-@item -v
+@item -V
+@itemx --version
 Print program version and licensing information and exit.
+@item --usage
+Print a terse invocation syntax summary along with a list of available
+command line options.
 @end table
 
 @node shell

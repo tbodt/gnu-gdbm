@@ -217,5 +217,7 @@ struct gdbm_file_info {
     }						\
   while (0)					\
 
+#define _GDBM_MAX_DUMP_LINE_LEN 76
+
 /* Now define all the routines in use. */
 #include "proto.h"

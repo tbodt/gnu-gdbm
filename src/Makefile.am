@@ -37,22 +37,26 @@ lib_LTLIBRARIES = libgdbm.la
 libgdbm_la_LIBADD = @LTLIBINTL@
 
 libgdbm_la_SOURCES = \
- gdbmopen.c\
- gdbmdelete.c\
- gdbmfetch.c\
- gdbmstore.c\
  gdbmclose.c\
- gdbmreorg.c\
- gdbmseq.c\
- gdbmsync.c\
+ gdbmdelete.c\
+ gdbmdump.c\
  gdbmerrno.c\
  gdbmexists.c\
+ gdbmexp.c\
  gdbmfdesc.c\
+ gdbmfetch.c\
+ gdbmload.c\
+ gdbmopen.c\
+ gdbmimp.c\
+ gdbmreorg.c\
+ gdbmseq.c\
  gdbmsetopt.c\
+ gdbmstore.c\
+ gdbmsync.c\
+ base64.c\
  bucket.c\
  falloc.c\
  findkey.c\
- flatfile.c\
  fullio.c\
  hash.c\
  lock.c\
@@ -62,6 +66,17 @@ libgdbm_la_SOURCES = \
 
 libgdbm_la_LDFLAGS = -version-info $(VI_CURRENT):$(VI_REVISION):$(VI_AGE)
 
+noinst_LIBRARIES = libgdbmapp.a
+
+libgdbmapp_a_SOURCES =\
+ err.c\
+ mem.c\
+ gdbmapp.h\
+ parseopt.c\
+ progname.c
+
 # Programs
-bin_PROGRAMS = testgdbm 
-testgdbm_LDADD  = ./libgdbm.la
+bin_PROGRAMS = testgdbm gdbm_load gdbm_dump
+testgdbm_LDADD  = ./libgdbmapp.a ./libgdbm.la
+gdbm_load_LDADD  = ./libgdbmapp.a ./libgdbm.la 
+gdbm_dump_LDADD  = ./libgdbmapp.a ./libgdbm.la 
