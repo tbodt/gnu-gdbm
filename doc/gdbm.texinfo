@@ -660,7 +660,7 @@ guaranteed to be a byte-to-byte equivalent of the database from which
 the flat file was created.  This does not necessarily mean, however,
 that this file can be used in the same way as the original one.  For
 example, if the original database contained non-@acronym{ASCII} data
-(e.g.  @acronym{C} structures, integers etc.), the recreated database
+(e.g.@: @acronym{C} structures, integers etc.), the recreated database
 can be of any use only if the target machine has the same integer
 size and byte ordering as the source one and if its @acronym{C}
 compiler uses the same packing conventions as the one which generated
@@ -669,25 +669,41 @@ binary databases are not portable between machines, unless you follow
 some stringent rules on what data is written to them and how it is
 interpreted.
 
-@deftypefn {gdbm interface} int gdbm_export (GDBM_FILE @var{dbf}, @
-           const char *@var{exportfile}, int @var{flag}, int @var{mode})
-Create a flat file from the @code{gdbm} database.  The parameters are:
+GDBM version @value{VERSION} supports two flat file formats.  The
+@dfn{binary} flat file, as its name implies, keeps data in binary
+form.  The @dfn{ascii} flat file, on the other hand, encodes all data
+in base64 and can be sent over transmission channels that normally
+allow only ASCII data, such as, e.g.@: SMTP.  Apart from that, ASCII
+flat files contain original database file metadata (file name, mode
+and ownership), and can therefore be used to restore an exact copy of
+the database.
+
+@deftypefn {gdbm interface} int gdbm_dump (GDBM_FILE @var{dbf}, @
+    const char *@var{filename}, int @var{format}, @
+    int @var{open_flags}, int @var{mode})
+Dumps the database file to the named file in requested format.
+Arguments are:
 
 @table @var
 @item dbf
-A pointer to the source database, returned by a call to
-@code{gdbm_open}.  The database must be open in @samp{GDBM_WRITER} mode.
+A pointer to the source database, returned by a prior call to
+@code{gdbm_open}.
 
-@item exportfile
-The name of the output file.
+@item filename
+Name of the dump file.
 
-@item flag
-@kwindex GDBM_WRCREAT
-@kwindex GDBM_NEWDB
-How to create the output file.  If @var{flag} is @samp{GDBM_WRCREAT},
-the file will be created if it does not exist already.  Otherwise, if
-it is @samp{GDBM_NEWDB}, it will be created if it does not exist, and
-truncated otherwise.
+@item format
+Dump format.  Allowed values are: @samp{GDBM_DUMP_FMT_BINARY} to
+create a binary dump and @samp{GDBM_DUMP_FMT_ASCII} to create an ASCII
+dump file.
+
+@item open_flags
+How to create the output file.  If @var{flag} is @samp{GDBM_WRCREAT}
+the file will be created if it does not exist.  If it does exist,
+the @code{gdbm_dump} will fail.
+
+If @var{flag} is @samp{GDBM_NEWDB}, the function will create a new
+output file, replacing it if it already exists.
 
 @item mode
 The permissions to use when creating the output file.
@@ -701,27 +717,107 @@ for a detailed discussion.
 @end table
 @end deftypefn
 
-@deftypefn {gdbm interface} int gdbm_import (GDBM_FILE @var{dbf}, @
-           const char *@var{importfile}, int @var{flag})
-Populates the database from an existing flat file.
+@anchor{gdbm_load function}
+@deftypefn {gdbm interface} int gdbm_load (GDBM_FILE *@var{pdbf}, @
+    const char *@var{filename}, int @var{flag}, unsigned long *@var{errline})
+Loads data from the dump file @var{filename} into the database pointed
+to by @var{pdbf}.  The latter can point to @samp{NULL}, in which case 
+the function will try to create a new database.  If it succeeds, the
+function will return a pointer to the newly created database in the
+memory location pointed to by @var{pdbf}.  If the dump file carries no
+information about the original database file name, the function will
+set @code{gdbm_errno} to @samp{GDBM_NO_DBNAME} and return
+@samp{-1}, indicating failure.
+
+The @var{flag} has the same meaning as the @var{flag} argument
+to the @code{gdbm_store} function (@pxref{Store}).
+
+The function returns 0 upon successful completion or -1 on error.  In
+the latter case, @code{gdbm_errno} will be set to one of the
+following values:
+
+@table @asis
+@item GDBM_FILE_OPEN_ERROR
+Input file (@var{filename}) cannot be opened.  The @code{errno}
+variable can be used to get more detail about the failure.
+
+@item GDBM_MALLOC_ERROR
+Not enough memory to load data.
+
+@item GDBM_FILE_READ_ERROR
+Reading from @var{filename} failed.  The @code{errno} variable can be
+used to get more detail about the failure.
+
+@item GDBM_ILLEGAL_DATA
+Input contained some illegal data.
+
+@item GDBM_ITEM_NOT_FOUND
+This error can occur only when the input file is in ASCII format.  It
+indicates that the data part of the record about to be read lacked
+length specification.  Application developers are advised to treat
+this error equally as @samp{GDBM_ILLEGAL_DATA}.
+@end table
+
+If any error, excepting @var{GDBM_FILE_OPEN_ERROR}, occurs and the
+input file is in ASCII format, the number of line in which the error
+occurred will be stored in the location pointed to by the
+@var{errline} parameter, unless it is @samp{NULL}.
+@end deftypefn
+
+@deftypefn {gdbm interface} int gdbm_dump_to_file (GDBM_FILE @var{dbf}, @
+    FILE *@var{fp}, int @var{format})
+This is an alternative entry point to @code{gdbm_dump} (which see).
+Arguments are:
 
 @table @var
 @item dbf
 A pointer to the source database, returned by a call to
-@code{gdbm_open}.  The database must be open in @samp{GDBM_WRITER} mode.
+@code{gdbm_open}.
 
-@item importfile
-The name of the input flat file.  The file must exist.
+@item fp
+File to write the data to.
 
-@item flag
-The @var{flag} argument to be passed to @code{gdbm_store} function
-when adding new records.  @xref{Store}, for a description of its
-effect.
+@item format
+Format of the dump file.  See the @var{format} argument to the
+@code{gdbm_dump} function.
 @end table
 @end deftypefn
+    
+@deftypefn {gdbm interface} int gdbm_load_from_file (GDBM_FILE *@var{pdbf}, @
+    FILE *@var{fp}, int @var{replace}, unsigned long *@var{line})
+This is an alternative entry point to @code{gdbm_dump}.  It writes the
+output to @var{fp} which must be a file open for writing.  The rest of
+arguments is the same as for @code{gdbm_load} (excepting of course
+@var{flag}, which is not needed in this case).
+@end deftypefn
 
-See also @ref{gdbmexport}, @ref{testgdbm export}, and
-@ref{testgdbm import}.
+@deftypefn {gdbm interface} int gdbm_export (GDBM_FILE @var{dbf}, @
+           const char *@var{exportfile}, int @var{flag}, int @var{mode})
+This function is retained for compatibility with GDBM 1.10 and
+earlier.  It dumps the database to a file in binary dump format and
+is entirely equivalent to
+
+@example
+gdbm_dump(@var{dbf}, @var{exportfile}, GDBM_DUMP_FMT_BINARY,
+          @var{flag}, @var{mode})
+@end example
+@end deftypefn
+
+@deftypefn {gdbm interface} int gdbm_import (GDBM_FILE @var{dbf}, @
+           const char *@var{importfile}, int @var{flag})
+This function is retained for compatibility with GDBM 1.10 and
+earlier.  It loads the file @var{importfile}, which must be a binary
+flat file, into the database @var{dbf} and is equivalent to the
+following construct:
+
+@example
+@var{dbf} = gdbm_open (@var{importfile}, 0,
+		       @var{flag} == GDBM_REPLACE ? GDBM_WRCREAT :
+                       GDBM_NEWDB, 0600, NULL);
+gdbm_load (&@var{dbf}, @var{exportfile}, GDBM_DUMP_FMT_BINARY,
+           @var{flag}, NULL)
+@end example
+@end deftypefn
 
 @node Errors
 @chapter Error strings.
@@ -796,7 +892,7 @@ been altered by another calls to @code{gdbm_setopt}.
 
 @kwindex GDBM_FASTMODE
 @item GDBM_FASTMODE
-Enable or disable the @dfn{fast writes mode}, i.e. writes without
+Enable or disable the @dfn{fast writes mode}, i.e.@: writes without
 subsequent synchronization.  The @var{value} should point
 to an integer: @samp{TRUE} to enable fast mode, and @samp{FALSE} to
 disable it.
@@ -815,7 +911,7 @@ to an integer: @samp{TRUE} to turn synchronization on, and @samp{FALSE} to
 turn it off.
 
 Note, that this option is a reverse of @code{GDBM_FASTMODE},
-i.e. calling @code{GDBM_SETSYNCMODE} with @samp{TRUE} has the same effect
+i.e.@: calling @code{GDBM_SETSYNCMODE} with @samp{TRUE} has the same effect
 as calling @code{GDBM_FASTMODE} with @samp{FALSE}.
 
 The @samp{GDBM_SYNCMODE} option is provided for compatibility with
@@ -1074,7 +1170,7 @@ data> @kbd{3}
 @end example
 
 However, such prompting is possible only in interactive mode.  In
-non-interactive mode (e.g. when running a script), all arguments must
+non-interactive mode (e.g.@: when running a script), all arguments must
 be supplied with each command, otherwise @command{testgdbm} will report an
 error and exit immediately.
 
@@ -1282,7 +1378,7 @@ gdbm_import}) or the @code{i} command of @command{testgdbm} utility
 (@pxref{testgdbm import}).  In many cases files in this format are suitable for
 sending over the network to populate the database on another machine.
 The only exception to this are databases whose records contain
-non-@acronym{ASCII} data (e.g.  @acronym{C} structures, integers
+non-@acronym{ASCII} data (e.g.@: @acronym{C} structures, integers
 etc.).  For such databases you will be better off by writing a
 specialized utility to convert them to an architecture-independent
 format.
@@ -1403,7 +1499,7 @@ gdbm_version_cmp (a, b) @result{} -1
 @chapter Error codes
 @cindex error codes
 
-This chapter summarizes the error codes which can be set by the
+This chapter summarizes error codes which can be set by the
 functions in @code{gdbm} library.
 
 @table @asis
@@ -1567,6 +1663,13 @@ these functions are: @code{gdbm_delete}, @code{gdbm_exists},
 @code{gdbm_fetch}, @code{gdbm_export}, @code{gdbm_import},
 @code{gdbm_reorganize}, @code{gdbm_firstkey}, @code{gdbm_nextkey},
 @code{gdbm_store}. 
+
+@kwindex GDBM_NO_DBNAME
+@item GDBM_NO_DBNAME
+Output database name is not specified.  This error code is set by
+@code{gdbm_load} (@pxref{gdbm_load function,,gdbm_load}) if the first
+argument points to @samp{NULL} and the input file does not specify the
+database name.
 @end table
 
 @node Compatibility
