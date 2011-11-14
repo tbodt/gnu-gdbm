@@ -1,5 +1,7 @@
 2011-11-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* doc/gdbm.texinfo (Error codes): Document new flat format and
+	related functions.
 	* po/POTFILES.in: Update
 
 2011-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>

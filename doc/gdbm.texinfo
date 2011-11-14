@@ -3,12 +3,14 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename gdbm.info
 @include version.texi
-@settitle gdbm manual
+@settitle GDBM manual
 
 @ifinfo
 @dircategory Programming & development tools
 @direntry
 * GDBM: (gdbm).                 The GNU database manager.
+* gdbm_dump: gdbm_dump(gdbm).   Dump the GDBM database into a flat file.
+* gdbm_load: gdbm_load(gdbm).   Load the database from a flat file.
 @end direntry
 @end ifinfo
 
@@ -21,6 +23,9 @@
 @c Use @flindex for files
 @defcodeindex fl
 @syncodeindex fl cp
+@c Use @prindex for programs
+@defcodeindex pr
+@syncodeindex pr cp
 
 @c Merge all indices into a single one
 @syncodeindex fn cp
@@ -34,21 +39,18 @@
 @end iftex
 
 @copying
-This file documents the GNU dbm utility.
+Published by the Free Software Foundation,
+51 Franklin Street, Fifth Floor
+Boston, MA 02110-1301, USA
 
-Copyright @copyright{} 1989-1999, 2007, 2008, 2009-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1989-1999, 2007-2011 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover Texts being ``The GNU Database
-Manager,'' and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License.''
-
-(a) The FSF's Back-Cover Text is: ``You have the freedom to
-copy and modify this GNU manual.  Buying copies from the FSF
-supports it in developing GNU and promoting software freedom.''
+Invariant Sections, no Front-Cover, and no Back-Cover texts.
+A copy of the license is included in the section entitled ``GNU Free
+Documentation License.''
 @end copying
 
 @titlepage
@@ -67,32 +69,8 @@ supports it in developing GNU and promoting software freedom.''
 @center for GNU @code{dbm}, Version @value{VERSION}
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993-1999, 2007-2011 Free Software Foundation, Inc.
-@sp 2
-
-This is Edition @value{EDITION} of the @cite{GNU @code{dbm} Manual},
-for @code{gdbm} Version @value{VERSION}.  @*
-Last updated @value{UPDATED}
-
-Published by the Free Software Foundation @*
-675 Massachusetts Avenue, @*
-Cambridge, MA 02139 USA @*
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that
-the entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by the Free Software Foundation.
+@insertcopying
 @end titlepage
-@page
 
 @ifnothtml
 @page
@@ -107,9 +85,9 @@ by the Free Software Foundation.
 
 GNU @code{dbm} is a library of functions implementing a hashed database
 on a disk file.  This manual documents GNU @code{dbm} Version @value{VERSION}
-(@code{gdbm}).  The software was originally written by Philip A.  Nelson.  This
-document was originally written by Pierre Gaumond from texts written by
-Phil.
+(@code{gdbm}).  The software was originally written by Philip A.@:
+Nelson.  This document was originally written by Pierre Gaumond from
+texts written by Phil.
 @end ifnottex
 
 @menu
@@ -136,7 +114,9 @@ Functions:
 
 Programs
 
-* testgdbm::                   Test and modify a GDBM database. 
+* testgdbm::                   Test and modify a GDBM database.
+* gdbm_dump::                  Dump the database into a flat file.          
+* gdbm_load::                  Load the database from a flat file.
 * gdbmexport::                 Export a database into a portable format.  
 
 Other topics:
@@ -651,8 +631,12 @@ immediately after the set of changes have been made.
 @cindex Flat file format
 @cindex export
 @cindex import
-@code{Gdbm} databases can be converted into a portable @dfn{flat
-format}.  This format can be used, for example, to migrate between
+@code{Gdbm} databases can be converted into so-called @dfn{flat
+format} files.  Such files cannot be used for searching, their sole
+purpose is to keep the data from the database for restoring it when
+the need arrives.  There are two flat file formats, which differ in
+the way they represent the data and in the amount of meta-information
+stored.  Both formats can be used, for example, to migrate between
 the different versions of @code{gdbm} databases.  Generally speaking,
 flat files are safe to send over the network, and can be used to
 recreate the database on another machine.  The recreated database is
@@ -669,14 +653,25 @@ binary databases are not portable between machines, unless you follow
 some stringent rules on what data is written to them and how it is
 interpreted.
 
-GDBM version @value{VERSION} supports two flat file formats.  The
-@dfn{binary} flat file, as its name implies, keeps data in binary
-form.  The @dfn{ascii} flat file, on the other hand, encodes all data
-in base64 and can be sent over transmission channels that normally
-allow only ASCII data, such as, e.g.@: SMTP.  Apart from that, ASCII
-flat files contain original database file metadata (file name, mode
-and ownership), and can therefore be used to restore an exact copy of
-the database.
+The GDBM version @value{VERSION} supports two flat file formats.  The
+@dfn{binary} flat file format was first implemented in GDBM version
+1.9.1.  This format stores only key/data pairs, it does not keep
+information about the database file itself.  As its name implies,
+files in this format are binary files.
+
+The @dfn{ascii} flat file format encodes all data in base64 and stores
+not only key/data pairs, but also the original database file metadata,
+such as file name, mode and ownership.  Files in this format can be
+sent without additional encapsulation over transmission channels that
+normally allow only ASCII data, such as, e.g.@: SMTP.  Due to additional
+metadata they allow for restoring an exact copy of the database,
+including file ownership and privileges, which is especially important
+if the database in question contained some security-related data.
+
+We call a process of creating a flat file from a database
+@dfn{exporting} or @dfn{dumping} this database.  The reverse process,
+creating the database from a flat file is called @dfn{importing} or
+@dfn{loading} the database.
 
 @deftypefn {gdbm interface} int gdbm_dump (GDBM_FILE @var{dbf}, @
     const char *@var{filename}, int @var{format}, @
@@ -693,7 +688,7 @@ A pointer to the source database, returned by a prior call to
 Name of the dump file.
 
 @item format
-Dump format.  Allowed values are: @samp{GDBM_DUMP_FMT_BINARY} to
+Output file format.  Allowed values are: @samp{GDBM_DUMP_FMT_BINARY} to
 create a binary dump and @samp{GDBM_DUMP_FMT_ASCII} to create an ASCII
 dump file.
 
@@ -723,8 +718,8 @@ for a detailed discussion.
 Loads data from the dump file @var{filename} into the database pointed
 to by @var{pdbf}.  The latter can point to @samp{NULL}, in which case 
 the function will try to create a new database.  If it succeeds, the
-function will return a pointer to the newly created database in the
-memory location pointed to by @var{pdbf}.  If the dump file carries no
+function will return, in the memory location pointed to by @var{pdbf},
+a pointer to the newly created database.  If the dump file carries no 
 information about the original database file name, the function will
 set @code{gdbm_errno} to @samp{GDBM_NO_DBNAME} and return
 @samp{-1}, indicating failure.
@@ -812,8 +807,9 @@ following construct:
 
 @example
 @var{dbf} = gdbm_open (@var{importfile}, 0,
-		       @var{flag} == GDBM_REPLACE ? GDBM_WRCREAT :
-                       GDBM_NEWDB, 0600, NULL);
+                       @var{flag} == GDBM_REPLACE ?
+                         GDBM_WRCREAT : GDBM_NEWDB,
+                       0600, NULL);
 gdbm_load (&@var{dbf}, @var{exportfile}, GDBM_DUMP_FMT_BINARY,
            @var{flag}, NULL)
 @end example
@@ -853,7 +849,7 @@ The parameters are:
 @item dbf
 The pointer returned by @code{gdbm_open}.
 @item option
-The option to be set or retreived.
+The option to be set or retrieved.
 @item value
 A pointer to the value to which @var{option} will be set or where to
 place the option value (depending on the option).
@@ -995,7 +991,7 @@ char *name;
 if (gdbm_setopt (dbf, GDBM_GETDBNAME, &name, sizeof (name)))
   @{
      fprintf (stderr, "gdbm_setopt failed: %s\n",
-	      gdbm_strerror (gdbm_errno));
+              gdbm_strerror (gdbm_errno));
   @}
 else
   @{
@@ -1040,7 +1036,7 @@ calls.
 
 @node testgdbm
 @chapter Test and modify a GDBM database.
-@cindex testgdbm
+@prindex testgdbm
 
 The @command{testgdbm} utility allows you to view and modify an
 existing @acronym{GDBM} database or to create a new one.
@@ -1367,14 +1363,24 @@ with its parameters and a short description of what it does.  Optional
 arguments are enclosed in square brackets.
 @end deffn
 
+@node gdbm_dump
+@chapter The @command{gdbm_dump} utility
+@prindex gdbm_dump
+FIXME
+
+@node gdbm_load
+@chapter The @command{gdbm_load} utility
+@prindex gdbm_load
+FIXME
+
 @node gdbmexport
 @chapter Export a database into a portable format.
-@pindex gdbmexport
+@prindex gdbmexport
 
-The @command{gdbmexport} utility converts the database into a portable
-@dfn{flat format}.  Files in this format can be used to populate
-databases using the @code{gdbm_import} function (@pxref{Flat files,
-gdbm_import}) or the @code{i} command of @command{testgdbm} utility
+The @command{gdbmexport} utility converts the database into a binary
+flat format.  Files in this format can be used to populate
+databases using the @code{gdbm_load} function (@pxref{Flat files,
+gdbm_load}) or the @code{i} command of @command{testgdbm} utility
 (@pxref{testgdbm import}).  In many cases files in this format are suitable for
 sending over the network to populate the database on another machine.
 The only exception to this are databases whose records contain
@@ -1969,24 +1975,24 @@ You may contact the authors and maintainers by e-mail:
 @chapter Additional resources
 
 For the latest updates and pointers to additional resources, visit
-@uref{http://www.gnu.org/software/gdbm}.
+@uref{http://www.gnu.org/@/software/@/gdbm}.
 
 In particular, a copy of @code{gdbm} documentation in various formats
-is available online at @uref{http://www.gnu.org/software/gdbm/manual}.
+is available online at @uref{http://www.gnu.org/@/software/@/gdbm/@/manual.html}.
 
 Latest versions of @code{gdbm} can be downloaded from anonymous FTP:
-@uref{ftp://ftp.gnu.org/gnu/gdbm}, or via HTTP from
-@uref{http://ftp.gnu.org/gnu/gdbm}, or from any
+@uref{ftp://ftp.gnu.org/@/gnu/@/gdbm}, or via HTTP from
+@uref{http://ftp.gnu.org/@/gnu/@/gdbm}, or from any
 @ifhtml
 @uref{http://www.gnu.org/order/ftp.html,,GNU mirror} worldwide.
 @end ifhtml
 @ifnothtml
-GNU mirror worldwide.  See @uref{http://www.gnu.org/order/ftp.html},
+GNU mirror worldwide.  See @uref{http://www.gnu.org/@/order/@/ftp.html},
 for a list of mirrors.
 @end ifnothtml
 
 To track @code{gdbm} development, visit
-@uref{http://puszcza.gnu.org.ua/projects/gdbm}.
+@uref{http://puszcza.gnu.org.ua/@/projects/@/gdbm}.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
