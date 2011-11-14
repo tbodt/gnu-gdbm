@@ -1,3 +1,7 @@
+2011-11-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* po/POTFILES.in: Update
+
 2011-11-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Implement new dump format.  Add new utilities: gdbm_dump and gdbm_load.

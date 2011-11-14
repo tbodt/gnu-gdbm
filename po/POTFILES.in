@@ -14,10 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>.
 
-src/gdbmerrno.c
 src/bucket.c
 src/falloc.c
 src/findkey.c
+src/gdbm_dump.c
+src/gdbm_load.c
+src/gdbmerrno.c
+src/gdbmfetch.c
 src/gdbmseq.c
+src/gdbmstore.c
+src/parseopt.c
 src/testgdbm.c
 src/update.c
