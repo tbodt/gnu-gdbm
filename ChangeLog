@@ -1,5 +1,7 @@
 2011-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Version 1.10.90
+
 	Update the docs.  Improve dump/load utilities.
 	
 	* doc/gdbm.texinfo: Reorganize the material.  Document gdbm_load
