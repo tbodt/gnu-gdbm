@@ -119,7 +119,7 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
 	  + sizeof (avail_block));
   av_stk = (avail_block *) malloc (size);
   if (av_stk == NULL)
-    terror (2, _("Out of memory"));
+    terror (EXIT_FATAL, _("Out of memory"));
 
   /* Traverse the stack. */
   while (temp)
@@ -173,7 +173,7 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
 	  + sizeof (avail_block));
   av_stk = (avail_block *) malloc (size);
   if (av_stk == NULL)
-    terror (2, _("Out of memory"));
+    terror (EXIT_FATAL, _("Out of memory"));
 
   /* Print the stack. */
   while (temp)
@@ -676,7 +676,7 @@ quit_handler (char *arg[NARGS] ARG_UNUSED, FILE *fp ARG_UNUSED,
   if (gdbm_file != NULL)
     gdbm_close (gdbm_file);
 
-  exit (0);
+  exit (EXIT_OK);
 }
 
 /* e file [truncate] - export to a flat file format */
@@ -1025,21 +1025,21 @@ main (int argc, char *argv[])
 
       case 's':
 	if (reader)
-	  terror (2, _("-s is incompatible with -r"));
+	  terror (EXIT_USAGE, _("-s is incompatible with -r"));
 
 	flags = flags | GDBM_SYNC;
 	break;
 	
       case 'r':
 	if (newdb)
-	  terror (2, _("-r is incompatible with -n"));
+	  terror (EXIT_USAGE, _("-r is incompatible with -n"));
 
 	reader = TRUE;
 	break;
 	
       case 'n':
 	if (reader)
-	  terror (2, _("-n is incompatible with -r"));
+	  terror (EXIT_USAGE, _("-n is incompatible with -r"));
 
 	newdb = TRUE;
 	break;
@@ -1058,7 +1058,8 @@ main (int argc, char *argv[])
 	break;
 
       default:
-	terror (2, _("unknown option; try `%s -h' for more info\n"), progname);
+	terror (EXIT_USAGE,
+		_("unknown option; try `%s -h' for more info\n"), progname);
       }
 
   if (file_name == NULL)
@@ -1082,11 +1083,12 @@ main (int argc, char *argv[])
 	gdbm_open (file_name, block_size, GDBM_WRCREAT | flags, 00664, NULL);
     }
   if (gdbm_file == NULL)
-    terror (2, _("gdbm_open failed: %s"), gdbm_strerror (gdbm_errno));
+    terror (EXIT_FATAL, _("gdbm_open failed: %s"), gdbm_strerror (gdbm_errno));
 
   if (gdbm_setopt (gdbm_file, GDBM_CACHESIZE, &cache_size, sizeof (int)) ==
       -1)
-    terror (2, _("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
+    terror (EXIT_FATAL, _("gdbm_setopt failed: %s"),
+	    gdbm_strerror (gdbm_errno));
 
   signal (SIGPIPE, SIG_IGN);
 
@@ -1141,12 +1143,12 @@ main (int argc, char *argv[])
 		/* Optional argument */
 		break;
 	      if (!interactive)
-		terror (1, _("%s: not enough arguments"), cmd->name);
+		terror (EXIT_USAGE, _("%s: not enough arguments"), cmd->name);
 
 	      
 	      printf ("%s? ", arg);
 	      if (fgets (argbuf[i], sizeof argbuf[i], stdin) == NULL)
-		terror (1, _("unexpected eof"));
+		terror (EXIT_USAGE, _("unexpected eof"));
 
 	      trimnl (argbuf[i]);
 	      args[i] = argbuf[i];

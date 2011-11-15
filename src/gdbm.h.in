@@ -123,13 +123,18 @@ extern int gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag);
 #define GDBM_DUMP_FMT_BINARY 0
 #define GDBM_DUMP_FMT_ASCII  1
 
+#define GDBM_META_MASK_MODE    0x01
+#define GDBM_META_MASK_OWNER   0x02
+  
 extern int gdbm_dump (GDBM_FILE, const char *, int fmt, int open_flags,
 		      int mode);
 extern int gdbm_dump_to_file (GDBM_FILE, FILE *, int fmt);
 
 extern int gdbm_load (GDBM_FILE *, const char *, int replace,
+		      int meta_flags,
 		      unsigned long *line);
 extern int gdbm_load_from_file (GDBM_FILE *, FILE *, int replace,
+				int meta_flags,
 				unsigned long *line);
 
 # define GDBM_NO_ERROR		0

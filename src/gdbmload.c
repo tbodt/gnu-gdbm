@@ -285,7 +285,7 @@ read_record (struct dump_file *file, char *param, int n, datum *dat)
 #define META_MODE 0x04
 
 static int
-_set_gdbm_meta_info (GDBM_FILE dbf, char *param)
+_set_gdbm_meta_info (GDBM_FILE dbf, char *param, int meta_mask)
 {
   unsigned long n;
   uid_t owner_uid;
@@ -295,62 +295,68 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param)
   const char *p;
   char *end;
   int rc = 0;
+
+  if (!(meta_mask & GDBM_META_MASK_OWNER))
+    {
+      p = getparm (param, "user");
+      if (p)
+	{
+	  struct passwd *pw = getpwnam (p);
+	  if (pw)
+	    {
+	      owner_uid = pw->pw_uid;
+	      meta_flags |= META_UID;
+	    }
+	}
+
+      if (!(meta_flags & META_UID) && (p = getparm (param, "uid")))
+	{
+	  errno = 0;
+	  n = strtoul (p, &end, 10);
+	  if (*end == 0 && errno == 0)
+	    {
+	      owner_uid = n;
+	      meta_flags |= META_UID;
+	    }
+	}
+
+      p = getparm (param, "group");
+      if (p)
+	{
+	  struct group *gr = getgrnam (p);
+	  if (gr)
+	    {
+	      owner_gid = gr->gr_gid;
+	      meta_flags |= META_GID;
+	    }
+	}
+      if (!(meta_flags & META_GID) && (p = getparm (param, "gid")))
+	{
+	  errno = 0;
+	  n = strtoul (p, &end, 10);
+	  if (*end == 0 && errno == 0)
+	    {
+	      owner_gid = n;
+	      meta_flags |= META_GID;
+	    }
+	}
+    }
   
-  p = getparm (param, "user");
-  if (p)
+  if (!(meta_mask & GDBM_META_MASK_MODE))
     {
-      struct passwd *pw = getpwnam (p);
-      if (pw)
+      p = getparm (param, "mode");
+      if (p)
 	{
-	  owner_uid = pw->pw_uid;
-	  meta_flags |= META_UID;
+	  errno = 0;
+	  n = strtoul (p, &end, 8);
+	  if (*end == 0 && errno == 0)
+	    {
+	      mode = n & 0777;
+	      meta_flags |= META_MODE;
+	    }
 	}
     }
-
-  if (!(meta_flags & META_UID) && (p = getparm (param, "uid")))
-    {
-      errno = 0;
-      n = strtoul (p, &end, 10);
-      if (*end == 0 && errno == 0)
-	{
-	  owner_uid = n;
-	  meta_flags |= META_UID;
-	}
-    }
-
-  p = getparm (param, "group");
-  if (p)
-    {
-      struct group *gr = getgrnam (p);
-      if (gr)
-	{
-	  owner_gid = gr->gr_gid;
-	  meta_flags |= META_GID;
-	}
-    }
-  if (!(meta_flags & META_GID) && (p = getparm (param, "gid")))
-    {
-      errno = 0;
-      n = strtoul (p, &end, 10);
-      if (*end == 0 && errno == 0)
-	{
-	  owner_gid = n;
-	  meta_flags |= META_GID;
-	}
-    }
-
-  p = getparm (param, "mode");
-  if (p)
-    {
-      errno = 0;
-      n = strtoul (p, &end, 8);
-      if (*end == 0 && errno == 0)
-	{
-	  mode = n & 0777;
-	  meta_flags |= META_MODE;
-	}
-    }
-
+  
   if (meta_flags)
     {
       int fd = gdbm_fdesc (dbf);
@@ -382,7 +388,7 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param)
 
 int
 _gdbm_load_file (struct dump_file *file, GDBM_FILE dbf, GDBM_FILE *ofp,
-		 int replace)
+		 int replace, int meta_mask)
 {
   char *param = NULL;
   int rc;
@@ -439,7 +445,7 @@ _gdbm_load_file (struct dump_file *file, GDBM_FILE dbf, GDBM_FILE *ofp,
 
   if (rc == 0)
     {
-      rc = _set_gdbm_meta_info (dbf, file->header);
+      rc = _set_gdbm_meta_info (dbf, file->header, meta_mask);
       *ofp = dbf;
     }
   else if (tmp)
@@ -450,6 +456,7 @@ _gdbm_load_file (struct dump_file *file, GDBM_FILE dbf, GDBM_FILE *ofp,
 
 int
 gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
+		     int meta_mask,
 		     unsigned long *line)
 {
   struct dump_file df;
@@ -477,7 +484,7 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
   
   memset (&df, 0, sizeof df);
   df.fp = fp;
-  rc = _gdbm_load_file (&df, *pdbf, pdbf, replace);
+  rc = _gdbm_load_file (&df, *pdbf, pdbf, replace, meta_mask);
   dump_file_free (&df);
   if (rc)
     {
@@ -491,6 +498,7 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
 
 int
 gdbm_load (GDBM_FILE *pdbf, const char *filename, int replace,
+	   int meta_mask,
 	   unsigned long *line)
 {
   FILE *fp;
@@ -502,7 +510,7 @@ gdbm_load (GDBM_FILE *pdbf, const char *filename, int replace,
       gdbm_errno = GDBM_FILE_OPEN_ERROR;
       return -1;
     }
-  rc = gdbm_load_from_file (pdbf, fp, replace, line);
+  rc = gdbm_load_from_file (pdbf, fp, replace, meta_mask, line);
   fclose (fp);
   return rc;
 }

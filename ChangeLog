@@ -1,5 +1,24 @@
 2011-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Update the docs.  Improve dump/load utilities.
+	
+	* doc/gdbm.texinfo: Reorganize the material.  Document gdbm_load
+	and gdbm_dump utilities.
+	* src/gdbm.h.in (GDBM_META_MASK_MODE)
+	(GDBM_META_MASK_OWNER): New constant.
+	(gdbm_load,gdbm_load_from_file): Take an additional argument:
+	meta_flags, which masks out restoring certain meta-data.
+	* src/gdbm_dump.c: Remove -b option.  The -H option takes symbolic
+	format names.  Use the standard exit codes.
+	* src/gdbm_load.c: New options: --mode, --user and --no-meta.
+	Use the standard exit codes.
+	* src/gdbmapp.h (EXIT_OK, EXIT_FATAL, EXIT_MILD)
+	(EXIT_USAGE): New constants.
+	* src/gdbmload.c (gdbm_load,gdbm_load_from_file): Take an
+	additional argument, which masks out restoring certain meta-data.
+	
+2011-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Return a meaningful error code if failed to restore file's metadata.
 	
 	* src/gdbm.h.in (GDBM_ERR_FILE_OWNER)

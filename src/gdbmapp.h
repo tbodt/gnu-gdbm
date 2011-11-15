@@ -50,3 +50,10 @@ void parseopt_print_help (void);
 extern char *parseopt_program_name;
 extern char *parseopt_program_doc;
 extern char *parseopt_program_args;
+
+/* Application exit codes */
+#define EXIT_OK      0
+#define EXIT_FATAL   1
+#define EXIT_MILD    2
+#define EXIT_USAGE   3 
+

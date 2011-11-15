@@ -23,7 +23,6 @@ char *parseopt_program_doc = "dump a GDBM database to a file";
 char *parseopt_program_args = "DB_FILE [FILE]";
 struct gdbm_option optab[] = {
   { 'H', "format", N_("0|1"), N_("select dump format") },
-  { 'b', "binary", NULL, N_("use binary output format") },
   { 0 }
 };
 
@@ -45,26 +44,29 @@ main (int argc, char **argv)
     {
     switch (opt)
       {
-      case 'b':
-	format = GDBM_DUMP_FMT_BINARY;
-	break;
-
       case 'H':
-	format = atoi (optarg);
-	switch (format)
+	if (strcmp (optarg, "binary") == 0)
+	  format = GDBM_DUMP_FMT_BINARY;
+	else if (strcmp (optarg, "ascii") == 0)
+	  format = GDBM_DUMP_FMT_ASCII;
+	else
 	  {
-	  case GDBM_DUMP_FMT_BINARY:
-	  case GDBM_DUMP_FMT_ASCII:
-	    break;
-	  default:
-	    error (_("unknown dump format"));
-	    exit (2);
+	    format = atoi (optarg);
+	    switch (format)
+	      {
+	      case GDBM_DUMP_FMT_BINARY:
+	      case GDBM_DUMP_FMT_ASCII:
+		break;
+	      default:
+		error (_("unknown dump format"));
+		exit (EXIT_USAGE);
+	      }
 	  }
 	break;
 	
       default:
 	error (_("unknown option"));
-	exit (2);
+	exit (EXIT_USAGE);
       }
     }
 
@@ -74,13 +76,13 @@ main (int argc, char **argv)
   if (argc == 0)
     {
       parseopt_print_help ();
-      exit (0);
+      exit (EXIT_OK);
     }
 
   if (argc > 2)
     {
       error (_("too many arguments; try `%s -h' for more info"), progname);
-      exit (2);
+      exit (EXIT_USAGE);
     }
   
   dbname = argv[0];
@@ -100,7 +102,7 @@ main (int argc, char **argv)
       if (!fp)
 	{
 	  sys_perror (errno, _("cannot open %s"), filename);
-	  exit (1);
+	  exit (EXIT_FATAL);
 	}
     }
 
@@ -108,7 +110,7 @@ main (int argc, char **argv)
   if (!dbf)
     {
       gdbm_perror (_("gdbm_open failed"));
-      exit (1);
+      exit (EXIT_FATAL);
     }
 
   rc = gdbm_dump_to_file (dbf, fp, format);
@@ -119,6 +121,6 @@ main (int argc, char **argv)
   
   gdbm_close (dbf);
 
-  exit (!!rc);
+  exit (rc ? EXIT_OK : EXIT_FATAL);
 }
   
