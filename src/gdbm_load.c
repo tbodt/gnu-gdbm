@@ -116,10 +116,20 @@ main (int argc, char **argv)
   rc = gdbm_load_from_file (&dbf, fp, replace, &err_line);
   if (rc)
     {
-      if (err_line)
-	gdbm_perror ("%s:%lu", filename, err_line);
-      else
-	gdbm_perror ("cannot load from %s", filename);
+      switch (gdbm_errno)
+	{
+	case GDBM_ERR_FILE_OWNER:
+	case GDBM_ERR_FILE_MODE:
+	  error (_("error restoring metadata for %s: %s (%s)"),
+		 filename, gdbm_strerror (gdbm_errno), strerror (errno));
+	  break;
+	  
+	default:
+	  if (err_line)
+	    gdbm_perror ("%s:%lu", filename, err_line);
+	  else
+	    gdbm_perror (_("cannot load from %s"), filename);
+	}
     }
   
   if (dbf)

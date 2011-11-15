@@ -264,7 +264,7 @@ read_record (struct dump_file *file, char *param, int n, datum *dat)
   rc = get_len (param, &len);
   if (rc)
     return rc;
-  dat->dsize = len; // FIXME: data type mismatch
+  dat->dsize = len; /* FIXME: data type mismatch */
   rc = get_data (file);
   if (rc)
     return rc;
@@ -294,7 +294,8 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param)
   int meta_flags = 0;
   const char *p;
   char *end;
-
+  int rc = 0;
+  
   p = getparm (param, "user");
   if (p)
     {
@@ -365,12 +366,18 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param)
 		owner_gid = st.st_gid;
 	    }
 	  if (fchown (fd, owner_uid, owner_gid))
-	    /* FIXME: set error code */;
+	    {
+	      gdbm_errno = GDBM_ERR_FILE_OWNER;
+	      rc = 1;
+	    }
 	}
       if ((meta_flags & META_MODE) && fchmod (fd, mode))
-	/* FIXME: set error code */;
+	{
+	  gdbm_errno = GDBM_ERR_FILE_OWNER;
+	  rc = 1;
+	}
     }
-  return 0;
+  return rc;
 }
 
 int
@@ -432,7 +439,7 @@ _gdbm_load_file (struct dump_file *file, GDBM_FILE dbf, GDBM_FILE *ofp,
 
   if (rc == 0)
     {
-      _set_gdbm_meta_info (dbf, file->header);
+      rc = _set_gdbm_meta_info (dbf, file->header);
       *ofp = dbf;
     }
   else if (tmp)

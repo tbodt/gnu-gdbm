@@ -32,6 +32,7 @@ usage (char *s)
   printf ("Usage: %s database outfile\n", s);
   printf ("   or: %s [-hv]\n", s);
   printf ("Convert GDBM database into a flat dump format.\n");
+  printf ("Linked with %s\n", gdbm_version);
   printf ("\n");
   printf ("Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 }

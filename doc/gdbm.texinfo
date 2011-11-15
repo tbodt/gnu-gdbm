@@ -727,8 +727,10 @@ set @code{gdbm_errno} to @samp{GDBM_NO_DBNAME} and return
 The @var{flag} has the same meaning as the @var{flag} argument
 to the @code{gdbm_store} function (@pxref{Store}).
 
-The function returns 0 upon successful completion or -1 on error.  In
-the latter case, @code{gdbm_errno} will be set to one of the
+The function returns 0 upon successful completion or -1 on fatal
+errors and 1 on mild (non-fatal) errors.
+
+If a fatal error occurs, @code{gdbm_errno} will be set to one of the
 following values:
 
 @table @asis
@@ -753,10 +755,28 @@ length specification.  Application developers are advised to treat
 this error equally as @samp{GDBM_ILLEGAL_DATA}.
 @end table
 
-If any error, excepting @var{GDBM_FILE_OPEN_ERROR}, occurs and the
-input file is in ASCII format, the number of line in which the error
-occurred will be stored in the location pointed to by the
-@var{errline} parameter, unless it is @samp{NULL}.
+Mild errors mean that the function was able to successfully load and
+restore the data, but was unable to change database file metadata
+afterwards.  The table below lists possible values for @code{gdbm_errno}
+in this case.  To get more detail, inspect the system @code{errno} variable.
+
+@table @asis
+@kwindex GDBM_ERR_FILE_OWNER
+@item GDBM_ERR_FILE_OWNER
+The function was unable to restore database file owner.
+
+@kwindex GDBM_ERR_FILE_MODE
+@item GDBM_ERR_FILE_MODE
+The function was unable to restore database file mode (permission bits).
+@end table
+
+If an error occurs while loading data from an input file in ASCII
+format, the number of line in which the error occurred will be stored
+in the location pointed to by the @var{errline} parameter, unless it
+is @samp{NULL}.
+
+If the line information is not available or applicable, @var{errline}
+will be set to @samp{0}.
 @end deftypefn
 
 @deftypefn {gdbm interface} int gdbm_dump_to_file (GDBM_FILE @var{dbf}, @
@@ -1676,6 +1696,23 @@ Output database name is not specified.  This error code is set by
 @code{gdbm_load} (@pxref{gdbm_load function,,gdbm_load}) if the first
 argument points to @samp{NULL} and the input file does not specify the
 database name.
+
+@kwindex GDBM_ERR_FILE_OWNER
+@item GDBM_ERR_FILE_OWNER
+This error code is set by @code{gdbm_load} if it is unable to restore
+database file owner.  It is a mild error condition, meaning that the
+data have been restored successfully, only changing the target file
+owner failed.  Inspect the system @code{errno} variable to get a more
+detailed diagnostics.
+
+@kwindex GDBM_ERR_FILE_MODE
+@item GDBM_ERR_FILE_MODE
+This error code is set by @code{gdbm_load} if it is unable to restore
+database file mode.  It is a mild error condition, meaning that the data
+have been restored successfully, only changing the target file owner
+failed.  Inspect the system @code{errno} variable to get a more
+detailed diagnostics.
+
 @end table
 
 @node Compatibility

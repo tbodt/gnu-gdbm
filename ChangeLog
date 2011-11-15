@@ -1,3 +1,21 @@
+2011-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Return a meaningful error code if failed to restore file's metadata.
+	
+	* src/gdbm.h.in (GDBM_ERR_FILE_OWNER)
+	(GDBM_ERR_FILE_MODE): New error codes.
+	(_GDBM_MAX_ERRNO): Update.
+	* src/gdbmerrno.c (gdbm_errlist): Add new error codes.
+	* src/gdbmload.c (_set_gdbm_meta_info): Set gdbm_errno and
+	return 1 in case of errors.
+	(_gdbm_load_file): Propagate the return value from
+	_set_gdbm_meta_info.
+	
+	* src/gdbm_load.c (main): Handle mild error conditions.
+	* export/export.c (usage): Print the GDBM version the program is
+	linked with.
+	* doc/gdbm.texinfo: Document changes. 
+
 2011-11-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/gdbm.texinfo (Error codes): Document new flat format and

@@ -55,6 +55,8 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   N_("Cannot stat file"),        /* GDBM_FILE_STAT_ERROR        */
   N_("Unexpected end of file"),  /* GDBM_FILE_EOF               */
   N_("Database name not given"), /* GDBM_NO_DBNAME              */
+  N_("Failed to restore file owner"), /* GDBM_ERR_FILE_OWNER    */
+  N_("Failed to restore file mode"),  /* GDBM_ERR_FILE_MODE     */
 };
 
 const char *
