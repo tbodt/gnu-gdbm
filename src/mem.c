@@ -23,7 +23,7 @@ void
 ealloc_die ()
 {
   error ("%s", strerror (ENOMEM));
-  exit (1);
+  exit (EXIT_FATAL);
 }
 
 void *

@@ -1625,19 +1625,14 @@ The @command{testgdbm} utility allows you to view and modify an
 existing @acronym{GDBM} database or to create a new one.
 
 @cindex default database, @command{testgdbm} 
-@cindex @option{-g}, @command{testgdbm} option
-@cindex @option{-f}, @command{testgdbm} option
-@cindex @option{--file}, @command{testgdbm} option
 @flindex junk.gdbm
-When invoked without options, it tries to open a database file called
+When invoked without arguments, it tries to open a database file called
 @file{junk.gdbm}, located in the current working directory.  You can
-change this default using the @option{--file} (@option{-f}) command
-line option@footnote{For compatibility with earlier versions, the
-@option{-g} option acts as an alias to @option{-f}}.  This 
-option takes a single argument, specifying the file name to open, e.g.:
+change this default by supplying the name of the database to use as
+the only argument to @command{testgdbm}, e.g.:
 
 @example
-$ testgdbm -f file.db
+$ testgdbm file.db
 @end example
 
 @cindex read-only mode, @command{testgdbm}
@@ -1674,10 +1669,6 @@ Set block size.
 @item -c @var{size}
 @itemx --cache-size=@var{size}
 Set cache size.
-@item -f @var{file}
-@itemx -g @var{file}
-@itemx --file=@var{file}
-Operate on @var{file} instead of the default @file{junk.gdbm}.
 @item -h
 @itemx --help
 Print a concise help summary.
@@ -1786,12 +1777,14 @@ Delete entry with a given @var{key}
 @end deffn
 
 @anchor{testgdbm export}
-@deffn {command verb} export @var{file-name} [truncate]
-@deffnx {command abbrev} e @var{file-name} [truncate]
+@deffn {command verb} export @var{file-name} [truncate] [binary|ascii]
+@deffnx {command abbrev} e @var{file-name} [truncate] [binary|ascii]
 Export the database to the flat file @var{file-name}.  @xref{Flat files},
 for a description of the flat file format and its purposes.  This
-command will not overwrite an existing file, unless the word
-@samp{truncate} is given as its second argument.
+command will not overwrite an existing file, unless the argument
+@samp{truncate} is also given.  Another optional argument determines
+the type of dump (@pxref{Flat files}).  By default, ASCII dump is
+created.
 
 See also @ref{gdbmexport}.
 @end deffn
@@ -1803,12 +1796,13 @@ Fetch and display a record with the given @var{key}.
 @end deffn
 
 @anchor{testgdbm import}
-@deffn {command verb} import @var{file-name} [replace]
-@deffnx {command abbrev} i @var{file-name} [replace]
+@deffn {command verb} import @var{file-name} [replace] [nometa]
+@deffnx {command abbrev} i @var{file-name} [replace] [nometa]
 Import data from a flat dump file @var{file-name}
 (@pxref{Flat files}).  If the word @samp{replace} is given
-as the second argument, any records with the same keys as the already
-existing ones will replace them.
+as an argument, any records with the same keys as the already
+existing ones will replace them.  The word @samp{nometa} turns off
+restoring meta-information from the dump file.
 @end deffn
 
 @deffn {command verb} list

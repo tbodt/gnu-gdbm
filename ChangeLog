@@ -1,3 +1,21 @@
+2011-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Improve testgdbm
+	
+	* src/mem.c (ealloc_die): Return EXIT_FATAL to the shell.
+	* src/testgdbm.c: Use emalloc, erealloc and estrdup for memory
+	allocation.
+	(syntax_error): New function.
+	(handler_param): New struct.
+	(all handlers): Change signature.  Take a pointer to struct
+	handler_param as argument.
+	(export_handler,import_handler): Handle new formats.
+	(main): Take first argument to be the file name.
+	(optab): Remove -f argument.  Hide -g, but retain it for
+	backward compatibility.
+
+	* doc/gdbm.texinfo: Update.
+
 2011-11-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Version 1.10.90
