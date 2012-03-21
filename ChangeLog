@@ -1,3 +1,11 @@
+2012-03-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* tests/create00.at: Use cmp -s || diff -u instead of plain
+	diff, because the latter produces extra output on some systems
+	(notably Solaris).
+	* tests/dbmcreate00.at: Likewise.
+	* THANKS: Add Bill Jones
+
 2011-11-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Improve testgdbm

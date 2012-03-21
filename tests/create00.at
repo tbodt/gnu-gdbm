@@ -22,7 +22,7 @@ AT_SORT_PREREQ
 num2word 1:1000 > input
 gtload test.db < input
 gtdump test.db | sort -k1,2 -n > output
-diff -u input output
+cmp -s input output || diff -u input output
 ])
 
 AT_CLEANUP
