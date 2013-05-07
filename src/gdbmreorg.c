@@ -184,12 +184,6 @@ gdbm_reorganize (GDBM_FILE dbf)
     free (dbf->bucket_cache);
   }
 
-#if HAVE_MMAP
-  /* Re-initialize mapping if required */
-  if (dbf->memory_mapping)
-    _gdbm_mapped_init (dbf);
-#endif
-  
   dbf->desc           = new_dbf->desc;
   dbf->header         = new_dbf->header;
   dbf->dir            = new_dbf->dir;
@@ -203,6 +197,12 @@ gdbm_reorganize (GDBM_FILE dbf)
   dbf->bucket_changed    = new_dbf->bucket_changed;
   dbf->second_changed    = new_dbf->second_changed;
    
+#if HAVE_MMAP
+  /* Re-initialize mapping if required */
+  if (dbf->memory_mapping)
+    _gdbm_mapped_init (dbf);
+#endif
+  
   free (new_dbf->name);   
   free (new_dbf);
   free (new_name);

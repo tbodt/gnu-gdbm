@@ -1,5 +1,12 @@
 2013-05-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Bugfix.
+	
+	* src/gdbmreorg.c: Call _gdbm_mapped_init when the database
+	structure is fully initialized (Puszcza bug #171).
+
+2013-05-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Minor change
 	
 	* configure.ac: Require autoconf 2.69 or newer (in response
