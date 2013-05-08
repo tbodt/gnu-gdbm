@@ -20,8 +20,9 @@ m4_define([_GDBM_VERSION_PATCH], 90)
 
 AC_INIT([gdbm],
         _GDBM_VERSION_MAJOR._GDBM_VERSION_MINOR[]m4_ifdef([_GDBM_VERSION_PATCH],._GDBM_VERSION_PATCH),
-	[bug-gdbm@gnu.org])
-AC_PREREQ(2.69)
+	[bug-gdbm@gnu.org],,
+	[http://www.gnu.org/software/gdbm])
+AC_PREREQ(2.69)a
 AC_CONFIG_SRCDIR([src/gdbmdefs.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([autoconf.h])

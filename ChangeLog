@@ -1,5 +1,9 @@
 2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	* configure.ac: (AC_INIT): Add webpage URL.
+
+2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Improve testgdbm; install some more bugfixes.
 
 	* src/gdbmdefs.h: Fix typo in a comment.
