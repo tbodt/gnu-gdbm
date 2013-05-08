@@ -73,6 +73,12 @@ main (int argc, char **argv)
   unsigned long err_line, n;
   char *end;
   
+#ifdef HAVE_SETLOCALE
+  setlocale (LC_ALL, "");
+#endif
+  bindtextdomain (PACKAGE, LOCALEDIR);
+  textdomain (PACKAGE);
+
   set_progname (argv[0]);
 
   for (opt = parseopt_first (argc, argv, optab);

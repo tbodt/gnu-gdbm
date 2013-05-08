@@ -1,5 +1,24 @@
 2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Rename testgdbm to gdbmtool. Improve documentation.
+	
+	* configure.ac: Fix a typo.
+	* src/.cvsignore: Add gdbmtool
+	* src/Makefile.am: Rename testgdbm to gdbmtool. Source
+	file not renamed because of CVS deficiency.
+	* src/gdbm_dump.c: Enable NLS.
+	* src/gdbm_load.c: Likewise.
+	* src/testgdbm.c: New option -q (--quiet).
+	New command: prompt.
+	* doc/Makefile.am (man_MANS): Add new manpages.
+	* doc/gdbmtool.1: New file.
+	* doc/gdbm_load.1: New file.
+	* doc/gdbm_dump.1: New file.
+	* doc/gdbm.3: Update.
+	* doc/gdbm.texinfo: Update.
+
+2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* configure.ac: (AC_INIT): Add webpage URL.
 
 2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>

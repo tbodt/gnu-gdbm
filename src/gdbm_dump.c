@@ -22,7 +22,7 @@
 char *parseopt_program_doc = "dump a GDBM database to a file";
 char *parseopt_program_args = "DB_FILE [FILE]";
 struct gdbm_option optab[] = {
-  { 'H', "format", N_("0|1"), N_("select dump format") },
+  { 'H', "format", "binary|ascii|0|1", N_("select dump format") },
   { 0 }
 };
 
@@ -35,6 +35,12 @@ main (int argc, char **argv)
   int rc, opt;
   char *dbname, *filename;
   FILE *fp;
+
+#ifdef HAVE_SETLOCALE
+  setlocale (LC_ALL, "");
+#endif
+  bindtextdomain (PACKAGE, LOCALEDIR);
+  textdomain (PACKAGE);
 
   set_progname (argv[0]);
 

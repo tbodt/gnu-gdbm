@@ -20,7 +20,7 @@ info_TEXINFOS = gdbm.texinfo
 gdbm_TEXINFOS=\
   fdl.texi
 
-man_MANS   = gdbm.3
+man_MANS   = gdbm.3 gdbm_dump.1 gdbm_load.1 gdbmtool.1
 EXTRA_DIST = $(man_MANS)
 
 GENDOCS=gendocs.sh 

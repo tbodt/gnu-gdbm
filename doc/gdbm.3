@@ -1,5 +1,5 @@
 .\" This file is part of GDBM.
-.\" Copyright (C) 2011 Free Software Foundation, Inc.
+.\" Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 .\"
 .\" GDBM is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -13,11 +13,10 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM 3 "August 9, 2011" "GDBM" "GDBM User Reference"
-.ds ve 1.9
+.TH GDBM 3 "May 8, 2013" "GDBM" "GDBM User Reference"
 .SH NAME
-GDBM - The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
-compatability. (Version \*(ve.)
+GDBM \- The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
+compatibility.
 .SH SYNOPSIS
 .nf
 .B #include <gdbm.h>
@@ -200,7 +199,7 @@ Insert only, generate an error if key exists;
 .B GDBM_REPLACE
 Replace contents if key exists.
 .PP
-If a reader calls \fBgdbm_store\fR, the return value will be  -1.
+If a reader calls \fBgdbm_store\fR, the return value will be  \-1.
 If called with \fBGDBM_INSERT\fR and \fIkey\fR is in the database, the return
 value will be 1.  Otherwise, the return value is 0.
 
@@ -245,7 +244,7 @@ To remove some data from the database:
 \fIDbf\fR is the pointer returned by \fBgdbm_open\fR.  \fIKey\fR is the
 key data.
 
-The return value is -1 if the item is not present or the requester is a reader.
+The return value is \-1 if the item is not present or the requester is a reader.
 The return value is 0 if there was a successful delete.
 
 The next two routines allow for accessing all items in the database.  This 
@@ -353,7 +352,7 @@ especially if used in conjunction with \fBGDBM_CENTFREE\fR. \fIvalue\fR
 .PP
 \fIvalue\fR is the value to set \fIoption\fR to, specified as an integer
 pointer.  \fIsize\fR is the size of the data pointed to by \fIvalue\fR.
-The return value will be -1 upon failure, or 0 upon success.  The global
+The return value will be \-1 upon failure, or 0 upon success.  The global
 variable \fIgdbm_errno\fR will be set upon failure.
 
 For instance, to set a database to use a cache of 10, after opening it
@@ -399,12 +398,12 @@ also try to open it as a reader.  All returned pointers in datum
 structures point to data that \fBgdbm\fR WILL free.  They should be
 treated as static pointers (as standard UNIX \fBdbm\fR does).
 .SH LINKING
-This library is accessed by specifying \fI-lgdbm\fR as the last
+This library is accessed by specifying \fI\-lgdbm\fR as the last
 parameter to the compile line, e.g.:
 .sp
 .nf
 .in +5
-gcc -o prog prog.c -lgdbm
+gcc \-o prog prog.c \-lgdbm
 .in
 .fi
 .PP
@@ -413,16 +412,18 @@ you must link in the \fIgdbm_compat\fR library as well.  For example:
 .sp
 .nf
 .in +5
-gcc -o prog proc.c -lgdbm -lgdbm_compat
+gcc \-o prog proc.c \-lgdbm \-lgdbm_compat
 .in
 .fi
 .\" .SH BUGS
 
 .SH "BUG REPORTS"
-Send bug reports to <bug-gdbm@gnu.org>.
+Send bug reports to <bug\-gdbm@gnu.org>.
 .SH "SEE ALSO"
-dbm, ndbm
-.SH AUTHOR
+.BR gdbm_dump (1),
+.BR gdbm_load (1),
+.BR gdbmtool (1).
+.SH AUTHORS
 by Philip A. Nelson, Jason Downs and Sergey Poznyakoff.
 .SH COPYRIGHT
 Copyright \(co 1990 - 2011 Free Software Foundation, Inc.

@@ -76,7 +76,8 @@ libgdbmapp_a_SOURCES =\
  progname.c
 
 # Programs
-bin_PROGRAMS = testgdbm gdbm_load gdbm_dump
-testgdbm_LDADD  = ./libgdbmapp.a ./libgdbm.la
+bin_PROGRAMS = gdbmtool gdbm_load gdbm_dump
+gdbmtool_LDADD  = ./libgdbmapp.a ./libgdbm.la
+gdbmtool_SOURCES = testgdbm.c
 gdbm_load_LDADD  = ./libgdbmapp.a ./libgdbm.la 
 gdbm_dump_LDADD  = ./libgdbmapp.a ./libgdbm.la 

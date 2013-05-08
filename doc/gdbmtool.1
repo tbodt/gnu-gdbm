@@ -1,0 +1,245 @@
+.\" This file is part of GDBM.
+.\" Copyright (C) 2013 Free Software Foundation, Inc.
+.\"
+.\" GDBM is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 3, or (at your option)
+.\" any later version.
+.\"
+.\" GDBM is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
+.TH GDBM_DUMP 1 "May 8, 2013" "GDBM" "GDBM User Reference"
+.SH NAME
+gdbmtool \- examine and modify a GDBM database
+.SH SYNOPSIS
+\fBgdbmtool\fR [\fB\-lmnqrs\fR] [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fISIZE\fR]\
+ [\fB\-g\fR \fIFILE\fR] [\fB\-\-block\-size\fR=\fISIZE\fR]
+         [\fB\-\-cache\-size\fR=\fISIZE\fR] [\fB\-\-newdb\fR]\
+ [\fB\-\-no\-lock\fR] [\fB\-\-no\-mmap\fR]
+         [\fB\-\-quiet\fR] [\fB\-\-read\-only\fR] [\fB\-\-synchronize\fR]\
+ [\fIDBFILE\fR]
+.sp
+\fBgdbmtool\fR [\fB\-Vh\fR] ][\fB\-\-help\fR] [\fB\-\-usage\fR] [\fB\-\-version\fR]
+.SH DESCRIPTION
+The
+.B gdbmtool
+utility allows you to view and modify an existing GDBM database or to
+create a new one.
+.PP
+The \fIDBFILE\fR argument supplies the name of the database to open.
+If not supplied, the default name
+.B junk.gdbm
+is used instead.
+If the named database does not exist, it will be created.  An existing
+database can be cleared (i.e. all records removed from it) using the
+\fB\-\-newdb\fR option (see below).
+.PP
+After successful startup,
+.B gdbmtool
+starts a loop, in which it reads
+commands from the user, executes them and prints the results on the
+standard output.  If the standard input is attached to a console,
+the program runs in interactive mode.
+.PP
+The program terminates when the
+.B quit
+command is given, or end-of-file is detected on its standard input.
+.PP
+A
+.B gdbmtool
+command consists of a command verb, optionally
+followed by one or more arguments, separated by any amount of white
+space.  A command verb can be entered either in full or in an
+abbreviated form, as long as that abbreviation does not match any other
+verb.  Many command verbs have also one-letter abbreviation which can
+be used instead.
+.SH OPTIONS
+.TP
+\fB\-b\fR, \fB\-\-block\-size\fR=\fISIZE\fR
+Set block size.
+.TP
+\fB\-c\fR, \fB\-\-cache\-size\fR=\fISIZE\fR
+Set cache size.
+.TP
+\fB\-l\fR, \fB\-\-no\-lock\fR
+Disable file locking.
+.TP
+\fB\-m\fR, \fB\-\-no\-mmap\fR
+Do not use
+.BR mmap (2).
+.TP
+\fB\-n\fR, \fB\-\-newdb\fR
+Create the database, truncating it if it already exists.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Don't print initial banner.
+.TP
+\fB\-r\fR, \fB\-\-read\-only\fR
+Open database in read-only mode.
+.TP
+\fB\-s\fR, \fB\-\-synchronize\fR
+Synchronize to disk after each write.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print a short usage summary.
+.TP
+\fB\-\-usage\fR
+Print a list of available options.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print program version
+.SH SHELL COMMANDS
+For command verbs that have single-letter abbreviations, these are
+printed after a comma.  Either command verb or its abbreviation must
+be used, but not both.
+.TP
+.BR avail ", " A
+Print the "
+.BR "avail list" .
+.TP
+\fBbucket\fR, \fBB\fR \fINUM\fR
+Print the bucket number \fINUM\fR.
+.TP
+.BR cache ", " K
+Print the bucket cache.
+.TP
+.BR count ", " c
+Print the number of entries in the database.
+.TP
+.BR current ", " C
+Print the current bucket.
+.TP
+.BR data-zero ", " Z
+Toggle data nul-termination.  Use
+.B status
+to examine the current status.
+.TP
+\fBdelete\fR, \fBd\fR \fIKEY\fR
+Delete entry with the given \fIKEY\fR.
+.TP
+.BR dir ", " D
+Print hash directory.
+.TP
+\fBexport\fR, \fBe\fR \fIFILE\-NAME\fR [\fBtruncate\fR] [\fBbinary\fR|\fBascii\fR]
+Export the database to the flat file \fIFILE\-NAME\fR.  This is equivalent to
+.BR gdbm_dump (1).
+
+This command will not overwrite an existing file, unless the 
+.B truncate
+parameter is also given.  Another optional parameter determines the type of
+the dump (*note Flat files::).  By default, ASCII dump will be created.
+.TP
+\fBfetch\fR, \fBf\fR \fIKEY\fR
+Fetch and display the record with the given \fIKEY\fR.
+.TP
+.BR first ", " 1
+Fetch and display the first record in the database.  Subsequent
+records can be fetched using the
+.B next
+command (see below).
+.TP
+\fBhash\fR, \fBH\fR \fIKEY\fR
+Compute and display hash value for the given \fIKEY\fR.
+.TP
+.BR header ", " F
+Print file header.
+.TP
+.BR help ", " ?
+Print a concise command summary, showing each command letter and
+verb with its parameters and a short description of what it does.
+Optional arguments are enclosed in square brackets.
+.TP
+\fBimport\fR, \fBi\fR \fIFILE\-NAME\fR [\fBreplace\fR] [\fBnometa\fR]
+Import data from a flat dump file \fIFILE\-NAME\fR.
+If the
+.B replace
+argument is given, any records with the same keys as the already
+existing ones will replace them.  The
+.B nometa
+argument turns off restoring meta-information from the dump file.
+.TP
+.BR key-zero ", " z
+Toggle key nul-termination.  Use
+.B status
+to inspect the current state.
+.TP
+\fBlist\fR, \fBl\fR
+List the contents of the database.
+.TP
+\fBnext\fR, \fBn\fR [\fIKEY\fR]
+Sequential access: fetch and display the next record.  If the \fIKEY\fR is
+given, the record following the one with this key will be fetched.
+.TP
+\fBprompt\fR \fITEXT\fR
+Changes the command prompt to the string \fITEXT\fR.  The string can
+contain
+.BR "escape sequences" ,
+the special entities consisting of the
+.B %
+character followed by another character.  These sequences are
+replaced in the generated prompt as follows:
+.sp
+.nf
+.ta 8n 20n
+.ul
+	Sequence	Expansion
+	\fB%f\fR	name of the db file
+	\fB%%\fR	\fB%\fR
+.fi
+.TP
+.BR quit ", " q
+Close the database and quit the utility.
+.TP
+\fBread\fR, \fB<\fR \fIFILE\fR [\fBreplace\fR]
+Read entries from \fIFILE\fR and store them in the database.  If the
+.B replace
+parameter is given, any existing records with matching keys will be replaced.
+.TP
+.BR reorganize ", " r
+Reorganize the database.
+.TP
+.BR status ", " S
+Print current program status.  The following example shows the
+information displayed:
+.sp
+.nf
+.if +2
+Database file: junk.gdbm
+Zero terminated keys: yes
+Zero terminated data: yes
+.fi
+.TP
+\fBstore\fR, \fBs\fR \fIKEY\fR \fIDATA\fR
+Store the \fIDATA\fR with the given \fIKEY\fR in the database.  If the
+\fIKEY\fR already exists, its data will be replaced.
+.TP
+.BR version ", " v
+Print the version of
+.BR gdbm .
+.SH "SEE ALSO"
+.BR gdbm_dump (1),
+.BR gdbm_load (1),
+.BR gdbm (3).
+.SH "REPORTING BUGS"
+Report bugs to <bug\-gdbm@gnu.org>.
+.SH COPYRIGHT
+Copyright \(co 2013 Free Software Foundation, Inc
+.br
+.na
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+.br
+.ad
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+.\" Local variables:
+.\" eval: (add-hook 'write-file-hooks 'time-stamp)
+.\" time-stamp-start: ".TH GDBM[A-Z_-]* 1 \""
+.\" time-stamp-format: "%:B %:d, %:y"
+.\" time-stamp-end: "\""
+.\" time-stamp-line-limit: 20
+.\" end:

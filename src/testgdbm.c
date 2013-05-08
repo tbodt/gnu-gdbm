@@ -1,6 +1,3 @@
-/* testgdbm.c - Driver program to test the database routines and to
-   help debug gdbm.  Uses inside information to show "system" information */
-
 /* This file is part of GDBM, the GNU data base manager.
    Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
    Inc.
@@ -39,7 +36,8 @@
 
 const char *progname;                     /* Program name */
 
-char *prompt = "testgdbm> ";
+#define DEFAULT_PROMPT "gdbmtool> "
+char *prompt;
 
 char *file_name = NULL;             /* Database file name */   
 GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
@@ -48,6 +46,7 @@ datum key_data;                     /* Current key */
 datum return_data;                  /* Current data */
 int key_z = 1;                      /* Keys are nul-terminated strings */
 int data_z = 1;                     /* Data are nul-terminated strings */
+int quiet_option = 0;               /* Omit usual welcome banner at startup */
 
 #define SIZE_T_MAX ((size_t)-1)
 
@@ -800,7 +799,77 @@ data_z_handler (struct handler_param *param)
   data_z = !data_z;
   fprintf (param->fp, _("Zero terminated data: %s\n"), boolstr (data_z));
 }
+
+struct prompt_exp;
 
+void
+pe_file_name (struct prompt_exp *p)
+{
+  fwrite (file_name, strlen (file_name), 1, stdout);
+}
+
+struct prompt_exp
+{
+  int ch;
+  void (*fun) (struct prompt_exp *);
+  char *cache;
+};
+
+struct prompt_exp prompt_exp[] = {
+  { 'f', pe_file_name },
+  { 0 }
+};
+
+static void
+expand_char (int c)
+{
+  struct prompt_exp *p;
+
+  if (c && c != '%')
+    {
+      for (p = prompt_exp; p->ch; p++)
+	{
+	  if (c == p->ch)
+	    {
+	      if (p->cache)
+		free (p->cache);
+	      return p->fun (p);
+	    }
+	}
+    }
+  putchar ('%');
+  putchar (c);
+}
+
+void
+outprompt ()
+{
+  char *s;
+  
+  for (s = prompt; *s; s++)
+    {
+      if (*s == '%')
+	{
+	  if (!*++s)
+	    {
+	      putchar ('%');
+	      break;
+	    }
+	  expand_char (*s);
+	}
+      else
+	putchar (*s);
+    }
+
+  fflush (stdout);
+}
+
+void
+prompt_handler (struct handler_param *param)
+{
+  free (prompt);
+  prompt = estrdup (param->argv[0]);
+}
 
 void help_handler (struct handler_param *param);
 int help_begin (struct handler_param *param, size_t *exp_count);
@@ -891,6 +960,9 @@ struct command command_tab[] = {
   { S(help), '?',
     help_begin, help_handler, NULL,
     { NULL, NULL, }, N_("print this help list") },
+  { S(prompt), 0,
+    NULL, prompt_handler, NULL,
+    { N_("text") }, N_("set command prompt") },
   { S(quit), 'q',
     NULL, quit_handler, NULL,
     { NULL, NULL, }, N_("quit the program") },
@@ -1021,23 +1093,19 @@ getword (char *s, char **endp)
   return p;
 }
 
-/* The test program allows one to call all the routines plus the hash function.
-   The commands are single letter commands.  The user is prompted for missing
-   pieces of information.  See the help command (?) for a list of all
-   commands. */
-
-char *parseopt_program_doc = "Test and modify a GDBM database";
-char *parseopt_program_args = N_("FILE");
+char *parseopt_program_doc = N_("examine and/or modify a GDBM database");
+char *parseopt_program_args = N_("DBFILE");
 
 struct gdbm_option optab[] = {
   { 'b', "block-size", N_("SIZE"), N_("set block size") },
   { 'c', "cache-size", N_("SIZE"), N_("set cache size") },
   { 'g', NULL, "FILE", NULL, PARSEOPT_HIDDEN },
   { 'l', "no-lock",    NULL,       N_("disable file locking") },
-  { 'm', "no-mmap",    NULL,       N_("disable file mmap") },
+  { 'm', "no-mmap",    NULL,       N_("do not use mmap") },
   { 'n', "newdb",      NULL,       N_("create database") },
   { 'r', "read-only",  NULL,       N_("open database in read-only mode") },
   { 's', "synchronize", NULL,      N_("synchronize to disk after each write") },
+  { 'q', "quiet",      NULL,       N_("don't print initial banner") },
   { 0 }
 };
 
@@ -1116,6 +1184,10 @@ main (int argc, char *argv[])
 	file_name = optarg;
 	break;
 
+      case 'q':
+	quiet_option = 1;
+	break;
+	
       default:
 	terror (EXIT_USAGE,
 		_("unknown option; try `%s -h' for more info\n"), progname);
@@ -1159,9 +1231,11 @@ main (int argc, char *argv[])
   signal (SIGPIPE, SIG_IGN);
 
   /* Welcome message. */
+  if (interactive && !quiet_option)
+    printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
   if (interactive)
-    printf (_("\nWelcome to the gdbm test program.  Type ? for help.\n\n"));
-
+    prompt = estrdup (DEFAULT_PROMPT);
+		      
   memset (&param, 0, sizeof (param));
   argmax = 0;
 
@@ -1181,10 +1255,7 @@ main (int argc, char *argv[])
       input_line++;
       
       if (interactive)
-	{
-	  printf ("%s", prompt);
-	  fflush (stdout);
-	}
+	outprompt ();
       
       if (fgets (cmdbuf, sizeof cmdbuf, stdin) == NULL)
 	{

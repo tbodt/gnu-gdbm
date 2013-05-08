@@ -118,7 +118,7 @@ Functions:
 
 Programs
 
-* testgdbm::                   Test and modify a GDBM database.
+* gdbmtool::                   Examine and modify a GDBM database.
 * gdbm_dump::                  Dump the database into a flat file.          
 * gdbm_load::                  Load the database from a flat file.
 * gdbmexport::                 Export a database into a portable format.  
@@ -1617,35 +1617,35 @@ memory managed by the compatibility library.  The application should
 never free it.
 @end deftypefn
 
-@node testgdbm
-@chapter Test and modify a GDBM database.
-@prindex testgdbm
+@node gdbmtool
+@chapter Examine and modify a GDBM database.
+@prindex gdbmtool
 
-The @command{testgdbm} utility allows you to view and modify an
+The @command{gdbmtool} utility allows you to view and modify an
 existing @acronym{GDBM} database or to create a new one.
 
-@cindex default database, @command{testgdbm} 
+@cindex default database, @command{gdbmtool} 
 @flindex junk.gdbm
 When invoked without arguments, it tries to open a database file called
 @file{junk.gdbm}, located in the current working directory.  You can
 change this default by supplying the name of the database to use as
-the only argument to @command{testgdbm}, e.g.:
+the only argument to @command{gdbmtool}, e.g.:
 
 @example
-$ testgdbm file.db
+$ gdbmtool file.db
 @end example
 
-@cindex read-only mode, @command{testgdbm}
-@cindex @option{-r}, @command{testgdbm} option
-@cindex @option{--read-only}, @command{testgdbm} option
+@cindex read-only mode, @command{gdbmtool}
+@cindex @option{-r}, @command{gdbmtool} option
+@cindex @option{--read-only}, @command{gdbmtool} option
 The database will be opened in read-write mode, unless the
 @option{-r} (@option{--read-only}) option is specified, in which case
 it will be opened only for reading.
 
-@cindex creating a database, @command{testgdbm}
-@cindex @option{-n}, @command{testgdbm} option
-@cindex @option{--newdb}, @command{testgdbm} option
-If the database does not exist, @command{testgdbm} will create it.
+@cindex creating a database, @command{gdbmtool}
+@cindex @option{-n}, @command{gdbmtool} option
+@cindex @option{--newdb}, @command{gdbmtool} option
+If the database does not exist, @command{gdbmtool} will create it.
 There is a special option @option{-n} (@option{--newdb}, which
 instructs the utility to create a new database.  If it is used and if
 the database already exists, it will be deleted, so use it sparingly.
@@ -1656,10 +1656,10 @@ the database already exists, it will be deleted, so use it sparingly.
 @end menu
 
 @node invocation
-@section testgdbm invocation
-@cindex command line options, @command{testgdbm}
+@section gdbmtool invocation
+@cindex command line options, @command{gdbmtool}
 
-The following table summarizes all @command{testgdbm} command line
+The following table summarizes all @command{gdbmtool} command line
 options:
 
 @table @option
@@ -1681,6 +1681,9 @@ Disable file locking.
 @item -m
 @itemx --no-mmap
 Disable mmap.
+@item -q
+@itemx --quiet
+Don't print the usual welcome banner at startup.
 @item -r
 @itemx --read-only
 Open the database in read-only mode.
@@ -1696,23 +1699,23 @@ command line options.
 @end table
 
 @node shell
-@section testgdbm interactive mode
-@cindex interactive mode, @command{testgdbm}
+@section gdbmtool interactive mode
+@cindex interactive mode, @command{gdbmtool}
 
-After successful startup, @command{testgdbm} starts a loop, in which
+After successful startup, @command{gdbmtool} starts a loop, in which
 it reads commands from the user, executes them and prints the results
 on the standard output.  If the standard input is attached to a console,
-@command{testgdbm} runs in interactive mode, which is indicated by its
+@command{gdbmtool} runs in interactive mode, which is indicated by its
 @dfn{prompt}:
 
 @example
-testgdbm> _
+gdbmtool> _
 @end example
 
 The utility finishes when it reads the @samp{quit} command (see below) or
 detects end-of-file on its standard input, whichever occurs first.
 
-A @command{testgdbm} command consists of a @dfn{command verb},
+A @command{gdbmtool} command consists of a @dfn{command verb},
 optionally followed by one or two @dfn{arguments}, separated by any
 amount of white space.  A command verb can be entered either in full
 or in an abbreviated form, as long as that abbreviation does not match
@@ -1727,35 +1730,35 @@ space.  This limitation will be removed in future releases.
 
 Each command takes at most two @dfn{formal parameters}, which can be
 optional or mandatory.  If the number of actual arguments is less than the
-number of mandatory parameters, @command{testgdbm} will prompt you to
+number of mandatory parameters, @command{gdbmtool} will prompt you to
 supply missing arguments.  For example, the @samp{store} command takes two
 mandatory parameters, so if you invoked it with no arguments, you
 would be prompted twice to supply the necessary data, as shown in 
 example below:
 
 @example
-testgdbm> @kbd{store}
+gdbmtool> @kbd{store}
 key> @kbd{three}
 data> @kbd{3}
 @end example
 
 However, such prompting is possible only in interactive mode.  In
 non-interactive mode (e.g.@: when running a script), all arguments must
-be supplied with each command, otherwise @command{testgdbm} will report an
+be supplied with each command, otherwise @command{gdbmtool} will report an
 error and exit immediately.
 
 @anchor{pager}
-@cindex pager, @command{testgdbm}
+@cindex pager, @command{gdbmtool}
 @cindex @env{PAGER}
 Some commands produce excessive amounts of output.  To help you follow
-it, @command{testgdbm} uses a pager utility to display such
+it, @command{gdbmtool} uses a pager utility to display such
 output.  The name of the pager utility is taken from the environment
 variable @env{PAGER}.  The pager is invoked only in interactive mode
 and only if the estimated number of output lines is greater then the
 number of lines on your screen.  
 
 @anchor{nul-termination}
-Many of the @command{testgdbm} commands operate on database key and
+Many of the @command{gdbmtool} commands operate on database key and
 data values.  The utility assumes that both keys and data are
 @acronym{ASCII} strings, either nul-terminated or not.  By default,
 it is assumed that strings are nul-terminated.  You can change this
@@ -1765,39 +1768,36 @@ by using @code{z} (@code{key-zero}, for keys) and @code{Z}
 The following table summarizes all available commands:
 
 @deffn {command verb} count
-@deffnx {command abbrev} co
 @deffnx {command letter} c
 Print the number of entries in the database.
 @end deffn
 
 @deffn {command verb} delete @var{key}
-@deffnx {command abbrev} de @var{key}
 @deffnx {command letter} d @var{key}
-Delete entry with a given @var{key}
+Delete entry with the given @var{key}
 @end deffn
 
-@anchor{testgdbm export}
+@anchor{gdbmtool export}
 @deffn {command verb} export @var{file-name} [truncate] [binary|ascii]
-@deffnx {command abbrev} e @var{file-name} [truncate] [binary|ascii]
+@deffnx {command letter} e @var{file-name} [truncate] [binary|ascii]
 Export the database to the flat file @var{file-name}.  @xref{Flat files},
 for a description of the flat file format and its purposes.  This
-command will not overwrite an existing file, unless the argument
-@samp{truncate} is also given.  Another optional argument determines
-the type of dump (@pxref{Flat files}).  By default, ASCII dump is
-created.
+command will not overwrite an existing file, unless the
+@samp{truncate} parameter is also given.  Another optional argument
+determines the type of the dump (@pxref{Flat files}).  By default, ASCII
+dump is created.
 
 See also @ref{gdbmexport}.
 @end deffn
 
 @deffn {command verb} fetch @var{key}
-@deffnx {command abbrev} fe @var{key}
 @deffnx {command letter} f @var{key}
-Fetch and display a record with the given @var{key}.
+Fetch and display the record with the given @var{key}.
 @end deffn
 
-@anchor{testgdbm import}
+@anchor{gdbmtool import}
 @deffn {command verb} import @var{file-name} [replace] [nometa]
-@deffnx {command abbrev} i @var{file-name} [replace] [nometa]
+@deffnx {command letter} i @var{file-name} [replace] [nometa]
 Import data from a flat dump file @var{file-name}
 (@pxref{Flat files}).  If the word @samp{replace} is given
 as an argument, any records with the same keys as the already
@@ -1806,107 +1806,105 @@ restoring meta-information from the dump file.
 @end deffn
 
 @deffn {command verb} list
-@deffnx {command abbrev} l
+@deffnx {command letter} l
 List the contents of the database (@pxref{pager}).
 @end deffn
 
 @deffn {command verb} next [@var{key}]
-@deffnx {command abbrev} n [@var{key}]
-Sequential access: fetch and display a next record.  If @var{key} is
-given, a record following one with this key will be fetched.
-Otherwise, the key supplied by the latest @code{1}, @code{2} or
-@var{n} command will be used.
+@deffnx {command letter} n [@var{key}]
+Sequential access: fetch and display the next record.  If the @var{key} is
+given, the record following the one with this key will be fetched.
 
 See also @code{first}, below.
 
 @xref{Sequential}, for more information on sequential access.
 @end deffn
 
+@deffn {command verb} prompt @var{text}
+Changes the command prompt to the string @var{text}.  The string can
+contain @dfn{escape sequences}, the special entities consisting of the
+@samp{%} character followed by another character.  These sequences are
+replaced in the generated prompt as follows:
+
+@multitable @columnfractions 0.4 0.5
+@headitem Sequence @tab Expansion
+@item %f @tab name of the db file
+@item %% @tab %
+@end multitable
+@end deffn
+
 @deffn {command verb} quit
-@deffnx {command abbrev} q
+@deffnx {command letter} q
 Close the database and quit the utility.
 @end deffn
 
 @deffn {command verb} store @var{key} @var{data}
-@deffnx {command abbrev} sto @var{key} @var{data}
 @deffnx {command letter} s @var{key} @var{data}
 Store the @var{data} with @var{key} in the database.  If @var{key}
 already exists, its data will be replaced.
 @end deffn
 
 @deffn {command verb} first
-@deffnx {command abbrev} fi 
 @deffnx {command letter} 1
 Fetch and display the first record in the database.  Subsequent
-records can be fetched using @code{next} command (see above). 
+records can be fetched using the @code{next} command (see above). 
 @xref{Sequential}, for more information on sequential access.
 @end deffn
 
 @deffn {command verb} read @var{file} [replace]
-@deffnx {command abbrev} rea @var{file} [replace] 
 @deffnx {command letter} < @var{file} [replace] 
 Read entries from @var{file} and store them in the database.  If the
-word @samp{replace} is given as the second argument, any existing
-records with matching keys will be replaced.
+@samp{replace} parameter is given, any existing records with matching
+keys will be replaced.
 @end deffn
 
 @deffn {command verb} reorganize
-@deffnx {command abbrev} reo 
 @deffnx {command letter} r
 Reorganize the database (@pxref{Reorganization}).
 @end deffn
 
 @deffn {command verb} key-zero
-@deffnx {command abbrev} k
 @deffnx {command letter} z
 Toggle key nul-termination.  Use @code{status} to inspect the current
 state.  @xref{nul-termination}.
 @end deffn
 
 @deffn {command verb} avail
-@deffnx {command abbrev} a
 @deffnx {command letter} A
 Print the @dfn{avail list}.
 @end deffn
 
 @deffn {command verb} bucket
-@deffnx {command abbrev} b
 @deffnx {command letter} B
 Print the bucket number @var{num}.
 @end deffn
 
 @deffn {command verb} current
-@deffnx {command abbrev} cu
 @deffnx {command letter} C
 Print the current bucket.
 @end deffn
 
 @deffn {command verb} dir
-@deffnx {command abbrev} di
 @deffnx {command letter} D
 Print hash directory.
 @end deffn
 
 @deffn {command verb} header
-@deffnx {command abbrev} hea
 @deffnx {command letter} F
 Print file header.
 @end deffn
 
 @deffn {command verb} hash @var{key}
-@deffnx {command abbrev} ha @var{key}
 @deffnx {command letter} H @var{key}
 Compute and display the hash value for the given @var{key}.
 @end deffn
 
 @deffn {command verb} cache
-@deffnx {command abbrev} ca
 @deffnx {command letter} K
 Print the bucket cache.
 @end deffn
 
 @deffn {command verb} status
-@deffnx {command abbrev} sta
 @deffnx {command letter} S
 Print current program status.  The following example shows the
 information displayed:
@@ -1919,12 +1917,11 @@ Zero terminated data: yes
 @end deffn
 
 @deffn {command verb} version
-@deffnx {command abbrev} v
+@deffnx {command letter} v
 Print the version of @command{gdbm}.
 @end deffn
 
 @deffn {command verb} data-zero
-@deffnx {command abbrev} da 
 @deffnx {command letter} Z
 Toggle data nul-termination.  Use @code{status} to examine the current
 status.
@@ -1933,7 +1930,6 @@ status.
 @end deffn
 
 @deffn {command verb} help
-@deffnx {command abbrev} hel
 @deffnx {command letter} ?
 Print a concise command summary, showing each command letter and verb
 with its parameters and a short description of what it does.  Optional
