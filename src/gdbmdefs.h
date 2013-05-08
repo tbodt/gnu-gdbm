@@ -1,7 +1,7 @@
 /* gdbmdefs.h - The include file for dbm.  Defines structure and constants. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011 Free Software Foundation,
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
    Inc.
 
    GDBM is free software; you can redistribute it and/or modify
@@ -173,7 +173,7 @@ struct gdbm_file_info {
 	/* The file header holds information about the database. */
 	gdbm_file_header *header;
 
-	/* The hash table directory from extendible hashing.  See Fagin et al, 
+	/* The hash table directory from extendable hashing.  See Fagin et al, 
 	   ACM Trans on Database Systems, Vol 4, No 3. Sept 1979, 315-344 */
 	off_t *dir;
 

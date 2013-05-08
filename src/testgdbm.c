@@ -2,7 +2,7 @@
    help debug gdbm.  Uses inside information to show "system" information */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011 Free Software Foundation,
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
    Inc.
 
    GDBM is free software; you can redistribute it and/or modify
@@ -808,7 +808,7 @@ int help_begin (struct handler_param *param, size_t *exp_count);
 struct command
 {
   char *name;           /* Command name */
-  size_t minlen;        /* Minimal unambiguous length */
+  size_t len;           /* Name length */
   int abbrev;           /* Single-letter shortkey (optional) */
   int  (*begin) (struct handler_param *param, size_t *);
   void (*handler) (struct handler_param *param);
@@ -819,80 +819,82 @@ struct command
 
 
 struct command command_tab[] = {
-  { "count", 0, 'c',
+#define S(s) #s, sizeof (#s) - 1
+  { S(count), 'c',
     NULL, count_handler, NULL,
     { NULL, NULL, }, N_("count (number of entries)") },
-  { "delete", 0, 'd',
+  { S(delete), 'd',
     NULL, delete_handler, NULL,
     { N_("key"), NULL, }, N_("delete") },
-  { "export", 0, 'e',
+  { S(export), 'e',
     NULL, export_handler, NULL,
     { N_("file"), "[truncate]", "[binary|ascii]" }, N_("export") },
-  { "fetch", 0, 'f',
+  { S(fetch), 'f',
     NULL, fetch_handler, NULL,
     { N_("key"), NULL }, N_("fetch") },
-  { "import", 0, 'i',
+  { S(import), 'i',
     NULL, import_handler, NULL,
     { N_("file"), "[replace]", "[nometa]" }, N_("import") },
-  { "list", 0, 'l',
+  { S(list), 'l',
     list_begin, list_handler, NULL,
     { NULL, NULL }, N_("list") },
-  { "next", 0, 'n',
+  { S(next), 'n',
     NULL, nextkey_handler, NULL,
     { N_("[key]"), NULL }, N_("nextkey") },
-  { "store", 0, 's',
+  { S(store), 's',
     NULL, store_handler, NULL,
     { N_("key"), N_("data") }, N_("store") },
-  { "first", 0, '1',
+  { S(first), '1',
     NULL, firstkey_handler, NULL,
     { NULL, NULL }, N_("firstkey") },
-  { "read", 0, '<',
+  { S(read), '<',
     NULL, read_handler, NULL,
     { N_("file"), "[replace]" },
     N_("read entries from file and store") },
-  { "reorganize", 0, 'r',
+  { S(reorganize), 'r',
     NULL, reorganize_handler, NULL,
     { NULL, NULL, }, N_("reorganize") },
-  { "key-zero", 0, 'z',
+  { S(key-zero), 'z',
     NULL, key_z_handler, NULL,
     { NULL, NULL }, N_("toggle key nul-termination") },
-  { "avail", 0, 'A',
+  { S(avail), 'A',
     avail_begin, avail_handler, NULL,
     { NULL, NULL, }, N_("print avail list") }, 
-  { "bucket", 0, 'B',
+  { S(bucket), 'B',
     print_bucket_begin, print_current_bucket_handler, NULL,
     { N_("bucket-number"), NULL, }, N_("print a bucket") },
-  { "current", 0, 'C',
+  { S(current), 'C',
     print_current_bucket_begin, print_current_bucket_handler, NULL,
     { NULL, NULL, },
     N_("print current bucket") },
-  { "dir", 0, 'D',
+  { S(dir), 'D',
     print_dir_begin, print_dir_handler, NULL,
     { NULL, NULL, }, N_("print hash directory") },
-  { "header", 0, 'F',
+  { S(header), 'F',
     print_header_begin , print_header_handler, NULL,
     { NULL, NULL, }, N_("print file header") },
-  { "hash", 0, 'H',
+  { S(hash), 'H',
     NULL, hash_handler, NULL,
     { N_("key"), NULL, }, N_("hash value of key") },
-  { "cache", 0, 'K',
+  { S(cache), 'K',
     print_cache_begin, print_cache_handler, NULL,
     { NULL, NULL, }, N_("print the bucket cache") },
-  { "status", 0, 'S',
+  { S(status), 'S',
     NULL, status_handler, NULL,
     { NULL, NULL }, N_("print current program status") },
-  { "version", 0, 'v',
+  { S(version), 'v',
     NULL, print_version_handler, NULL,
     { NULL, NULL, }, N_("print version of gdbm") },
-  { "data-zero", 0, 'Z',
+  { S(data-zero), 'Z',
     NULL, data_z_handler, NULL,
     { NULL, NULL }, N_("toggle data nul-termination") },
-  { "help", 0, '?',
+  { S(help), '?',
     help_begin, help_handler, NULL,
     { NULL, NULL, }, N_("print this help list") },
-  { "quit", 0, 'q',
+  { S(quit), 'q',
     NULL, quit_handler, NULL,
     { NULL, NULL, }, N_("quit the program") },
+#undef S
   { 0 }
 };
 
@@ -905,46 +907,10 @@ cmdcmp (const void *a, const void *b)
 }
 
 void
-set_minimal_abbreviations ()
+sort_commands ()
 {
-  struct command *cmd;
-
   qsort (command_tab, sizeof (command_tab) / sizeof (command_tab[0]) - 1,
 	 sizeof (command_tab[0]), cmdcmp);
-
-  /* Initialize minimum abbreviation
-     lengths to 1. */
-  for (cmd = command_tab; cmd->name; cmd++)
-    cmd->minlen = 1;
-  /* Determine minimum abbreviations */
-  for (cmd = command_tab; cmd->name; cmd++)
-    {
-      const char *sample = cmd->name;
-      size_t sample_len = strlen (sample);
-      size_t minlen = cmd->minlen;
-      struct command *p;
-
-      for (p = cmd + 1; p->name; p++)
-	{
-	  size_t len = strlen (p->name);
-	  if (len >= minlen && memcmp (p->name, sample, minlen) == 0)
-	    do
-	      {
-		minlen++;
-		if (minlen <= len)
-		  p->minlen = minlen;
-		if (minlen == sample_len)
-		  break;
-	      }
-	    while (len >= minlen && memcmp (p->name, sample, minlen) == 0);
-	  else if (p->name[0] == sample[0])
-	    p->minlen = minlen;
-	  else
-	    break;
-	}
-      if (minlen <= sample_len)
-	cmd->minlen = minlen;
-    }
 }
 
 
@@ -974,11 +940,8 @@ help_handler (struct handler_param *param)
 	n = fprintf (fp, " %c, ", cmd->abbrev);
       else
 	n = fprintf (fp, " ");
-      if (cmd->name[cmd->minlen])
-	n += fprintf (fp, "%.*s(%s)", cmd->minlen, cmd->name,
-		      cmd->name + cmd->minlen);
-      else
-	n += fprintf (fp, "%s", cmd->name);
+
+      n += fprintf (fp, "%s", cmd->name);
 
       for (i = 0; i < NARGS && cmd->args[i]; i++)
 	n += fprintf (fp, " %s", gettext (cmd->args[i]));
@@ -993,12 +956,9 @@ help_handler (struct handler_param *param)
 struct command *
 find_command (char *str)
 {
-  struct command *cmd;
+  enum { fcom_init, fcom_found, fcom_ambig, fcom_abort } state = fcom_init;
+  struct command *cmd, *found = NULL;
   size_t len = strlen (str);
-  
-  for (cmd = command_tab; cmd->name; cmd++)
-    if (len >= cmd->minlen && memcmp (cmd->name, str, len) == 0)
-      return cmd;
   
   if (len == 1)
     {
@@ -1006,7 +966,40 @@ find_command (char *str)
 	if (cmd->abbrev == *str)
 	  return cmd;
     }
-  return NULL;
+  
+  for (cmd = command_tab; state != fcom_abort && cmd->name; cmd++)
+    {
+      if (memcmp (cmd->name, str, len < cmd->len ? len : cmd->len) == 0)
+	{
+	  switch (state)
+	    {
+	    case fcom_init:
+	      found = cmd;
+	      state = fcom_found;
+	      break;
+
+	    case fcom_found:
+	      if (!interactive)
+		{
+		  state = fcom_abort;
+		  found = NULL;
+		  continue;
+		}
+	      fprintf (stderr, "ambiguous command: %s\n", str);
+	      fprintf (stderr, "    %s\n", found->name);
+	      found = NULL;
+	      state = fcom_ambig;
+	      /* fall through */
+	    case fcom_ambig:
+	      fprintf (stderr, "    %s\n", cmd->name);
+	    }
+	}
+    }
+
+  if (state == fcom_init)
+    terror (0, interactive ? _("Invalid command. Try ? for help.") :
+		             _("Unknown command"));
+  return found;
 }
 
 #define SKIPWS(p) while (*(p) && isspace (*(p))) (p)++
@@ -1075,7 +1068,7 @@ main (int argc, char *argv[])
   bindtextdomain (PACKAGE, LOCALEDIR);
   textdomain (PACKAGE);
 
-  set_minimal_abbreviations ();
+  sort_commands ();
   
   for (opt = parseopt_first (argc, argv, optab);
        opt != EOF;
@@ -1183,7 +1176,8 @@ main (int argc, char *argv[])
       
       for (i = 0; i < param.argc; i++)
 	free (param.argv[i]);
-
+      param.argc = 0;
+      
       input_line++;
       
       if (interactive)
@@ -1204,12 +1198,7 @@ main (int argc, char *argv[])
 	continue;
       cmd = find_command (p);
       if (!cmd)
-	{
-	  terror (0,
-		 interactive ? _("Invalid command. Try ? for help.") :
-		               _("Unknown command"));
-	  continue;
-	}
+	continue;
 
       for (i = 0; cmd->args[i]; i++)
 	{

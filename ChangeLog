@@ -1,7 +1,24 @@
+2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Bugfixes.
+
+	* src/gdbmdefs.h: Fix typo in a comment.
+	* src/gdbmdump.c (gdbm_dump_to_file): Improve error
+	checking.
+	* src/testgdbm.c: Improve interactive usage.
+	(command) <minlen>: Rename to len.
+	(command_tab): Initialize len.
+	(set_minimal_abbreviations): Remove.
+	(sort_commands): New function.
+	(find_command): Print possible alternatives in case of
+	ambiguous input.
+	(main): Reset param.argc after freeing previous arguments.
+	Continue silently if find_command returns NULL.
+
 2013-05-07  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Bugfix.
-	
+
 	* src/gdbmreorg.c: Call _gdbm_mapped_init when the database
 	structure is fully initialized (Puszcza bug #171).
 
