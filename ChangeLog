@@ -1,6 +1,6 @@
 2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
-	Bugfixes.
+	Improve testgdbm; install some more bugfixes.
 
 	* src/gdbmdefs.h: Fix typo in a comment.
 	* src/gdbmdump.c (gdbm_dump_to_file): Improve error
