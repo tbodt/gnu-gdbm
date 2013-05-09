@@ -1,3 +1,11 @@
+2013-05-09  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Add new prompt escapes.
+
+	* src/testgdbm.c: New prompt escapes: %p, %P, %v, %_.
+	Change default prompt to %p>%_.
+	* doc/gdbmtool.1: Document new prompt escapes.
+
 2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Rename testgdbm to gdbmtool. Improve documentation.
