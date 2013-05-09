@@ -114,7 +114,7 @@ check_PROGRAMS = \
  num2word\
  $(DBMPROGS)
 
-INCLUDES = -I$(top_srcdir)/src -I$(top_builddir)/src $(DBMINCLUDES)
+AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src $(DBMINCLUDES)
 noinst_HEADERS=progname.h
 gtdel_LDADD = ../src/libgdbm.la
 gtload_LDADD = ../src/libgdbm.la
