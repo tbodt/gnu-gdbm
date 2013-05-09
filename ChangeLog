@@ -1,7 +1,7 @@
 2013-05-08  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Rename testgdbm to gdbmtool. Improve documentation.
-	
+
 	* configure.ac: Fix a typo.
 	* src/.cvsignore: Add gdbmtool
 	* src/Makefile.am: Rename testgdbm to gdbmtool. Source

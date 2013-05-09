@@ -13,7 +13,7 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM_DUMP 1 "May 8, 2013" "GDBM" "GDBM User Reference"
+.TH GDBM_DUMP 1 "May 9, 2013" "GDBM" "GDBM User Reference"
 .SH NAME
 gdbmtool \- examine and modify a GDBM database
 .SH SYNOPSIS
@@ -189,8 +189,14 @@ replaced in the generated prompt as follows:
 .ul
 	Sequence	Expansion
 	\fB%f\fR	name of the db file
+	\fB%p\fR	program name
+	\fB%P\fR	package name (\fBgdbm\fR)
+	\fB%_\fR	horizontal space (\fBASCII\fR 32)
+	\fB%v\fR	program version
 	\fB%%\fR	\fB%\fR
 .fi
+.sp
+The default prompt is \fB%p>%_\fR.
 .TP
 .BR quit ", " q
 Close the database and quit the utility.

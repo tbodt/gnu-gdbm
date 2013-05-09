@@ -36,7 +36,7 @@
 
 const char *progname;                     /* Program name */
 
-#define DEFAULT_PROMPT "gdbmtool> "
+#define DEFAULT_PROMPT "%p>%_"
 char *prompt;
 
 char *file_name = NULL;             /* Database file name */   
@@ -808,6 +808,30 @@ pe_file_name (struct prompt_exp *p)
   fwrite (file_name, strlen (file_name), 1, stdout);
 }
 
+void
+pe_program_name (struct prompt_exp *p)
+{
+  fwrite (progname, strlen (progname), 1, stdout);
+}
+
+void
+pe_package_name (struct prompt_exp *p)
+{
+  fwrite (PACKAGE_NAME, sizeof (PACKAGE_NAME) - 1, 1, stdout);
+}
+
+void
+pe_program_version (struct prompt_exp *p)
+{
+  fwrite (PACKAGE_VERSION, sizeof (PACKAGE_VERSION) - 1, 1, stdout);
+}
+
+void
+pe_space (struct prompt_exp *p)
+{
+  fwrite (" ", 1, 1, stdout);
+}
+
 struct prompt_exp
 {
   int ch;
@@ -817,6 +841,10 @@ struct prompt_exp
 
 struct prompt_exp prompt_exp[] = {
   { 'f', pe_file_name },
+  { 'p', pe_program_name },
+  { 'P', pe_package_name },
+  { 'v', pe_program_version },
+  { '_', pe_space },
   { 0 }
 };
 
