@@ -1,3 +1,4 @@
+*.tar.*
 Makefile
 Makefile.in
 gdbm.info
@@ -15,6 +16,7 @@ gdbm.kw
 gdbm.ky
 gdbm.log
 gdbm.pg
+gdbm.pr
 gdbm.toc
 gdbm.tp
 gdbm.vr
