@@ -1,3 +1,14 @@
+2013-05-11  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Rewrite gdbmtool parser.
+
+	* src/testgdbm.c: Remove.
+	* src/gdbmtool.c: New file.
+	* src/gdbmtool.h: New file.
+	* src/gram.y: New file.
+	* src/lex.l: New file.
+	* src/Makefile.am: Update.
+
 2013-05-09  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Add new prompt escapes.

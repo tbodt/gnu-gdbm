@@ -15,12 +15,8 @@
    You should have received a copy of the GNU General Public License
    along with GDBM. If not, see <http://www.gnu.org/licenses/>.    */
 
-/* Include system configuration before all else. */
-#include "autoconf.h"
-
-#include "gdbmdefs.h"
+#include "gdbmtool.h"
 #include "gdbm.h"
-#include "gdbmapp.h"
 
 #include <errno.h>
 #include <ctype.h>
@@ -33,8 +29,6 @@
 #ifdef HAVE_LOCALE_H
 # include <locale.h>
 #endif
-
-const char *progname;                     /* Program name */
 
 #define DEFAULT_PROMPT "%p>%_"
 char *prompt;
@@ -66,22 +60,6 @@ terror (int code, const char *fmt, ...)
   if (code)
     exit (code);
 }
-
-void
-syntax_error (const char *fmt, ...)
-{
-  va_list ap;
-  if (!interactive)
-    fprintf (stderr, "%s: ", progname);
-  fprintf (stderr, "%u: ", input_line);
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  va_end (ap);
-  fputc ('\n', stderr);
-  if (!interactive)
-    exit (EXIT_USAGE);
-}
-  
 
 
 size_t
@@ -870,7 +848,7 @@ expand_char (int c)
 }
 
 void
-outprompt ()
+print_prompt ()
 {
   char *s;
   
@@ -906,7 +884,6 @@ struct command
 {
   char *name;           /* Command name */
   size_t len;           /* Name length */
-  int abbrev;           /* Single-letter shortkey (optional) */
   int  (*begin) (struct handler_param *param, size_t *);
   void (*handler) (struct handler_param *param);
   void (*end) (void *data);
@@ -917,81 +894,81 @@ struct command
 
 struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
-  { S(count), 'c',
+  { S(count),
     NULL, count_handler, NULL,
     { NULL, NULL, }, N_("count (number of entries)") },
-  { S(delete), 'd',
+  { S(delete),
     NULL, delete_handler, NULL,
     { N_("key"), NULL, }, N_("delete") },
-  { S(export), 'e',
+  { S(export),
     NULL, export_handler, NULL,
     { N_("file"), "[truncate]", "[binary|ascii]" }, N_("export") },
-  { S(fetch), 'f',
+  { S(fetch),
     NULL, fetch_handler, NULL,
     { N_("key"), NULL }, N_("fetch") },
-  { S(import), 'i',
+  { S(import),
     NULL, import_handler, NULL,
     { N_("file"), "[replace]", "[nometa]" }, N_("import") },
-  { S(list), 'l',
+  { S(list),
     list_begin, list_handler, NULL,
     { NULL, NULL }, N_("list") },
-  { S(next), 'n',
+  { S(next),
     NULL, nextkey_handler, NULL,
     { N_("[key]"), NULL }, N_("nextkey") },
-  { S(store), 's',
+  { S(store),
     NULL, store_handler, NULL,
     { N_("key"), N_("data") }, N_("store") },
-  { S(first), '1',
+  { S(first),
     NULL, firstkey_handler, NULL,
     { NULL, NULL }, N_("firstkey") },
-  { S(read), '<',
+  { S(read),
     NULL, read_handler, NULL,
     { N_("file"), "[replace]" },
     N_("read entries from file and store") },
-  { S(reorganize), 'r',
+  { S(reorganize),
     NULL, reorganize_handler, NULL,
     { NULL, NULL, }, N_("reorganize") },
-  { S(key-zero), 'z',
+  { S(key-zero),
     NULL, key_z_handler, NULL,
     { NULL, NULL }, N_("toggle key nul-termination") },
-  { S(avail), 'A',
+  { S(avail),
     avail_begin, avail_handler, NULL,
     { NULL, NULL, }, N_("print avail list") }, 
-  { S(bucket), 'B',
+  { S(bucket),
     print_bucket_begin, print_current_bucket_handler, NULL,
     { N_("bucket-number"), NULL, }, N_("print a bucket") },
-  { S(current), 'C',
+  { S(current),
     print_current_bucket_begin, print_current_bucket_handler, NULL,
     { NULL, NULL, },
     N_("print current bucket") },
-  { S(dir), 'D',
+  { S(dir),
     print_dir_begin, print_dir_handler, NULL,
     { NULL, NULL, }, N_("print hash directory") },
-  { S(header), 'F',
+  { S(header),
     print_header_begin , print_header_handler, NULL,
     { NULL, NULL, }, N_("print file header") },
-  { S(hash), 'H',
+  { S(hash),
     NULL, hash_handler, NULL,
     { N_("key"), NULL, }, N_("hash value of key") },
-  { S(cache), 'K',
+  { S(cache),
     print_cache_begin, print_cache_handler, NULL,
     { NULL, NULL, }, N_("print the bucket cache") },
-  { S(status), 'S',
+  { S(status),
     NULL, status_handler, NULL,
     { NULL, NULL }, N_("print current program status") },
-  { S(version), 'v',
+  { S(version),
     NULL, print_version_handler, NULL,
     { NULL, NULL, }, N_("print version of gdbm") },
-  { S(data-zero), 'Z',
+  { S(data-zero),
     NULL, data_z_handler, NULL,
     { NULL, NULL }, N_("toggle data nul-termination") },
-  { S(help), '?',
+  { S(help),
     help_begin, help_handler, NULL,
     { NULL, NULL, }, N_("print this help list") },
-  { S(prompt), 0,
+  { S(prompt),
     NULL, prompt_handler, NULL,
     { N_("text") }, N_("set command prompt") },
-  { S(quit), 'q',
+  { S(quit),
     NULL, quit_handler, NULL,
     { NULL, NULL, }, N_("quit the program") },
 #undef S
@@ -1036,12 +1013,7 @@ help_handler (struct handler_param *param)
       int i;
       int n;
 
-      if (cmd->abbrev)
-	n = fprintf (fp, " %c, ", cmd->abbrev);
-      else
-	n = fprintf (fp, " ");
-
-      n += fprintf (fp, "%s", cmd->name);
+      n = fprintf (fp, " %s", cmd->name);
 
       for (i = 0; i < NARGS && cmd->args[i]; i++)
 	n += fprintf (fp, " %s", gettext (cmd->args[i]));
@@ -1054,18 +1026,11 @@ help_handler (struct handler_param *param)
 }
 
 struct command *
-find_command (char *str)
+find_command (const char *str)
 {
   enum { fcom_init, fcom_found, fcom_ambig, fcom_abort } state = fcom_init;
   struct command *cmd, *found = NULL;
   size_t len = strlen (str);
-  
-  if (len == 1)
-    {
-      for (cmd = command_tab; cmd->name; cmd++)
-	if (cmd->abbrev == *str)
-	  return cmd;
-    }
   
   for (cmd = command_tab; state != fcom_abort && cmd->name; cmd++)
     {
@@ -1097,30 +1062,11 @@ find_command (char *str)
     }
 
   if (state == fcom_init)
-    terror (0, interactive ? _("Invalid command. Try ? for help.") :
-		             _("Unknown command"));
+    syntax_error (interactive ? _("Invalid command. Try ? for help.") :
+	                        _("Unknown command"));
   return found;
 }
-
-#define SKIPWS(p) while (*(p) && isspace (*(p))) (p)++
-#define SKIPWORD(p) while (*(p) && !isspace (*(p))) (p)++
-
-char *
-getword (char *s, char **endp)
-{
-  char *p;
-  SKIPWS (s);
-  p = s;
-  SKIPWORD (s);
-  if (*s)
-    {
-      *s++ = 0;
-      SKIPWS (s);
-    }
-  *endp = s;
-  return p;
-}
-
+
 char *parseopt_program_doc = N_("examine and/or modify a GDBM database");
 char *parseopt_program_args = N_("DBFILE");
 
@@ -1139,6 +1085,156 @@ struct gdbm_option optab[] = {
 
 #define ARGINC 16
 
+
+void
+gdbmarglist_init (struct gdbmarglist *lst, struct gdbmarg *arg)
+{
+  if (arg)
+    arg->next = NULL;
+  lst->head = lst->tail = arg;
+}
+
+void
+gdbmarglist_add (struct gdbmarglist *lst, struct gdbmarg *arg)
+{
+  arg->next = NULL;
+  if (lst->tail)
+    lst->tail->next = arg;
+  else
+    lst->head = arg;
+  lst->tail = arg;
+}
+
+void
+gdbmarglist_free (struct gdbmarglist *lst)
+{
+  struct gdbmarg *arg;
+
+  for (arg = lst->head; arg; )
+    {
+      struct gdbmarg *next = arg->next;
+      free (arg->string);
+      free (arg);
+      arg = next;
+    }
+}
+
+struct gdbmarg *
+gdbmarg_new (char *string)
+{
+  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  arg->next = NULL;
+  arg->string = string;
+  return arg;
+}
+
+
+struct handler_param param;
+size_t argmax;
+  
+int
+run_command (const char *verb, struct gdbmarglist *arglist)
+{
+  int i;
+  struct command *cmd;
+  struct gdbmarg *arg;
+  char *pager = getenv ("PAGER");
+  char argbuf[128];
+  size_t expected_lines, *expected_lines_ptr;
+  FILE *pagfp = NULL;
+  
+  cmd = find_command (verb);
+  if (!cmd)
+    return 1;
+
+  arg = arglist ? arglist->head : NULL;
+  
+  for (i = 0; cmd->args[i] && arg; i++, arg = arg->next)
+    {
+      if (i >= argmax)
+	{
+	  argmax += ARGINC;
+	  param.argv = erealloc (param.argv,
+				 sizeof (param.argv[0]) * argmax);
+	}
+      param.argv[i] = estrdup (arg->string);
+    }
+
+  for (; cmd->args[i]; i++)
+    {
+      char *argname = cmd->args[i];
+      if (*argname == '[')
+	/* Optional argument */
+	break;
+      if (!interactive)
+	{
+	  syntax_error (_("%s: not enough arguments"), cmd->name);
+	  return 1;
+	}
+      printf ("%s? ", argname);
+      fflush (stdout);
+      if (fgets (argbuf, sizeof argbuf, stdin) == NULL)
+	terror (EXIT_USAGE, _("unexpected eof"));
+
+      trimnl (argbuf);
+      if (i >= argmax)
+	{
+	  argmax += ARGINC;
+	  param.argv = erealloc (param.argv,
+				 sizeof (param.argv[0]) * argmax);
+	}
+      param.argv[i] = estrdup (argbuf);
+    }
+
+  if (arg)
+    {
+      syntax_error (_("%s: too many arguments"), cmd->name);
+      return 1;
+    }
+
+  /* Prepare for calling the handler */
+  param.argc = i;
+  param.fp = NULL;
+  param.data = NULL;
+  pagfp = NULL;
+      
+  expected_lines = 0;
+  expected_lines_ptr = (interactive && pager) ? &expected_lines : NULL;
+  if (!(cmd->begin && cmd->begin (&param, expected_lines_ptr)))
+    {
+      if (pager && expected_lines > get_screen_lines ())
+	{
+	  pagfp = popen (pager, "w");
+	  if (pagfp)
+	    param.fp = pagfp;
+	  else
+	    {
+	      terror (0, _("cannot run pager `%s': %s"), pager,
+		      strerror (errno));
+	      pager = NULL;
+	      param.fp = stdout;
+	    }	  
+	}
+      else
+	param.fp = stdout;
+  
+      cmd->handler (&param);
+      if (cmd->end)
+	cmd->end (param.data);
+      else if (param.data)
+	free (param.data);
+
+      if (pagfp)
+	pclose (pagfp);
+    }
+  
+  for (i = 0; i < param.argc; i++)
+    free (param.argv[i]);
+  param.argc = 0;
+  
+  return 0;
+}
+  
 int
 main (int argc, char *argv[])
 {
@@ -1151,11 +1247,7 @@ main (int argc, char *argv[])
   char reader = FALSE;
   char newdb = FALSE;
   int flags = 0;
-  char *pager = getenv ("PAGER");
 
-  struct handler_param param;
-  size_t argmax;
-  
   set_progname (argv[0]);
 
 #ifdef HAVE_SETLOCALE
@@ -1263,115 +1355,13 @@ main (int argc, char *argv[])
     printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
   if (interactive)
     prompt = estrdup (DEFAULT_PROMPT);
-		      
+
   memset (&param, 0, sizeof (param));
   argmax = 0;
-
-  while (1)
-    {
-      int i;
-      char *p, *sp;
-      char argbuf[128];
-      struct command *cmd;
-      size_t expected_lines, *expected_lines_ptr;
-      FILE *pagfp = NULL;
-      
-      for (i = 0; i < param.argc; i++)
-	free (param.argv[i]);
-      param.argc = 0;
-      
-      input_line++;
-      
-      if (interactive)
-	outprompt ();
-      
-      if (fgets (cmdbuf, sizeof cmdbuf, stdin) == NULL)
-	{
-	  putchar ('\n');
-	  break;
-	}
-
-      trimnl (cmdbuf);
-      p = getword (cmdbuf, &sp);
-      if (!*p)
-	continue;
-      cmd = find_command (p);
-      if (!cmd)
-	continue;
-
-      for (i = 0; cmd->args[i]; i++)
-	{
-	  char *arg = cmd->args[i];
-	  
-	  p = getword (sp, &sp);
-	  if (!*p)
-	    {
-	      if (*arg == '[')
-		/* Optional argument */
-		break;
-	      if (!interactive)
-		syntax_error (_("%s: not enough arguments"), cmd->name);
-	      printf ("%s? ", arg);
-	      if (fgets (argbuf, sizeof argbuf, stdin) == NULL)
-		terror (EXIT_USAGE, _("unexpected eof"));
-
-	      trimnl (argbuf);
-	      p = argbuf;
-	    }
-	  
-	  if (i >= argmax)
-	    {
-	      argmax += ARGINC;
-	      param.argv = erealloc (param.argv,
-				     sizeof (param.argv[0]) * argmax);
-	    }
-	  param.argv[i] = estrdup (p);
-	}
-
-      if (*sp)
-	{
-	  syntax_error (_("%s: too many arguments"), cmd->name);
-	  continue;
-	}
-      
-      /* Prepare for calling the handler */
-      param.argc = i;
-      param.fp = NULL;
-      param.data = NULL;
-      pagfp = NULL;
-      
-      expected_lines = 0;
-      expected_lines_ptr = (interactive && pager) ? &expected_lines : NULL;
-      if (cmd->begin && cmd->begin (&param, expected_lines_ptr))
-	continue;
-      if (pager && expected_lines > get_screen_lines ())
-	{
-	  pagfp = popen (pager, "w");
-	  if (pagfp)
-	    param.fp = pagfp;
-	  else
-	    {
-	      terror (0, _("cannot run pager `%s': %s"), pager,
-		      strerror (errno));
-	      pager = NULL;
-	      param.fp = stdout;
-	    }	  
-	}
-      else
-	param.fp = stdout;
-
-      cmd->handler (&param);
-      if (cmd->end)
-	cmd->end (param.data);
-      else if (param.data)
-	free (param.data);
-
-      if (pagfp)
-	pclose (pagfp);
-
-    }
   
-  /* Quit normally. */
-  quit_handler (NULL);
+  setsource ("stdin", stdin);
+    //FIXME
+  return yyparse ();
+  
   return 0;
 }

@@ -1,0 +1,263 @@
+%{
+/* This file is part of GDBM, the GNU data base manager.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
+   Inc.
+
+   GDBM is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   GDBM is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GDBM. If not, see <http://www.gnu.org/licenses/>.    */
+
+#include <autoconf.h>
+#include "gdbmtool.h"
+#include "gram.h"
+
+struct point point;
+ 
+/* Advance locus to the next line */
+void
+advance_line ()
+{
+  ++point.line;
+  point.col = 0;
+}
+
+#define YY_USER_ACTION					    \
+  do							    \
+    {							    \
+      if (YYSTATE == 0)					    \
+	{						    \
+	  yylloc.beg = point;				    \
+	  yylloc.beg.col++;				    \
+	}						    \
+      point.col += yyleng;				    \
+      yylloc.end = point;				    \
+    }							    \
+  while (0);
+
+#undef YY_INPUT
+#define YY_INPUT(buf,result,max_size)                                   \
+  do									\
+    {									\
+      result = read_input (buf, max_size);				\
+    }									\
+  while (0);
+ 
+void string_begin (void);
+void string_add (const char *s, int l);
+void string_addc (int c);
+char *string_end (void);
+int unescape (int c);
+
+static ssize_t read_input (char *buf, size_t size);
+ 
+%}
+
+%x STR
+
+WS [ \t][ \t]*
+IDENT [a-zA-Z_][a-zA-Z_0-9]*
+
+%%
+^[ \t]*#[ \t]*line[ \t].*\n {
+  char *p, *q;
+  char *file = NULL;
+  int line, len;
+  
+  for (p = strchr (yytext, '#') + 1; *p == ' ' || *p == '\t'; p++);
+  p += 4;
+  for (; *p == ' ' || *p == '\t'; p++);
+  if (*p == '"')
+    {
+      p++;
+      len = strcspn (p, "\"");
+      if (p[len] == 0)
+	{
+	  yyerror (_("invalid #line statement"));
+	  REJECT;
+	}
+      file = emalloc (len + 1);
+      memcpy (file, p, len);
+      file[len] = 0;
+      for (p += len + 1; *p == ' ' || *p == '\t'; p++);
+    }
+  line = strtol (p, &q, 10);
+  if (*q && *q != ' ')
+    {
+      yyerror (_("invalid #line statement"));
+      free (file);
+      REJECT;
+    }
+  point.file = file;
+  point.line = line;
+  point.col = 0;
+}
+#.*\n              advance_line ();
+#.*     /* end-of-file comment */;
+
+{IDENT}            { yylval.string = estrdup (yytext); return T_IDENT; }
+[^ \t\n{},=]+      { yylval.string = estrdup (yytext); return T_WORD; }
+\"[^\\\"\n]*\"     { yylval.string = emalloc (yyleng - 1);
+                     memcpy (yylval.string, yytext+1, yyleng-2);
+		     yylval.string[yyleng-2] = 0;
+		     return T_WORD; }
+\"[^\\\"\n]*\\.    { string_begin ();
+                     string_add (yytext + 1, yyleng - 3);
+		     string_addc (unescape (yytext[yyleng-1]));
+                     BEGIN(STR); }
+<STR>[^\\\"\n]*\"  { if (yyleng > 1)
+		       string_add (yytext, yyleng - 1);
+		     yylval.string = string_end ();
+		     BEGIN(INITIAL);
+                     return T_WORD; }
+<STR>[^\\\"\n]*\\. { string_add (yytext, yyleng - 2);
+                     string_addc (unescape (yytext[yyleng-1])); }
+{WS}               ;
+\n                 { advance_line (); return '\n'; }
+.                  return yytext[0];
+%%
+
+void
+setsource (const char *filename, FILE *file)
+{
+  point.file = (char*) filename;
+  point.line = 1;
+  point.col = 0;
+  yyin = file;
+}
+
+int
+yywrap ()
+{
+  return 1;
+}
+
+static ssize_t
+read_input (char *buf, size_t size)
+{
+  if (interactive)
+    {
+      if (YY_AT_BOL ())
+	print_prompt ();
+      if (fgets (buf, size, yyin) == NULL)
+	return 0;
+      return strlen (buf);
+    }
+  return fread (buf, 1, size, yyin);
+}
+  
+
+struct strseg
+{
+  struct strseg *next;
+  int len;
+  char ptr[1];
+};
+
+static struct strseg *strseg_head, *strseg_tail;
+
+void
+string_begin (void)
+{
+  strseg_head = strseg_tail = NULL;
+}
+
+void
+strseg_attach (struct strseg *seg)
+{
+  seg->next = NULL;
+  if (strseg_tail)
+    strseg_tail->next = seg;
+  else
+    strseg_head = seg;
+  strseg_tail = seg;
+}  
+
+void
+string_add (const char *s, int l)
+{
+  struct strseg *seg = emalloc (sizeof (*seg) + l);
+  memcpy (seg->ptr, s, l);
+  seg->len = l;
+  strseg_attach (seg);
+}
+
+void
+string_addc (int c)
+{
+  struct strseg *seg = emalloc (sizeof (*seg));
+  seg->ptr[0] = c;
+  seg->len = 1;
+  strseg_attach (seg);
+}
+
+char *
+string_end (void)
+{
+  int len = 1;
+  struct strseg *seg;
+  char *ret, *p;
+  
+  for (seg = strseg_head; seg; seg = seg->next)
+    len += seg->len;
+
+  ret = emalloc (len);
+  p = ret;
+  for (seg = strseg_head; seg; )
+    {
+      struct strseg *next = seg->next;
+      memcpy (p, seg->ptr, seg->len);
+      p += seg->len;
+      free (seg);
+      seg = next;
+    }
+  *p = 0;
+
+  strseg_head = strseg_tail = NULL;
+
+  return ret;
+}
+
+int
+unescape (int c)
+{
+  static char transtab[] = "\\\\\"\"a\ab\bf\fn\nr\rt\tv\v";
+  char *p;
+
+  for (p = transtab; *p; p += 2)
+    {
+      if (*p == c)
+	return p[1];
+    }
+  return c;
+}
+
+void
+vparse_error (struct locus *loc, const char *fmt, va_list ap)
+{
+  if (!interactive)
+    fprintf (stderr, "%s", progname);
+  if (loc)
+    YY_LOCATION_PRINT (stderr, *loc);
+  fprintf (stderr, ": ");
+  vfprintf (stderr, fmt, ap);
+  fputc ('\n', stderr);
+}
+
+void
+parse_error (struct locus *loc, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  vparse_error (loc, fmt, ap);
+  va_end (ap);
+}

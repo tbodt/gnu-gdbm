@@ -6,7 +6,9 @@ Makefile.in
 gdbm.h
 *.lo
 libgdbm.la
-testgdbm
 gdbmtool
 gdbm_dump
 gdbm_load
+gram.[ch]
+gram.output
+lex.c
