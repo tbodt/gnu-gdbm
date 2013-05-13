@@ -84,7 +84,8 @@ gdbmtool_SOURCES = \
  gram.y\
  lex.l\
  gdbmtool.h\
- gdbmtool.c
+ gdbmtool.c\
+ var.c
 
 AM_YFLAGS = -dtv
 #AM_LFLAGS = -d

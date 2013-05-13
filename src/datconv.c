@@ -207,15 +207,21 @@ dsegm_free_list (struct dsegm *dp)
 }
 
 void
-datum_format (FILE *fp, datum const *dat, struct dsegm *ds, char *delim)
+datum_format (FILE *fp, datum const *dat, struct dsegm *ds)
 {
   int off = 0;
+  char *delim[2];
 
   if (!ds)
     {
       fprintf (fp, "%.*s\n", dat->dsize, dat->dptr);
       return;
     }
+
+  if (variable_get ("delim1", VART_STRING, (void*) &delim[0]))
+    abort ();
+  if (variable_get ("delim2", VART_STRING, (void*) &delim[1]))
+    abort ();
   
   for (; ds && off <= dat->dsize; ds = ds->next)
     {
@@ -233,7 +239,7 @@ datum_format (FILE *fp, datum const *dat, struct dsegm *ds, char *delim)
 	      for (i = 0; i < ds->v.field.dim; i++)
 		{
 		  if (i)
-		    fwrite (delim, strlen (delim), 1, fp);
+		    fwrite (delim[0], strlen (delim[0]), 1, fp);
 		  if (off + ds->v.field.type->size > dat->dsize)
 		    {
 		      fprintf (fp, _("(not enough data)"));
@@ -253,7 +259,7 @@ datum_format (FILE *fp, datum const *dat, struct dsegm *ds, char *delim)
 	    }
 	  if (ds->v.field.dim > 1)
 	    fprintf (fp, " }");
-	  fwrite (delim, strlen (delim), 1, fp);
+	  fwrite (delim[1], strlen (delim[1]), 1, fp);
 	  break;
 	  
 	case FDEF_OFF:

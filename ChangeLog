@@ -1,5 +1,22 @@
 2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Implement shell variables in gdbmtool.
+	
+	* src/var.c: New file.
+	* src/Makefile.am: Add var.c
+	* src/datconv.c (datum_format): Remove the "delim"
+	parameter, use "delim1" and "delim2" shell variables
+	instead.
+	* src/gdbmtool.c: Remove "prompt" command. Use "set ps[12]"
+	instead.
+	(print_prompt): Move to lex.l
+	* src/gdbmtool.h (variable_set)
+	(variable_get, variable_print_all): New protos.
+	* src/gram.y: Handle the "set" command.
+	* src/lex.l: Update.
+
+2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Handle structured key and content data in gdbmtool.
 
 	* src/datconv.c: New file.

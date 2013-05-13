@@ -27,7 +27,7 @@ struct dsegm *dsdef[DS_MAX];
 %locations
      
 %token <type> T_TYPE
-%token T_OFF T_PAD T_DEF
+%token T_OFF T_PAD T_DEF T_SET
 %token <num> T_NUM
 %token <string> T_IDENT T_WORD 
 %type <string> string verb
@@ -70,6 +70,7 @@ stmt      : /* empty */ '\n'
 		exit (EXIT_USAGE);
 	      gdbmarglist_free (&$2);
 	    }
+          | set '\n'
           | defn '\n'
           | error { end_def(); } '\n'
             {
@@ -169,6 +170,10 @@ string    : T_IDENT
             {
 	      $$ = estrdup ("def");
 	    }
+          | T_SET
+            {
+	      $$ = estrdup ("set");
+	    }
           ;
 
 defn      : T_DEF defid { begin_def (); } '{' deflist optcomma '}'
@@ -227,6 +232,67 @@ def       : T_TYPE T_IDENT
 	    {
 	      $$ = dsegm_new (FDEF_PAD);
 	      $$->v.n = $2;
+	    }
+          ;
+
+set       : T_SET
+            {
+	      variable_print_all (stdout);
+            }
+          | T_SET varlist
+          ;
+
+varlist   : var
+          | varlist var
+          ;
+
+var       : T_IDENT
+            {
+	      int t = 1;
+	      int rc;
+	      char *varname = $1;
+	      
+	      rc = variable_set (varname, VART_BOOL, &t);
+	      if (rc == VAR_ERR_NOTDEF && strncmp (varname, "no", 2) == 0)
+		{
+		  t = 0;
+		  varname += 2;
+		  rc = variable_set (varname, VART_BOOL, &t);
+		}
+
+	      switch (rc)
+		{
+		case VAR_OK:
+		  break;
+		  
+		case VAR_ERR_NOTDEF:
+		  parse_error (&@1, _("no such variable: %s"), varname);
+		  break;
+
+		case VAR_ERR_BADTYPE:
+		  parse_error (&@1, _("%s is not a boolean variable"), varname);
+		  break;
+		}
+	      free($1);
+	    }
+          | T_IDENT '=' string
+	    {
+	      int rc = variable_set ($1, VART_STRING, $3);
+	      free ($3);
+	      switch (rc)
+		{
+		case VAR_OK:
+		  break;
+		  
+		case VAR_ERR_NOTDEF:
+		  parse_error (&@1, _("no such variable: %s"), $1);
+		  break;
+
+		case VAR_ERR_BADTYPE:
+		  parse_error (&@1, _("%s is not a string variable"), $1);
+		  break;
+		}
+	      free($1);
 	    }
           ;
 %%

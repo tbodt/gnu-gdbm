@@ -112,6 +112,7 @@ O [0-7]
 #.*     /* end-of-file comment */;
 
 def                { return T_DEF; }
+set                { return T_SET; }
 <DEF>off           { return T_OFF; }
 <DEF>pad           { return T_PAD; }
 <DEF>0[xX]{X}{X}*  { yylval.num = strtoul (yytext, NULL, 16);
@@ -312,3 +313,109 @@ parse_error (struct locus *loc, const char *fmt, ...)
   vparse_error (loc, fmt, ap);
   va_end (ap);
 }
+
+
+struct prompt_exp;
+
+void
+pe_file_name (struct prompt_exp *p)
+{
+  fwrite (file_name, strlen (file_name), 1, stdout);
+}
+
+void
+pe_program_name (struct prompt_exp *p)
+{
+  fwrite (progname, strlen (progname), 1, stdout);
+}
+
+void
+pe_package_name (struct prompt_exp *p)
+{
+  fwrite (PACKAGE_NAME, sizeof (PACKAGE_NAME) - 1, 1, stdout);
+}
+
+void
+pe_program_version (struct prompt_exp *p)
+{
+  fwrite (PACKAGE_VERSION, sizeof (PACKAGE_VERSION) - 1, 1, stdout);
+}
+
+void
+pe_space (struct prompt_exp *p)
+{
+  fwrite (" ", 1, 1, stdout);
+}
+
+struct prompt_exp
+{
+  int ch;
+  void (*fun) (struct prompt_exp *);
+  char *cache;
+};
+
+struct prompt_exp prompt_exp[] = {
+  { 'f', pe_file_name },
+  { 'p', pe_program_name },
+  { 'P', pe_package_name },
+  { 'v', pe_program_version },
+  { '_', pe_space },
+  { 0 }
+};
+
+static void
+expand_char (int c)
+{
+  struct prompt_exp *p;
+
+  if (c && c != '%')
+    {
+      for (p = prompt_exp; p->ch; p++)
+	{
+	  if (c == p->ch)
+	    {
+	      if (p->cache)
+		free (p->cache);
+	      return p->fun (p);
+	    }
+	}
+    }
+  putchar ('%');
+  putchar (c);
+}
+
+char const *
+psname ()
+{
+  if (YYSTATE == DEF)
+    return "ps2";
+  return "ps1";
+}
+
+void
+print_prompt ()
+{
+  const char *s;
+  const char *prompt;
+
+  if (variable_get (psname (), VART_STRING, (void *) &prompt))
+    abort ();
+
+  for (s = prompt; *s; s++)
+    {
+      if (*s == '%')
+	{
+	  if (!*++s)
+	    {
+	      putchar ('%');
+	      break;
+	    }
+	  expand_char (*s);
+	}
+      else
+	putchar (*s);
+    }
+
+  fflush (stdout);
+}
+

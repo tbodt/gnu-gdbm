@@ -97,6 +97,7 @@ void print_prompt (void);
 
 void setsource (const char *filename, FILE *file);
 
+extern char *file_name;
 extern int interactive;
 
 struct slist
@@ -211,3 +212,16 @@ void dsegm_free_list (struct dsegm *dp);
 #define DS_MAX     2
 
 extern struct dsegm *dsdef[];
+
+#define VART_STRING 0
+#define VART_BOOL   1
+
+#define VAR_OK          0
+#define VAR_ERR_NOTDEF  1
+#define VAR_ERR_BADTYPE 2
+
+int variable_set (const char *name, int type, void *val);
+int variable_get (const char *name, int type, void **val);
+void variable_print_all (FILE *fp);
+
+

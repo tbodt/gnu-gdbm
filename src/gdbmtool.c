@@ -30,9 +30,6 @@
 # include <locale.h>
 #endif
 
-#define DEFAULT_PROMPT "%p>%_"
-char *prompt;
-
 char *file_name = NULL;             /* Database file name */   
 GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
 int interactive;                    /* Are we running in interactive mode? */
@@ -371,7 +368,7 @@ fetch_handler (struct handler_param *param)
   return_data = gdbm_fetch (gdbm_file, param->argv[0]->v.dat);
   if (return_data.dptr != NULL)
     {
-      datum_format (param->fp, &return_data, dsdef[DS_CONTENT], ",");
+      datum_format (param->fp, &return_data, dsdef[DS_CONTENT]);
       fputc ('\n', param->fp);
       free (return_data.dptr);
     }
@@ -399,11 +396,11 @@ firstkey_handler (struct handler_param *param)
   key_data = gdbm_firstkey (gdbm_file);
   if (key_data.dptr != NULL)
     {
-      datum_format (param->fp, &key_data, dsdef[DS_KEY], ",");
+      datum_format (param->fp, &key_data, dsdef[DS_KEY]);
       fputc ('\n', param->fp);
 
       return_data = gdbm_fetch (gdbm_file, key_data);
-      datum_format (param->fp, &return_data, dsdef[DS_CONTENT], ",");
+      datum_format (param->fp, &return_data, dsdef[DS_CONTENT]);
       fputc ('\n', param->fp);
 
       free (return_data.dptr);
@@ -428,11 +425,11 @@ nextkey_handler (struct handler_param *param)
   if (return_data.dptr != NULL)
     {
       key_data = return_data;
-      datum_format (param->fp, &key_data, dsdef[DS_KEY], ",");
+      datum_format (param->fp, &key_data, dsdef[DS_KEY]);
       fputc ('\n', param->fp);
 
       return_data = gdbm_fetch (gdbm_file, key_data);
-      datum_format (param->fp, &return_data, dsdef[DS_CONTENT], ",");
+      datum_format (param->fp, &return_data, dsdef[DS_CONTENT]);
       fputc ('\n', param->fp);
 
       free (return_data.dptr);
@@ -655,9 +652,9 @@ list_handler (struct handler_param *param)
 	terror (0, _("cannot fetch data (key %.*s)"), key.dsize, key.dptr);
       else
 	{
-	  datum_format (param->fp, &key, dsdef[DS_KEY], ",");
+	  datum_format (param->fp, &key, dsdef[DS_KEY]);
 	  fputc (' ', param->fp);
-	  datum_format (param->fp, &data, dsdef[DS_CONTENT], ",");
+	  datum_format (param->fp, &data, dsdef[DS_CONTENT]);
 	  fputc ('\n', param->fp);
 	  free (data.dptr);
 	}
@@ -762,105 +759,6 @@ void
 status_handler (struct handler_param *param)
 {
   fprintf (param->fp, _("Database file: %s\n"), file_name);
-}
-
-struct prompt_exp;
-
-void
-pe_file_name (struct prompt_exp *p)
-{
-  fwrite (file_name, strlen (file_name), 1, stdout);
-}
-
-void
-pe_program_name (struct prompt_exp *p)
-{
-  fwrite (progname, strlen (progname), 1, stdout);
-}
-
-void
-pe_package_name (struct prompt_exp *p)
-{
-  fwrite (PACKAGE_NAME, sizeof (PACKAGE_NAME) - 1, 1, stdout);
-}
-
-void
-pe_program_version (struct prompt_exp *p)
-{
-  fwrite (PACKAGE_VERSION, sizeof (PACKAGE_VERSION) - 1, 1, stdout);
-}
-
-void
-pe_space (struct prompt_exp *p)
-{
-  fwrite (" ", 1, 1, stdout);
-}
-
-struct prompt_exp
-{
-  int ch;
-  void (*fun) (struct prompt_exp *);
-  char *cache;
-};
-
-struct prompt_exp prompt_exp[] = {
-  { 'f', pe_file_name },
-  { 'p', pe_program_name },
-  { 'P', pe_package_name },
-  { 'v', pe_program_version },
-  { '_', pe_space },
-  { 0 }
-};
-
-static void
-expand_char (int c)
-{
-  struct prompt_exp *p;
-
-  if (c && c != '%')
-    {
-      for (p = prompt_exp; p->ch; p++)
-	{
-	  if (c == p->ch)
-	    {
-	      if (p->cache)
-		free (p->cache);
-	      return p->fun (p);
-	    }
-	}
-    }
-  putchar ('%');
-  putchar (c);
-}
-
-void
-print_prompt ()
-{
-  char *s;
-  
-  for (s = prompt; *s; s++)
-    {
-      if (*s == '%')
-	{
-	  if (!*++s)
-	    {
-	      putchar ('%');
-	      break;
-	    }
-	  expand_char (*s);
-	}
-      else
-	putchar (*s);
-    }
-
-  fflush (stdout);
-}
-
-void
-prompt_handler (struct handler_param *param)
-{
-  free (prompt);
-  prompt = estrdup (param->argv[0]->v.string);
 }
 
 void help_handler (struct handler_param *param);
@@ -972,10 +870,6 @@ struct command command_tab[] = {
   { S(help),
     help_begin, help_handler, NULL,
     { { NULL } }, N_("print this help list") },
-  { S(prompt),
-    NULL, prompt_handler, NULL,
-    { { N_("text"), ARG_STRING },
-      { NULL } }, N_("set command prompt") },
   { S(quit),
     NULL, quit_handler, NULL,
     { { NULL } }, N_("quit the program") },
@@ -1569,8 +1463,6 @@ main (int argc, char *argv[])
   /* Welcome message. */
   if (interactive && !quiet_option)
     printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
-  if (interactive)
-    prompt = estrdup (DEFAULT_PROMPT);
 
   memset (&param, 0, sizeof (param));
   argmax = 0;
