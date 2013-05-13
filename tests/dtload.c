@@ -134,11 +134,12 @@ main (int argc, char **argv)
 		   progname, line);
 	  continue;
 	}
-
+      buf[j] = 0;
+      
       key.dptr = buf;
       key.dsize = j + data_z;
-      data.dptr = buf + j + 1;
-      data.dsize = strlen (buf + j + 1) + data_z;
+      data.dptr = buf + i + 1;
+      data.dsize = strlen (data.dptr) + data_z;
       if (store (key, data) != 0)
 	{
 	  fprintf (stderr, "%s: %d: item not inserted\n",

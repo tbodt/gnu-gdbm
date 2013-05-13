@@ -38,8 +38,6 @@ GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
 int interactive;                    /* Are we running in interactive mode? */
 datum key_data;                     /* Current key */
 datum return_data;                  /* Current data */
-int key_z = 1;                      /* Keys are nul-terminated strings */
-int data_z = 1;                     /* Data are nul-terminated strings */
 int quiet_option = 0;               /* Omit usual welcome banner at startup */
 
 #define SIZE_T_MAX ((size_t)-1)
@@ -235,6 +233,7 @@ trimnl (char *str)
   return 0;
 }
 
+#if 0
 void
 read_from_file (const char *name, int replace)
 {
@@ -273,6 +272,8 @@ read_from_file (const char *name, int replace)
 
       for (*p++ = 0; *p && isspace (*p); p++)
 	;
+
+      FIXME
       key.dptr = buf;
       key.dsize = strlen (buf) + key_z;
       data.dptr = p;
@@ -283,6 +284,7 @@ read_from_file (const char *name, int replace)
     }
   fclose (fp);
 }
+#endif
 
 int
 get_screen_lines ()
@@ -333,7 +335,7 @@ get_record_count ()
 struct handler_param
 {
   int argc;
-  char **argv;
+  struct gdbmarg **argv;
   FILE *fp;
   void *data;
 };
@@ -353,11 +355,7 @@ count_handler (struct handler_param *param)
 void
 delete_handler (struct handler_param *param)
 {
-  if (key_data.dptr != NULL)
-    free (key_data.dptr);
-  key_data.dptr = strdup (param->argv[0]);
-  key_data.dsize = strlen (param->argv[0]) + key_z;
-  if (gdbm_delete (gdbm_file, key_data) != 0)
+  if (gdbm_delete (gdbm_file, param->argv[0]->v.dat) != 0)
     {
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
 	terror (0, _("Item not found"));
@@ -370,14 +368,11 @@ delete_handler (struct handler_param *param)
 void
 fetch_handler (struct handler_param *param)
 {
-  if (key_data.dptr != NULL)
-    free (key_data.dptr);
-  key_data.dptr = strdup (param->argv[0]);
-  key_data.dsize = strlen (param->argv[0]) + key_z;
-  return_data = gdbm_fetch (gdbm_file, key_data);
+  return_data = gdbm_fetch (gdbm_file, param->argv[0]->v.dat);
   if (return_data.dptr != NULL)
     {
-      fprintf (param->fp, "%.*s\n", return_data.dsize, return_data.dptr);
+      datum_format (param->fp, &return_data, dsdef[DS_CONTENT], ",");
+      fputc ('\n', param->fp);
       free (return_data.dptr);
     }
   else
@@ -388,14 +383,9 @@ fetch_handler (struct handler_param *param)
 void
 store_handler (struct handler_param *param)
 {
-  datum key;
-  datum data;
-  
-  key.dptr = param->argv[0];
-  key.dsize = strlen (param->argv[0]) + key_z;
-  data.dptr = param->argv[1];
-  data.dsize = strlen (param->argv[1]) + data_z;
-  if (gdbm_store (gdbm_file, key, data, GDBM_REPLACE) != 0)
+  if (gdbm_store (gdbm_file,
+		  param->argv[0]->v.dat, param->argv[1]->v.dat,
+		  GDBM_REPLACE) != 0)
     fprintf (stderr, _("Item not inserted.\n"));
 }
 
@@ -409,9 +399,13 @@ firstkey_handler (struct handler_param *param)
   key_data = gdbm_firstkey (gdbm_file);
   if (key_data.dptr != NULL)
     {
-      fprintf (param->fp, "%.*s\n", key_data.dsize, key_data.dptr);
+      datum_format (param->fp, &key_data, dsdef[DS_KEY], ",");
+      fputc ('\n', param->fp);
+
       return_data = gdbm_fetch (gdbm_file, key_data);
-      fprintf (param->fp, "%.*s\n", return_data.dsize, return_data.dptr);
+      datum_format (param->fp, &return_data, dsdef[DS_CONTENT], ",");
+      fputc ('\n', param->fp);
+
       free (return_data.dptr);
     }
   else
@@ -422,20 +416,25 @@ firstkey_handler (struct handler_param *param)
 void
 nextkey_handler (struct handler_param *param)
 {
-  if (param->argv[0])
+  if (param->argc == 1)
     {
       if (key_data.dptr != NULL)
 	free (key_data.dptr);
-      key_data.dptr = strdup (param->argv[0]);
-      key_data.dsize = strlen (param->argv[0]) + key_z;
+      key_data.dptr = emalloc (param->argv[0]->v.dat.dsize);
+      key_data.dsize = param->argv[0]->v.dat.dsize;
+      memcpy (key_data.dptr, param->argv[0]->v.dat.dptr, key_data.dsize);
     }
   return_data = gdbm_nextkey (gdbm_file, key_data);
   if (return_data.dptr != NULL)
     {
       key_data = return_data;
-      fprintf (param->fp, "%.*s\n", key_data.dsize, key_data.dptr);
+      datum_format (param->fp, &key_data, dsdef[DS_KEY], ",");
+      fputc ('\n', param->fp);
+
       return_data = gdbm_fetch (gdbm_file, key_data);
-      fprintf (param->fp, "%.*s\n", return_data.dsize, return_data.dptr);
+      datum_format (param->fp, &return_data, dsdef[DS_CONTENT], ",");
+      fputc ('\n', param->fp);
+
       free (return_data.dptr);
     }
   else
@@ -521,7 +520,7 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
 {
   int temp;
 
-  if (getnum (&temp, param->argv[0], NULL))
+  if (getnum (&temp, param->argv[0]->v.string, NULL))
     return 1;
 
   if (temp >= gdbm_file->header->dir_size / 4)
@@ -594,11 +593,8 @@ print_header_handler (struct handler_param *param)
 void
 hash_handler (struct handler_param *param)
 {
-  datum key;
-  
-  key.dptr = param->argv[0];
-  key.dsize = strlen (param->argv[0]) + key_z;
-  fprintf (param->fp, _("hash value = %x. \n"), _gdbm_hash (key));
+  fprintf (param->fp, _("hash value = %x. \n"),
+	   _gdbm_hash (param->argv[0]->v.dat));
 }
 
 /* K - print the bucket cache */
@@ -623,6 +619,8 @@ print_version_handler (struct handler_param *param)
   fprintf (param->fp, "%s\n", gdbm_version);
 }
 
+#if 0
+FIXME
 /* < file [replace] - read entries from file and store */
 void
 read_handler (struct handler_param *param)
@@ -630,6 +628,7 @@ read_handler (struct handler_param *param)
   read_from_file (param->argv[0],
 		  param->argv[1] && strcmp (param->argv[1], "replace") == 0);
 }
+#endif
 
 /* l - List all entries */
 int
@@ -656,8 +655,10 @@ list_handler (struct handler_param *param)
 	terror (0, _("cannot fetch data (key %.*s)"), key.dsize, key.dptr);
       else
 	{
-	  fprintf (param->fp, "%.*s %.*s\n", key.dsize, key.dptr, data.dsize,
-		   data.dptr);
+	  datum_format (param->fp, &key, dsdef[DS_KEY], ",");
+	  fputc (' ', param->fp);
+	  datum_format (param->fp, &data, dsdef[DS_CONTENT], ",");
+	  fputc ('\n', param->fp);
 	  free (data.dptr);
 	}
       free (key.dptr);
@@ -685,20 +686,21 @@ export_handler (struct handler_param *param)
   
   for (i = 1; i < param->argc; i++)
     {
-      if (strcmp (param->argv[i], "truncate") == 0)
+      if (strcmp (param->argv[i]->v.string, "truncate") == 0)
 	flags = GDBM_NEWDB;
-      else if (strcmp (param->argv[i], "binary") == 0)
+      else if (strcmp (param->argv[i]->v.string, "binary") == 0)
 	format = GDBM_DUMP_FMT_BINARY;
-      else if (strcmp (param->argv[i], "ascii") == 0)
+      else if (strcmp (param->argv[i]->v.string, "ascii") == 0)
 	format = GDBM_DUMP_FMT_ASCII;
       else
 	{
-	  syntax_error (_("unrecognized argument: %s"), param->argv[i]);
+	  syntax_error (_("unrecognized argument: %s"),
+			param->argv[i]->v.string);
 	  return;
 	}
     }
 
-  if (gdbm_dump (gdbm_file, param->argv[0], format, flags, 0600))
+  if (gdbm_dump (gdbm_file, param->argv[0]->v.string, format, flags, 0600))
     {
       terror (0, _("error dumping database: %s"), gdbm_strerror (gdbm_errno));
     }
@@ -715,18 +717,20 @@ import_handler (struct handler_param *param)
   
   for (i = 1; i < param->argc; i++)
     {
-      if (strcmp (param->argv[i], "replace") == 0)
+      if (strcmp (param->argv[i]->v.string, "replace") == 0)
 	flag = GDBM_REPLACE;
-      else if (strcmp (param->argv[i], "nometa") == 0)
+      else if (strcmp (param->argv[i]->v.string, "nometa") == 0)
 	meta_mask = GDBM_META_MASK_MODE | GDBM_META_MASK_OWNER;
       else
 	{
-	  syntax_error (_("unrecognized argument: %s"), param->argv[i]);
+	  syntax_error (_("unrecognized argument: %s"),
+			param->argv[i]->v.string);
 	  return;
 	}
     }
 
-  if (gdbm_load (&gdbm_file, param->argv[0], flag, meta_mask, &err_line))
+  if (gdbm_load (&gdbm_file, param->argv[0]->v.string, flag,
+		 meta_mask, &err_line))
     {
       switch (gdbm_errno)
 	{
@@ -758,24 +762,6 @@ void
 status_handler (struct handler_param *param)
 {
   fprintf (param->fp, _("Database file: %s\n"), file_name);
-  fprintf (param->fp, _("Zero terminated keys: %s\n"), boolstr (key_z));
-  fprintf (param->fp, _("Zero terminated data: %s\n"), boolstr (data_z));
-}
-
-/* z - toggle key nul-termination */
-void
-key_z_handler (struct handler_param *param)
-{
-  key_z = !key_z;
-  fprintf (param->fp, _("Zero terminated keys: %s\n"), boolstr (key_z));
-}
-
-/* Z - toggle data nul-termination */
-void
-data_z_handler (struct handler_param *param)
-{
-  data_z = !data_z;
-  fprintf (param->fp, _("Zero terminated data: %s\n"), boolstr (data_z));
 }
 
 struct prompt_exp;
@@ -874,11 +860,18 @@ void
 prompt_handler (struct handler_param *param)
 {
   free (prompt);
-  prompt = estrdup (param->argv[0]);
+  prompt = estrdup (param->argv[0]->v.string);
 }
 
 void help_handler (struct handler_param *param);
 int help_begin (struct handler_param *param, size_t *exp_count);
+
+struct argdef
+{
+  char *name;
+  int type;
+  int ds;
+};
 
 struct command
 {
@@ -887,7 +880,7 @@ struct command
   int  (*begin) (struct handler_param *param, size_t *);
   void (*handler) (struct handler_param *param);
   void (*end) (void *data);
-  char *args[NARGS];
+  struct argdef args[NARGS];
   char *doc;
 };
 
@@ -896,81 +889,96 @@ struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
   { S(count),
     NULL, count_handler, NULL,
-    { NULL, NULL, }, N_("count (number of entries)") },
+    { { NULL } }, N_("count (number of entries)") },
   { S(delete),
     NULL, delete_handler, NULL,
-    { N_("key"), NULL, }, N_("delete") },
+    { { N_("key"), ARG_DATUM, DS_KEY }, { NULL } }, N_("delete") },
   { S(export),
     NULL, export_handler, NULL,
-    { N_("file"), "[truncate]", "[binary|ascii]" }, N_("export") },
+    { { N_("file"), ARG_STRING },
+      { "[truncate]", ARG_STRING },
+      { "[binary|ascii]", ARG_STRING },
+      { NULL } },
+    N_("export") },
   { S(fetch),
     NULL, fetch_handler, NULL,
-    { N_("key"), NULL }, N_("fetch") },
+    { { N_("key"), ARG_DATUM, DS_KEY }, { NULL } },  N_("fetch") },
   { S(import),
     NULL, import_handler, NULL,
-    { N_("file"), "[replace]", "[nometa]" }, N_("import") },
+    { { N_("file"), ARG_STRING },
+      { "[replace]", ARG_STRING },
+      { "[nometa]" , ARG_STRING },
+      { NULL } },
+    N_("import") },
   { S(list),
     list_begin, list_handler, NULL,
-    { NULL, NULL }, N_("list") },
+    { { NULL } }, N_("list") },
   { S(next),
     NULL, nextkey_handler, NULL,
-    { N_("[key]"), NULL }, N_("nextkey") },
+    { { N_("[key]"), ARG_STRING },
+      { NULL } },
+    N_("nextkey") },
   { S(store),
     NULL, store_handler, NULL,
-    { N_("key"), N_("data") }, N_("store") },
+    { { N_("key"), ARG_DATUM, DS_KEY },
+      { N_("data"), ARG_DATUM, DS_CONTENT },
+      { NULL } },
+    N_("store") },
   { S(first),
     NULL, firstkey_handler, NULL,
-    { NULL, NULL }, N_("firstkey") },
+    { { NULL } }, N_("firstkey") },
+#if 0
+  FIXME
   { S(read),
     NULL, read_handler, NULL,
-    { N_("file"), "[replace]" },
+    { { N_("file"), ARG_STRING },
+      { "[replace]", ARG_STRING },
+      { NULL } },
     N_("read entries from file and store") },
+#endif
   { S(reorganize),
     NULL, reorganize_handler, NULL,
-    { NULL, NULL, }, N_("reorganize") },
-  { S(key-zero),
-    NULL, key_z_handler, NULL,
-    { NULL, NULL }, N_("toggle key nul-termination") },
+    { { NULL } }, N_("reorganize") },
   { S(avail),
     avail_begin, avail_handler, NULL,
-    { NULL, NULL, }, N_("print avail list") }, 
+    { { NULL } }, N_("print avail list") }, 
   { S(bucket),
     print_bucket_begin, print_current_bucket_handler, NULL,
-    { N_("bucket-number"), NULL, }, N_("print a bucket") },
+    { { N_("bucket-number"), ARG_STRING },
+      { NULL } }, N_("print a bucket") },
   { S(current),
     print_current_bucket_begin, print_current_bucket_handler, NULL,
-    { NULL, NULL, },
+    { { NULL } },
     N_("print current bucket") },
   { S(dir),
     print_dir_begin, print_dir_handler, NULL,
-    { NULL, NULL, }, N_("print hash directory") },
+    { { NULL } }, N_("print hash directory") },
   { S(header),
     print_header_begin , print_header_handler, NULL,
-    { NULL, NULL, }, N_("print file header") },
+    { { NULL } }, N_("print file header") },
   { S(hash),
     NULL, hash_handler, NULL,
-    { N_("key"), NULL, }, N_("hash value of key") },
+    { { N_("key"), ARG_DATUM, DS_KEY },
+      { NULL } }, N_("hash value of key") },
   { S(cache),
     print_cache_begin, print_cache_handler, NULL,
-    { NULL, NULL, }, N_("print the bucket cache") },
+    { { NULL } }, N_("print the bucket cache") },
   { S(status),
     NULL, status_handler, NULL,
-    { NULL, NULL }, N_("print current program status") },
+    { { NULL } }, N_("print current program status") },
   { S(version),
     NULL, print_version_handler, NULL,
-    { NULL, NULL, }, N_("print version of gdbm") },
-  { S(data-zero),
-    NULL, data_z_handler, NULL,
-    { NULL, NULL }, N_("toggle data nul-termination") },
+    { { NULL } }, N_("print version of gdbm") },
   { S(help),
     help_begin, help_handler, NULL,
-    { NULL, NULL, }, N_("print this help list") },
+    { { NULL } }, N_("print this help list") },
   { S(prompt),
     NULL, prompt_handler, NULL,
-    { N_("text") }, N_("set command prompt") },
+    { { N_("text"), ARG_STRING },
+      { NULL } }, N_("set command prompt") },
   { S(quit),
     NULL, quit_handler, NULL,
-    { NULL, NULL, }, N_("quit the program") },
+    { { NULL } }, N_("quit the program") },
 #undef S
   { 0 }
 };
@@ -1015,8 +1023,8 @@ help_handler (struct handler_param *param)
 
       n = fprintf (fp, " %s", cmd->name);
 
-      for (i = 0; i < NARGS && cmd->args[i]; i++)
-	n += fprintf (fp, " %s", gettext (cmd->args[i]));
+      for (i = 0; i < NARGS && cmd->args[i].name; i++)
+	n += fprintf (fp, " %s", gettext (cmd->args[i].name));
 
       if (n < CMDCOLS)
 	fprintf (fp, "%*.s", CMDCOLS-n, "");
@@ -1086,6 +1094,136 @@ struct gdbm_option optab[] = {
 #define ARGINC 16
 
 
+struct gdbmarg *
+gdbmarg_string (char *string)
+{
+  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  arg->next = NULL;
+  arg->type = ARG_STRING;
+  arg->ref = 1;
+  arg->v.string = string;
+  return arg;
+}
+
+struct gdbmarg *
+gdbmarg_datum (datum *dat)
+{
+  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  arg->next = NULL;
+  arg->type = ARG_DATUM;
+  arg->ref = 1;
+  arg->v.dat = *dat;
+  return arg;
+}
+
+struct gdbmarg *
+gdbmarg_kvpair (struct kvpair *kvp)
+{
+  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  arg->next = NULL;
+  arg->type = ARG_KVPAIR;
+  arg->ref = 1;
+  arg->v.kvpair = kvp;
+  return arg;
+}
+
+struct slist *
+slist_new (char *s)
+{
+  struct slist *lp = emalloc (sizeof (*lp));
+  lp->next = NULL;
+  lp->str = s;
+}
+
+void
+slist_free (struct slist *lp)
+{
+  while (lp)
+    {
+      struct slist *next = lp->next;
+      free (lp->str);
+      free (lp);
+      lp = next;
+    }
+}
+
+struct kvpair *
+kvpair_string (struct locus *loc, char *val)
+{
+  struct kvpair *p = ecalloc (1, sizeof (*p));
+  p->type = KV_STRING;
+  if (loc)
+    p->loc = *loc;
+  p->val.s = val;
+  return p;
+}
+
+struct kvpair *
+kvpair_list (struct locus *loc, struct slist *s)
+{
+  struct kvpair *p = ecalloc (1, sizeof (*p));
+  p->type = KV_LIST;
+  if (loc)
+    p->loc = *loc;
+  p->val.l = s;
+  return p;
+}  
+
+
+static void
+kvlist_free (struct kvpair *kvp)
+{
+  while (kvp)
+    {
+      struct kvpair *next = kvp->next;
+      free (kvp->key);
+      switch (kvp->type)
+	{
+	case KV_STRING:
+	  free (kvp->val.s);
+	  break;
+
+	case KV_LIST:
+	  slist_free (kvp->val.l);
+	  break;
+	}
+      free (kvp);
+      kvp = next;
+    }
+}
+
+int
+gdbmarg_free (struct gdbmarg *arg)
+{
+  if (arg && --arg->ref == 0)
+    {
+      switch (arg->type)
+	{
+	case ARG_STRING:
+	  free (arg->v.string);
+	  break;
+
+	case ARG_KVPAIR:
+	  kvlist_free (arg->v.kvpair);
+	  break;
+
+	case ARG_DATUM:
+	  free (arg->v.dat.dptr);
+	  break;
+	}
+      free (arg);
+      return 0;
+    }
+  return 1;
+}
+
+void
+gdbmarg_destroy (struct gdbmarg **parg)
+{
+  if (parg && gdbmarg_free (*parg))
+    *parg = NULL;
+}
+
 void
 gdbmarglist_init (struct gdbmarglist *lst, struct gdbmarg *arg)
 {
@@ -1113,25 +1251,83 @@ gdbmarglist_free (struct gdbmarglist *lst)
   for (arg = lst->head; arg; )
     {
       struct gdbmarg *next = arg->next;
-      free (arg->string);
-      free (arg);
+      gdbmarg_free (arg);
       arg = next;
     }
 }
-
-struct gdbmarg *
-gdbmarg_new (char *string)
-{
-  struct gdbmarg *arg = emalloc (sizeof (*arg));
-  arg->next = NULL;
-  arg->string = string;
-  return arg;
-}
-
 
 struct handler_param param;
 size_t argmax;
+
+void
+param_free_argv (struct handler_param *param, int n)
+{
+  int i;
+
+  for (i = 0; i < n; i++)
+    gdbmarg_destroy (&param->argv[i]);
+  param->argc = 0;
+}
+
+typedef struct gdbmarg *(*coerce_type_t) (struct gdbmarg *arg,
+					  struct argdef *def);
+
+struct gdbmarg *
+coerce_ref (struct gdbmarg *arg, struct argdef *def)
+{
+  ++arg->ref;
+  return arg;
+}
+
+struct gdbmarg *
+coerce_k2d (struct gdbmarg *arg, struct argdef *def)
+{
+  datum d;
   
+  if (datum_scan (&d, dsdef[def->ds], arg->v.kvpair))
+    return NULL;
+  return gdbmarg_datum (&d);
+}
+
+struct gdbmarg *
+coerce_s2d (struct gdbmarg *arg, struct argdef *def)
+{
+  datum d;
+  struct kvpair kvp;
+
+  memset (&kvp, 0, sizeof (kvp));
+  kvp.type = KV_STRING;
+  kvp.val.s = arg->v.string;
+  
+  if (datum_scan (&d, dsdef[def->ds], &kvp))
+    return NULL;
+  return gdbmarg_datum (&d);
+}
+
+#define coerce_fail NULL
+
+coerce_type_t coerce_tab[ARG_MAX][ARG_MAX] = {
+  /*             s            d            k */
+  /* s */  { coerce_ref,  coerce_fail, coerce_fail },
+  /* d */  { coerce_s2d,  coerce_ref,  coerce_k2d }, 
+  /* k */  { coerce_fail, coerce_fail, coerce_ref }
+};
+
+char *argtypestr[] = { "string", "datum", "k/v pair" };
+  
+struct gdbmarg *
+coerce (struct gdbmarg *arg, struct argdef *def)
+{
+  if (!coerce_tab[def->type][arg->type])
+    {
+      //FIXME: locus
+      syntax_error (_("cannot coerce %s to %s"),
+		    argtypestr[arg->type], argtypestr[def->type]);
+      return NULL;
+    }
+  return coerce_tab[def->type][arg->type] (arg, def);
+}
+
 int
 run_command (const char *verb, struct gdbmarglist *arglist)
 {
@@ -1148,8 +1344,8 @@ run_command (const char *verb, struct gdbmarglist *arglist)
     return 1;
 
   arg = arglist ? arglist->head : NULL;
-  
-  for (i = 0; cmd->args[i] && arg; i++, arg = arg->next)
+
+  for (i = 0; cmd->args[i].name && arg; i++, arg = arg->next)
     {
       if (i >= argmax)
 	{
@@ -1157,15 +1353,22 @@ run_command (const char *verb, struct gdbmarglist *arglist)
 	  param.argv = erealloc (param.argv,
 				 sizeof (param.argv[0]) * argmax);
 	}
-      param.argv[i] = estrdup (arg->string);
+      if ((param.argv[i] = coerce (arg, &cmd->args[i])) == NULL)
+	{
+	  param_free_argv (&param, i);
+	  return 1;
+	}
     }
 
-  for (; cmd->args[i]; i++)
+  for (; cmd->args[i].name; i++)
     {
-      char *argname = cmd->args[i];
+      char *argname = cmd->args[i].name;
+      struct gdbmarg *t;
+      
       if (*argname == '[')
 	/* Optional argument */
 	break;
+
       if (!interactive)
 	{
 	  syntax_error (_("%s: not enough arguments"), cmd->name);
@@ -1183,7 +1386,14 @@ run_command (const char *verb, struct gdbmarglist *arglist)
 	  param.argv = erealloc (param.argv,
 				 sizeof (param.argv[0]) * argmax);
 	}
-      param.argv[i] = estrdup (argbuf);
+
+      t = gdbmarg_string (estrdup (argbuf));
+      if ((param.argv[i] = coerce (t, &cmd->args[i])) == NULL)
+	{
+	  gdbmarg_free (t);
+	  param_free_argv (&param, i);
+	  return 1;
+	}
     }
 
   if (arg)
@@ -1194,6 +1404,12 @@ run_command (const char *verb, struct gdbmarglist *arglist)
 
   /* Prepare for calling the handler */
   param.argc = i;
+  if (!param.argv)
+    {
+      argmax = ARGINC;
+      param.argv = ecalloc (argmax, sizeof (param.argv[0]));
+    }
+  param.argv[i] = NULL;
   param.fp = NULL;
   param.data = NULL;
   pagfp = NULL;
@@ -1227,10 +1443,8 @@ run_command (const char *verb, struct gdbmarglist *arglist)
       if (pagfp)
 	pclose (pagfp);
     }
-  
-  for (i = 0; i < param.argc; i++)
-    free (param.argv[i]);
-  param.argc = 0;
+
+  param_free_argv (&param, param.argc);
   
   return 0;
 }
@@ -1325,6 +1539,8 @@ main (int argc, char *argv[])
 
   /* Initialize variables. */
   interactive = isatty (0);
+  dsdef[DS_KEY] = dsegm_new_field (datadef_locate ("string"), NULL, 1);
+  dsdef[DS_CONTENT] = dsegm_new_field (datadef_locate ("string"), NULL, 1);
 
   if (reader)
     {

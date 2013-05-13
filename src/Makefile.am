@@ -80,6 +80,7 @@ bin_PROGRAMS = gdbmtool gdbm_load gdbm_dump
 
 gdbmtool_LDADD  = ./libgdbmapp.a ./libgdbm.la
 gdbmtool_SOURCES = \
+ datconv.c\
  gram.y\
  lex.l\
  gdbmtool.h\

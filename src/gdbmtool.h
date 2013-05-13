@@ -99,11 +99,52 @@ void setsource (const char *filename, FILE *file);
 
 extern int interactive;
 
+struct slist
+{
+  struct slist *next;
+  char *str;
+};
+
+struct slist *slist_new (char *s);
+void slist_free (struct slist *);
+
+#define KV_STRING 0
+#define KV_LIST   1
+
+struct kvpair
+{
+  struct kvpair *next;
+  int type;
+  struct locus loc;
+  char *key;
+  union
+  {
+    char *s;
+    struct slist *l;
+  } val;
+};
+
+struct kvpair *kvpair_string (struct locus *loc, char *val);
+struct kvpair *kvpair_list (struct locus *loc, struct slist *s);
+
+
+#define ARG_STRING 0
+#define ARG_DATUM  1
+#define ARG_KVPAIR 2
+#define ARG_MAX    3
+
 /* Argument to a command handler */
 struct gdbmarg
 {
   struct gdbmarg *next;
-  char *string;
+  int type;
+  int ref;
+  union
+  {
+    char *string;
+    datum dat;
+    struct kvpair *kvpair;
+  } v;
 };
 
 /* List of arguments */
@@ -116,7 +157,57 @@ void gdbmarglist_init (struct gdbmarglist *, struct gdbmarg *);
 void gdbmarglist_add (struct gdbmarglist *, struct gdbmarg *);
 void gdbmarglist_free (struct gdbmarglist *lst);
 
-struct gdbmarg *gdbmarg_new (char *);
-		       
-int run_command (const char *verb, struct gdbmarglist *arglist);
+struct gdbmarg *gdbmarg_string (char *);
+struct gdbmarg *gdbmarg_datum (datum *);
+struct gdbmarg *gdbmarg_kvpair (struct kvpair *kvl);
 
+int gdbmarg_free (struct gdbmarg *arg);
+void gdbmarg_destroy (struct gdbmarg **parg);
+
+int run_command (const char *verb, struct gdbmarglist *arglist);
+
+struct xdatum;
+void xd_expand (struct xdatum *xd, size_t size);
+void xd_store (struct xdatum *xd, void *val, size_t size);
+
+struct datadef
+{
+  char *name;
+  int size;
+  int (*format) (FILE *, void *ptr, int size);
+  int (*scan) (struct xdatum *xd, char *str);
+};
+
+struct datadef *datadef_locate (const char *name);
+
+struct field
+{
+  struct datadef *type;
+  int dim;
+  char *name;
+};
+
+#define FDEF_FLD 0
+#define FDEF_OFF 1
+#define FDEF_PAD 2
+
+struct dsegm
+{
+  struct dsegm *next;
+  int type;
+  union
+  {
+    int n;
+    struct field field;
+  } v;
+};
+
+struct dsegm *dsegm_new (int type);
+struct dsegm *dsegm_new_field (struct datadef *type, char *id, int dim);
+void dsegm_free_list (struct dsegm *dp);
+
+#define DS_KEY     0
+#define DS_CONTENT 1
+#define DS_MAX     2
+
+extern struct dsegm *dsdef[];

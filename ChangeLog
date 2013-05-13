@@ -1,3 +1,30 @@
+2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Handle structured key and content data in gdbmtool.
+
+	* src/datconv.c: New file.
+	* src/Makefile.am (gdbmtool_SOURCES): Add datconv.c.
+	* src/gdbmtool.h (slist, kvpair): New structures.
+	(gdbmarg): Keep various types of data depending on the
+	value of the type member.
+	(slist_new, slist_free)
+	(kvpair_string, kvpair_list): New protos.
+	(gdbmarg_new): Remove.
+	(gdbmarg_string, gdbmarg_datum)
+	(gdbmarg_kvpair, gdbmarg_free)
+	(gdbmarg_destroy): New protos.
+	(xd_expand, xd_store, datadef_locate): New protos.
+	(field, dsegm): New structs.
+	(dsegm_new, dsegm_new_field, dsegm_free_list): New protos.
+	* src/gdbmtool.c: Rewrite.
+	* src/gram.y: Change grammar to allow for defining key and
+	content structure and for supplying structured data as arguments
+	to fetch, store and similar functions.
+	* src/lex.l: Handle new token types.
+
+	* tests/dtload.c (main): Fix parser.
+	* tests/gtload.c: Likewise.
+
 2013-05-11  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Rewrite gdbmtool parser.

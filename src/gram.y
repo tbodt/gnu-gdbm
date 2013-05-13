@@ -19,18 +19,38 @@
 #include <autoconf.h>
 #include "gdbmtool.h"
 
+struct dsegm *dsdef[DS_MAX];
+  
 %}
 
 %error-verbose
 %locations
      
-%token <string> T_IDENT T_WORD
-%type <string> arg verb
+%token <type> T_TYPE
+%token T_OFF T_PAD T_DEF
+%token <num> T_NUM
+%token <string> T_IDENT T_WORD 
+%type <string> string verb
+%type <arg> arg
 %type <arglist> arglist arg1list
+%type <dsegm> def
+%type <dsegmlist> deflist
+%type <num> defid
+%type <kvpair> kvpair compound value
+%type <kvlist> kvlist
+%type <slist> slist
 
 %union {
   char *string;
+  struct kvpair *kvpair;
+  struct { struct kvpair *head, *tail; } kvlist;
+  struct { struct slist *head, *tail; } slist;
+  struct gdbmarg *arg;
   struct gdbmarglist arglist;
+  int num;
+  struct datadef *type;
+  struct dsegm *dsegm;
+  struct { struct dsegm *head, *tail; } dsegmlist;
 }
 
 %%
@@ -50,7 +70,8 @@ stmt      : /* empty */ '\n'
 		exit (EXIT_USAGE);
 	      gdbmarglist_free (&$2);
 	    }
-          | error '\n'
+          | defn '\n'
+          | error { end_def(); } '\n'
             {
 	      if (interactive)
 		{
@@ -74,19 +95,140 @@ arglist   : /* empty */
 
 arg1list  : arg
             {
-	      gdbmarglist_init (&$$, gdbmarg_new ($1));
+	      gdbmarglist_init (&$$, $1);
 	    }
           | arg1list arg
 	    {
-	      gdbmarglist_add (&$1, gdbmarg_new ($2));
+	      gdbmarglist_add (&$1, $2);
 	      $$ = $1;
 	    }
           ;
 
-arg       : T_IDENT
-          | T_WORD
+arg       : string
+            {
+	      $$ = gdbmarg_string ($1);
+	    }
+          | compound
+	    {
+	      $$ = gdbmarg_kvpair ($1);
+	    }
+	  ;
+
+compound  : '{' kvlist '}'
+            {
+	      $$ = $2.head;
+	    }
           ;
 
+kvlist    : kvpair
+            {
+	      $$.head = $$.tail = $1;
+	    }
+          | kvlist ',' kvpair
+	    {
+	      $1.tail->next = $3;
+	      $1.tail = $3;
+	      $$ = $1;
+	    }
+          ;
+
+kvpair    : value
+          | T_IDENT '=' value
+	    {
+	      $3->key = $1;
+	      $$ = $3;
+	    }
+          ;
+
+value     : string
+            {
+	      $$ = kvpair_string (&@1, $1);
+	    }
+          | '{' slist '}'
+	    {
+	      $$ = kvpair_list (&@1, $2.head);
+	    }
+          ;
+
+slist     : string
+            {
+	      $$.head = $$.tail = slist_new ($1);
+	    }
+          | slist ',' string
+	    {
+	      struct slist *s = slist_new ($3);
+	      $1.tail->next = s;
+	      $1.tail = s;
+	      $$ = $1;
+	    }
+          ;
+
+string    : T_IDENT
+          | T_WORD
+          | T_DEF
+            {
+	      $$ = estrdup ("def");
+	    }
+          ;
+
+defn      : T_DEF defid { begin_def (); } '{' deflist optcomma '}'
+            {
+	      end_def ();
+	      dsegm_free_list (dsdef[$2]);
+	      dsdef[$2] = $5.head;
+	    } 
+          ;
+
+optcomma  : /* empty */
+          | ','
+          ;
+
+defid     : T_IDENT
+            {
+	      if (strcmp ($1, "key") == 0)
+		$$ = DS_KEY;
+	      else if (strcmp ($1, "content") == 0)
+		$$ = DS_CONTENT;
+	      else
+		{
+		  syntax_error (_("expected \"key\" or \"content\", "
+				  "but found \"%s\""), $1);
+		  YYERROR;
+		}
+	    }
+          ;
+
+deflist   : def
+            {
+	      $$.head = $$.tail = $1;
+	    }
+          | deflist ',' def
+	    {
+	      $1.tail->next = $3;
+	      $1.tail = $3;
+	      $$ = $1;
+	    }
+          ;
+
+def       : T_TYPE T_IDENT
+            {
+	      $$ = dsegm_new_field ($1, $2, 1);
+	    }
+          | T_TYPE T_IDENT '[' T_NUM ']'
+            {
+	      $$ = dsegm_new_field ($1, $2, $4);
+	    }
+          | T_OFF T_NUM
+	    {
+	      $$ = dsegm_new (FDEF_OFF);
+	      $$->v.n = $2;
+	    }
+          | T_PAD T_NUM
+	    {
+	      $$ = dsegm_new (FDEF_PAD);
+	      $$->v.n = $2;
+	    }
+          ;
 %%
 
 void

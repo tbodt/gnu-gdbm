@@ -16,7 +16,6 @@
    You should have received a copy of the GNU General Public License
    along with GDBM. If not, see <http://www.gnu.org/licenses/>.    */
 
-#include <autoconf.h>
 #include "gdbmtool.h"
 #include "gram.h"
 
@@ -62,9 +61,14 @@ static ssize_t read_input (char *buf, size_t size);
 %}
 
 %x STR
+%s DEF
 
 WS [ \t][ \t]*
-IDENT [a-zA-Z_][a-zA-Z_0-9]*
+IDENT [a-zA-Z_][a-zA-Z_0-9-]*
+N [0-9][0-9]*
+P [1-9][0-9]*
+X [0-9a-fA-F]
+O [0-7]
 
 %%
 ^[ \t]*#[ \t]*line[ \t].*\n {
@@ -75,6 +79,10 @@ IDENT [a-zA-Z_][a-zA-Z_0-9]*
   for (p = strchr (yytext, '#') + 1; *p == ' ' || *p == '\t'; p++);
   p += 4;
   for (; *p == ' ' || *p == '\t'; p++);
+
+  line = strtol (p, &p, 10);
+  for (; *p == ' ' || *p == '\t'; p++);
+
   if (*p == '"')
     {
       p++;
@@ -89,22 +97,40 @@ IDENT [a-zA-Z_][a-zA-Z_0-9]*
       file[len] = 0;
       for (p += len + 1; *p == ' ' || *p == '\t'; p++);
     }
-  line = strtol (p, &q, 10);
-  if (*q && *q != ' ')
+  if (*p != '\n' )
     {
       yyerror (_("invalid #line statement"));
       free (file);
       REJECT;
     }
-  point.file = file;
+  if (file)
+    point.file = file;
   point.line = line;
   point.col = 0;
 }
 #.*\n              advance_line ();
 #.*     /* end-of-file comment */;
 
-{IDENT}            { yylval.string = estrdup (yytext); return T_IDENT; }
-[^ \t\n{},=]+      { yylval.string = estrdup (yytext); return T_WORD; }
+def                { return T_DEF; }
+<DEF>off           { return T_OFF; }
+<DEF>pad           { return T_PAD; }
+<DEF>0[xX]{X}{X}*  { yylval.num = strtoul (yytext, NULL, 16);
+                     return T_NUM; };
+<DEF>0{O}{O}*      { yylval.num = strtoul (yytext, NULL, 8);
+                     return T_NUM; };
+<DEF>0|{P}         { yylval.num = strtoul (yytext, NULL, 10);
+                     return T_NUM; };
+
+{IDENT}            { if (YYSTATE == DEF &&
+			 (yylval.type = datadef_locate (yytext)))
+			 return T_TYPE;
+                     else
+		       {
+			 yylval.string = estrdup (yytext);
+			 return T_IDENT;
+		       }
+                   }
+[^ \t\n\[\]{},=]+  { yylval.string = estrdup (yytext); return T_WORD; }
 \"[^\\\"\n]*\"     { yylval.string = emalloc (yyleng - 1);
                      memcpy (yylval.string, yytext+1, yyleng-2);
 		     yylval.string[yyleng-2] = 0;
@@ -112,16 +138,16 @@ IDENT [a-zA-Z_][a-zA-Z_0-9]*
 \"[^\\\"\n]*\\.    { string_begin ();
                      string_add (yytext + 1, yyleng - 3);
 		     string_addc (unescape (yytext[yyleng-1]));
-                     BEGIN(STR); }
+                     BEGIN (STR); }
 <STR>[^\\\"\n]*\"  { if (yyleng > 1)
 		       string_add (yytext, yyleng - 1);
 		     yylval.string = string_end ();
-		     BEGIN(INITIAL);
+		     BEGIN (INITIAL);
                      return T_WORD; }
 <STR>[^\\\"\n]*\\. { string_add (yytext, yyleng - 2);
                      string_addc (unescape (yytext[yyleng-1])); }
 {WS}               ;
-\n                 { advance_line (); return '\n'; }
+\n                 { advance_line (); if (YYSTATE == INITIAL) return '\n'; }
 .                  return yytext[0];
 %%
 
@@ -139,6 +165,18 @@ yywrap ()
 {
   return 1;
 }
+
+void
+begin_def (void)
+{
+  BEGIN (DEF);
+}
+
+void
+end_def (void)
+{
+  BEGIN (INITIAL);
+} 
 
 static ssize_t
 read_input (char *buf, size_t size)
@@ -226,10 +264,11 @@ string_end (void)
   return ret;
 }
 
+static char transtab[] = "\\\\\"\"a\ab\bf\fn\nr\rt\tv\v";
+
 int
 unescape (int c)
 {
-  static char transtab[] = "\\\\\"\"a\ab\bf\fn\nr\rt\tv\v";
   char *p;
 
   for (p = transtab; *p; p += 2)
@@ -238,6 +277,18 @@ unescape (int c)
 	return p[1];
     }
   return c;
+}
+
+int
+escape (int c)
+{
+  char *p;
+  for (p = transtab + sizeof (transtab) - 2; p > transtab; p -= 2)
+    {
+      if (*p == c)
+	return p[-1];
+    }
+  return 0;
 }
 
 void
