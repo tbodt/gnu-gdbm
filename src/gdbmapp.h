@@ -16,6 +16,10 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include "gettext.h"
+#ifdef HAVE_LOCALE_H
+# include <locale.h>
+#endif
 
 extern const char *progname;
 

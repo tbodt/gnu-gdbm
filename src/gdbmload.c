@@ -454,6 +454,113 @@ _gdbm_load_file (struct dump_file *file, GDBM_FILE dbf, GDBM_FILE *ofp,
   return rc;
 }
 
+static int
+read_bdb_header (struct dump_file *file)
+{    
+  char buf[256];
+  
+  file->line = 1;
+  if (!fgets (buf, sizeof (buf), file->fp))
+    return -1;
+  if (strcmp (buf, "VERSION=3\n"))
+    return -1;
+  while (fgets (buf, sizeof (buf), file->fp))
+    {
+      ++file->line;
+      if (strcmp (buf, "HEADER=END\n") == 0)
+	return 0;
+    }
+  return -1;
+}
+
+static int
+c2x (int c)
+{
+  static char xdig[] = "0123456789abcdef";
+  char *p = strchr (xdig, c);
+  if (!p)
+    return -1;
+  return p - xdig;
+} 
+
+#define DINCR 128
+
+static int
+xdatum_read (FILE *fp, datum *d, size_t *pdmax)
+{
+  int c;
+  size_t dmax = *pdmax;
+  
+  d->dsize = 0;
+  while ((c = fgetc (fp)) != EOF && c != '\n')
+    {
+      int t, n;
+      
+      t = c2x (c);
+      if (t == -1)
+	return EOF;
+      t <<= 4;
+
+      if ((c = fgetc (fp)) == EOF)
+	break;
+    
+      n = c2x (c);
+      if (n == -1)
+	return EOF;
+      t += n;
+
+      if (d->dsize == dmax)
+	{
+	  char *np = realloc (d->dptr, dmax + DINCR);
+	  if (!np)
+	    return GDBM_MALLOC_ERROR;
+	  d->dptr = np;
+	  dmax += DINCR;
+	}
+      d->dptr[d->dsize++] = t;
+    }
+  *pdmax = dmax;
+  if (c == '\n')
+    return 0;
+  return c;
+}
+
+int
+gdbm_load_bdb_dump (struct dump_file *file, GDBM_FILE dbf, int replace)
+{
+  datum xd[2];
+  size_t xs[2];
+  int rc, c;
+  int i;
+  
+  if (read_bdb_header (file))
+    return -1;
+  memset (&xd, 0, sizeof (xd));
+  xs[0] = xs[1] = 0;
+  i = 0;
+  while ((c = fgetc (file->fp)) == ' ')
+    {
+      rc = xdatum_read (file->fp, &xd[i], &xs[i]);
+      if (rc)
+	break;
+      ++file->line;
+
+      if (i == 1)
+	{
+	  if (gdbm_store (dbf, xd[0], xd[1], replace))
+	    return gdbm_errno;
+	}
+      i = !i;
+    }
+  //FIXME: Read "DATA=END"
+  free (xd[0].dptr);
+  free (xd[1].dptr);
+  if (rc == 0 && i)
+    rc = EOF;
+    
+  return rc;
+}
+
 int
 gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
 		     int meta_mask,
@@ -481,10 +588,14 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
 	return -1;
       return 0;
     }
-  
+
   memset (&df, 0, sizeof df);
   df.fp = fp;
-  rc = _gdbm_load_file (&df, *pdbf, pdbf, replace, meta_mask);
+
+  if (rc == 'V')
+    rc = gdbm_load_bdb_dump (&df, *pdbf, replace);
+  else
+    rc = _gdbm_load_file (&df, *pdbf, pdbf, replace, meta_mask);
   dump_file_free (&df);
   if (rc)
     {

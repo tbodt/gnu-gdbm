@@ -173,6 +173,7 @@ int run_command (struct command *cmd, struct gdbmarglist *arglist);
 struct xdatum;
 void xd_expand (struct xdatum *xd, size_t size);
 void xd_store (struct xdatum *xd, void *val, size_t size);
+
 
 struct datadef
 {

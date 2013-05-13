@@ -301,7 +301,7 @@ xd_store (struct xdatum *xd, void *val, size_t size)
   if (xd->off > xd->dsize)
     xd->dsize = xd->off;
 } 
-
+
 int
 datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 {
