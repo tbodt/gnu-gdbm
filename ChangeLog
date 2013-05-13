@@ -1,5 +1,9 @@
 2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Remove the "read" command.  Use "import" instead.
+
+2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Add "set" and "define" to the main command table.
 
 	* src/gdbmtool.c: Include gram.h

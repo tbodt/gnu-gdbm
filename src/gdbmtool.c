@@ -231,59 +231,6 @@ trimnl (char *str)
   return 0;
 }
 
-#if 0
-void
-read_from_file (const char *name, int replace)
-{
-  int line = 0;
-  char buf[1024];
-  datum key;
-  datum data;
-  FILE *fp;
-  int flag = replace ? GDBM_REPLACE : 0;
-  
-  fp = fopen (name, "r");
-  if (!fp)
-    {
-      terror (0, _("cannot open file `%s' for reading: %s"),
-	     name, strerror (errno));
-      return;
-    }
-
-  while (fgets (buf, sizeof buf, fp))
-    {
-      char *p;
-
-      if (!trimnl (buf))
-	{
-	  terror (0, _("%s:%d: line too long"), name, line);
-	  continue;
-	}
-
-      line++;
-      p = strchr (buf, ' ');
-      if (!p)
-	{
-	  terror (0, _("%s:%d: malformed line"), name, line);
-	  continue;
-	}
-
-      for (*p++ = 0; *p && isspace (*p); p++)
-	;
-
-      FIXME
-      key.dptr = buf;
-      key.dsize = strlen (buf) + key_z;
-      data.dptr = p;
-      data.dsize = strlen (p) + data_z;
-      if (gdbm_store (gdbm_file, key, data, flag) != 0)
-	terror (0, _("%d: item not inserted: %s"),
-	       line, gdbm_strerror (gdbm_errno));
-    }
-  fclose (fp);
-}
-#endif
-
 int
 get_screen_lines ()
 {
@@ -617,17 +564,6 @@ print_version_handler (struct handler_param *param)
   fprintf (param->fp, "%s\n", gdbm_version);
 }
 
-#if 0
-FIXME
-/* < file [replace] - read entries from file and store */
-void
-read_handler (struct handler_param *param)
-{
-  read_from_file (param->argv[0],
-		  param->argv[1] && strcmp (param->argv[1], "replace") == 0);
-}
-#endif
-
 /* l - List all entries */
 int
 list_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
@@ -827,15 +763,6 @@ struct command command_tab[] = {
   { S(first), T_CMD,
     NULL, firstkey_handler, NULL,
     { { NULL } }, N_("firstkey") },
-#if 0
-  FIXME
-  { S(read), T_CMD,
-    NULL, read_handler, NULL,
-    { { N_("file"), ARG_STRING },
-      { "[replace]", ARG_STRING },
-      { NULL } },
-    N_("read entries from file and store") },
-#endif
   { S(reorganize), T_CMD,
     NULL, reorganize_handler, NULL,
     { { NULL } }, N_("reorganize") },
