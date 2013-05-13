@@ -164,8 +164,11 @@ struct gdbmarg *gdbmarg_kvpair (struct kvpair *kvl);
 
 int gdbmarg_free (struct gdbmarg *arg);
 void gdbmarg_destroy (struct gdbmarg **parg);
+
+struct command;
+int command_lookup (const char *str, struct locus *loc, struct command **pcmd);
 
-int run_command (const char *verb, struct gdbmarglist *arglist);
+int run_command (struct command *cmd, struct gdbmarglist *arglist);
 
 struct xdatum;
 void xd_expand (struct xdatum *xd, size_t size);
@@ -179,7 +182,7 @@ struct datadef
   int (*scan) (struct xdatum *xd, char *str);
 };
 
-struct datadef *datadef_locate (const char *name);
+struct datadef *datadef_lookup (const char *name);
 
 struct field
 {

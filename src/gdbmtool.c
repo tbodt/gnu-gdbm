@@ -17,6 +17,7 @@
 
 #include "gdbmtool.h"
 #include "gdbm.h"
+#include "gram.h"
 
 #include <errno.h>
 #include <ctype.h>
@@ -775,6 +776,7 @@ struct command
 {
   char *name;           /* Command name */
   size_t len;           /* Name length */
+  int tok;
   int  (*begin) (struct handler_param *param, size_t *);
   void (*handler) (struct handler_param *param);
   void (*end) (void *data);
@@ -785,94 +787,102 @@ struct command
 
 struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
-  { S(count),
+  { S(count), T_CMD,
     NULL, count_handler, NULL,
     { { NULL } }, N_("count (number of entries)") },
-  { S(delete),
+  { S(delete), T_CMD,
     NULL, delete_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY }, { NULL } }, N_("delete") },
-  { S(export),
+  { S(export), T_CMD,
     NULL, export_handler, NULL,
     { { N_("file"), ARG_STRING },
       { "[truncate]", ARG_STRING },
       { "[binary|ascii]", ARG_STRING },
       { NULL } },
     N_("export") },
-  { S(fetch),
+  { S(fetch), T_CMD,
     NULL, fetch_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY }, { NULL } },  N_("fetch") },
-  { S(import),
+  { S(import), T_CMD,
     NULL, import_handler, NULL,
     { { N_("file"), ARG_STRING },
       { "[replace]", ARG_STRING },
       { "[nometa]" , ARG_STRING },
       { NULL } },
     N_("import") },
-  { S(list),
+  { S(list), T_CMD,
     list_begin, list_handler, NULL,
     { { NULL } }, N_("list") },
-  { S(next),
+  { S(next), T_CMD,
     NULL, nextkey_handler, NULL,
     { { N_("[key]"), ARG_STRING },
       { NULL } },
     N_("nextkey") },
-  { S(store),
+  { S(store), T_CMD,
     NULL, store_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY },
       { N_("data"), ARG_DATUM, DS_CONTENT },
       { NULL } },
     N_("store") },
-  { S(first),
+  { S(first), T_CMD,
     NULL, firstkey_handler, NULL,
     { { NULL } }, N_("firstkey") },
 #if 0
   FIXME
-  { S(read),
+  { S(read), T_CMD,
     NULL, read_handler, NULL,
     { { N_("file"), ARG_STRING },
       { "[replace]", ARG_STRING },
       { NULL } },
     N_("read entries from file and store") },
 #endif
-  { S(reorganize),
+  { S(reorganize), T_CMD,
     NULL, reorganize_handler, NULL,
     { { NULL } }, N_("reorganize") },
-  { S(avail),
+  { S(avail), T_CMD,
     avail_begin, avail_handler, NULL,
     { { NULL } }, N_("print avail list") }, 
-  { S(bucket),
+  { S(bucket), T_CMD,
     print_bucket_begin, print_current_bucket_handler, NULL,
     { { N_("bucket-number"), ARG_STRING },
       { NULL } }, N_("print a bucket") },
-  { S(current),
+  { S(current), T_CMD,
     print_current_bucket_begin, print_current_bucket_handler, NULL,
     { { NULL } },
     N_("print current bucket") },
-  { S(dir),
+  { S(dir), T_CMD,
     print_dir_begin, print_dir_handler, NULL,
     { { NULL } }, N_("print hash directory") },
-  { S(header),
+  { S(header), T_CMD,
     print_header_begin , print_header_handler, NULL,
     { { NULL } }, N_("print file header") },
-  { S(hash),
+  { S(hash), T_CMD,
     NULL, hash_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY },
       { NULL } }, N_("hash value of key") },
-  { S(cache),
+  { S(cache), T_CMD,
     print_cache_begin, print_cache_handler, NULL,
     { { NULL } }, N_("print the bucket cache") },
-  { S(status),
+  { S(status), T_CMD,
     NULL, status_handler, NULL,
     { { NULL } }, N_("print current program status") },
-  { S(version),
+  { S(version), T_CMD,
     NULL, print_version_handler, NULL,
     { { NULL } }, N_("print version of gdbm") },
-  { S(help),
+  { S(help), T_CMD,
     help_begin, help_handler, NULL,
     { { NULL } }, N_("print this help list") },
-  { S(quit),
+  { S(quit), T_CMD,
     NULL, quit_handler, NULL,
     { { NULL } }, N_("quit the program") },
+  { S(set), T_SET,
+    NULL, NULL, NULL,
+    { { "[var=value...]" }, NULL }, N_("set or list variables") },
+  { S(define), T_DEF,
+    NULL, NULL, NULL,
+    { { "key|content", ARG_STRING },
+      { "{ field-list }", ARG_STRING },
+      { NULL } }, N_("define structure") },
 #undef S
   { 0 }
 };
@@ -927,8 +937,8 @@ help_handler (struct handler_param *param)
     }
 }
 
-struct command *
-find_command (const char *str)
+int
+command_lookup (const char *str, struct locus *loc, struct command **pcmd)
 {
   enum { fcom_init, fcom_found, fcom_ambig, fcom_abort } state = fcom_init;
   struct command *cmd, *found = NULL;
@@ -964,9 +974,14 @@ find_command (const char *str)
     }
 
   if (state == fcom_init)
-    syntax_error (interactive ? _("Invalid command. Try ? for help.") :
-	                        _("Unknown command"));
-  return found;
+    parse_error (loc,
+		 interactive ? _("Invalid command. Try ? for help.") :
+	                       _("Unknown command"));
+  if (!found)
+    return T_BOGUS;
+
+  *pcmd = found;
+  return found->tok;
 }
 
 char *parseopt_program_doc = N_("examine and/or modify a GDBM database");
@@ -1223,20 +1238,15 @@ coerce (struct gdbmarg *arg, struct argdef *def)
 }
 
 int
-run_command (const char *verb, struct gdbmarglist *arglist)
+run_command (struct command *cmd, struct gdbmarglist *arglist)
 {
   int i;
-  struct command *cmd;
   struct gdbmarg *arg;
   char *pager = getenv ("PAGER");
   char argbuf[128];
   size_t expected_lines, *expected_lines_ptr;
   FILE *pagfp = NULL;
   
-  cmd = find_command (verb);
-  if (!cmd)
-    return 1;
-
   arg = arglist ? arglist->head : NULL;
 
   for (i = 0; cmd->args[i].name && arg; i++, arg = arg->next)
@@ -1433,8 +1443,8 @@ main (int argc, char *argv[])
 
   /* Initialize variables. */
   interactive = isatty (0);
-  dsdef[DS_KEY] = dsegm_new_field (datadef_locate ("string"), NULL, 1);
-  dsdef[DS_CONTENT] = dsegm_new_field (datadef_locate ("string"), NULL, 1);
+  dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
+  dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
 
   if (reader)
     {

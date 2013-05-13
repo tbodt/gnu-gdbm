@@ -27,10 +27,11 @@ struct dsegm *dsdef[DS_MAX];
 %locations
      
 %token <type> T_TYPE
-%token T_OFF T_PAD T_DEF T_SET
+%token T_OFF T_PAD T_DEF T_SET T_BOGUS
+%token <cmd> T_CMD
 %token <num> T_NUM
 %token <string> T_IDENT T_WORD 
-%type <string> string verb
+%type <string> string 
 %type <arg> arg
 %type <arglist> arglist arg1list
 %type <dsegm> def
@@ -51,6 +52,7 @@ struct dsegm *dsdef[DS_MAX];
   struct datadef *type;
   struct dsegm *dsegm;
   struct { struct dsegm *head, *tail; } dsegmlist;
+  struct command *cmd;
 }
 
 %%
@@ -64,7 +66,7 @@ stmtlist  : stmt
           ;
 
 stmt      : /* empty */ '\n'
-          | verb arglist '\n'
+          | T_CMD arglist '\n'
             {
 	      if (run_command ($1, &$2) && !interactive)
 		exit (EXIT_USAGE);
@@ -72,6 +74,16 @@ stmt      : /* empty */ '\n'
 	    }
           | set '\n'
           | defn '\n'
+	  | T_BOGUS '\n'
+	    {
+	      if (interactive)
+		{
+		  yyclearin;
+		  yyerrok;
+		}
+	      else
+		YYERROR;
+	    }
           | error { end_def(); } '\n'
             {
 	      if (interactive)
@@ -82,9 +94,6 @@ stmt      : /* empty */ '\n'
 	      else
 		YYERROR;
 	    }
-          ;
-
-verb      : T_IDENT
           ;
 
 arglist   : /* empty */
@@ -166,14 +175,6 @@ slist     : string
 
 string    : T_IDENT
           | T_WORD
-          | T_DEF
-            {
-	      $$ = estrdup ("def");
-	    }
-          | T_SET
-            {
-	      $$ = estrdup ("set");
-	    }
           ;
 
 defn      : T_DEF defid { begin_def (); } '{' deflist optcomma '}'

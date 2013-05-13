@@ -166,7 +166,7 @@ static struct datadef datatab[] = {
 };
 
 struct datadef *
-datadef_locate (const char *name)
+datadef_lookup (const char *name)
 {
   struct datadef *p;
 

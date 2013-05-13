@@ -1,7 +1,23 @@
 2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Add "set" and "define" to the main command table.
+
+	* src/gdbmtool.c: Include gram.h
+	(command) <tok>: New member.
+	(command_tab): List "define" and "set".
+	(find_command): Rewrite as command_lookup, with different
+	return type and signature.
+	(run_command): Take struct command * as its first argument.
+	* src/gdbmtool.h (command_lookup): New proto.
+	(run_command): Change signature.
+	(datadef_locate): Rename to datadef_lookup. All uses changed.
+	* src/gram.y: Update.
+	* src/lex.l: Change handling of IDENT rules.
+
+2013-05-13  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Implement shell variables in gdbmtool.
-	
+
 	* src/var.c: New file.
 	* src/Makefile.am: Add var.c
 	* src/datconv.c (datum_format): Remove the "delim"

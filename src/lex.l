@@ -111,8 +111,6 @@ O [0-7]
 #.*\n              advance_line ();
 #.*     /* end-of-file comment */;
 
-def                { return T_DEF; }
-set                { return T_SET; }
 <DEF>off           { return T_OFF; }
 <DEF>pad           { return T_PAD; }
 <DEF>0[xX]{X}{X}*  { yylval.num = strtoul (yytext, NULL, 16);
@@ -122,8 +120,21 @@ set                { return T_SET; }
 <DEF>0|{P}         { yylval.num = strtoul (yytext, NULL, 10);
                      return T_NUM; };
 
+^[ \t]*{IDENT}     { if (YYSTATE == DEF)
+	               {
+			 if (yylval.type = datadef_lookup (yytext))
+			   return T_TYPE;
+		       }
+                     else
+                       {
+			 return command_lookup (yytext, &yylloc, &yylval.cmd);
+		       }
+
+		     yylval.string = estrdup (yytext);
+		     return T_IDENT;
+                   }
 {IDENT}            { if (YYSTATE == DEF &&
-			 (yylval.type = datadef_locate (yytext)))
+			 (yylval.type = datadef_lookup (yytext)))
 			 return T_TYPE;
                      else
 		       {
