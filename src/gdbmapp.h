@@ -33,7 +33,7 @@ void *emalloc (size_t size);
 void *erealloc (void *ptr, size_t size);
 void *ecalloc (size_t nmemb, size_t size);
 void *ezalloc (size_t size);
-char *estrdup (char *str);
+char *estrdup (const char *str);
 
 #define PARSEOPT_HIDDEN 0x01
 #define PARSEOPT_ALIAS  0x02

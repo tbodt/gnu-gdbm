@@ -95,10 +95,13 @@ void syntax_error (const char *fmt, ...);
 
 void print_prompt (void);
 
-void setsource (const char *filename, FILE *file);
+int setsource (const char *filename, int intr);
 
 extern char *file_name;
 extern int interactive;
+
+#define GDBMTOOLRC ".gdbmtoolrc"
+
 
 struct slist
 {

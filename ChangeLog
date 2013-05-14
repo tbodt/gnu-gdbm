@@ -1,7 +1,23 @@
 2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Implement rc files and "source" command; improve lexical analyzer.
+
+	* src/gdbmtool.c (interactive): Move to lex.l;
+	(mkfilename, tildexpand): New functions.
+	(command_tab) <source>: New command.
+	(main): Source rc file, if present.
+	* src/gdbmtool.h (setsource): Change return type
+	and signature.
+	* src/lex.l: Implement context stack.
+	Change DEF to be an exclusive state.
+
+	* src/gdbmapp.h (estrdup): Argument is const.
+	* src/mem.c: Likewise.
+
+2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Add support for Berkeley dump format version 3 (read-only).
-	
+
 	* src/gdbmapp.h: Include gettext.h and locale.h.
 	* src/gdbmload.c: Support for Berkeley dump format,
 	version 3.

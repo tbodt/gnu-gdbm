@@ -60,7 +60,7 @@ ezalloc (size_t size)
 }
 
 char *
-estrdup (char *str)
+estrdup (const char *str)
 {
   char *p;
 

@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <signal.h>
+#include <pwd.h>
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_TERMIOS_H
 # include <sys/termios.h>
@@ -31,12 +32,11 @@
 # include <locale.h>
 #endif
 
-char *file_name = NULL;             /* Database file name */   
+char *file_name = NULL;       /* Database file name */   
 GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
-int interactive;                    /* Are we running in interactive mode? */
-datum key_data;                     /* Current key */
-datum return_data;                  /* Current data */
-int quiet_option = 0;               /* Omit usual welcome banner at startup */
+datum key_data;               /* Current key */
+datum return_data;            /* Current data */
+int quiet_option = 0;         /* Omit the usual welcome banner at startup */
 
 #define SIZE_T_MAX ((size_t)-1)
 
@@ -56,7 +56,57 @@ terror (int code, const char *fmt, ...)
   if (code)
     exit (code);
 }
+
+char *
+mkfilename (const char *dir, const char *file, const char *suf)
+{
+  char *tmp;
+  size_t dirlen = strlen (dir);
+  size_t suflen = suf ? strlen (suf) : 0;
+  size_t fillen = strlen (file);
+  size_t len;
+  
+  while (dirlen > 0 && dir[dirlen-1] == '/')
+    dirlen--;
 
+  len = dirlen + (dir[0] ? 1 : 0) + fillen + suflen;
+  tmp = emalloc (len + 1);
+  memcpy (tmp, dir, dirlen);
+  if (dir[0])
+    tmp[dirlen++] = '/';
+  memcpy (tmp + dirlen, file, fillen);
+  if (suf)
+    memcpy (tmp + dirlen + fillen, suf, suflen);
+  tmp[len] = 0;
+  return tmp;
+}
+
+char *
+tildexpand (char *s)
+{
+  if (s[0] == '~')
+    {
+      char *p = s + 1;
+      size_t len = strcspn (p, "/");
+      struct passwd *pw;
+
+      if (len == 0)
+	pw = getpwuid (getuid ());
+      else
+	{
+	  char *user = emalloc (len + 1);
+	  
+	  memcpy (user, p, len);
+	  user[len] = 0;
+	  pw = getpwnam (user);
+	  free (user);
+	}
+      if (pw)
+	return mkfilename (pw->pw_dir, p + len + 1, NULL);
+    }
+  return estrdup (s);
+}
+	  
 
 size_t
 bucket_print_lines (hash_bucket *bucket)
@@ -698,6 +748,16 @@ status_handler (struct handler_param *param)
   fprintf (param->fp, _("Database file: %s\n"), file_name);
 }
 
+void
+source_handler (struct handler_param *param)
+{
+  char *fname = tildexpand (param->argv[0]->v.string);
+  if (setsource (fname, 0) == 0)
+    yyparse ();
+  free (fname);
+}
+
+
 void help_handler (struct handler_param *param);
 int help_begin (struct handler_param *param, size_t *exp_count);
 
@@ -810,6 +870,10 @@ struct command command_tab[] = {
     { { "key|content", ARG_STRING },
       { "{ field-list }", ARG_STRING },
       { NULL } }, N_("define structure") },
+  { S(source), T_CMD,
+    NULL, source_handler, NULL,
+    { { "file", ARG_STRING },
+      { NULL } }, N_("source command script") },
 #undef S
   { 0 }
 };
@@ -1279,12 +1343,44 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
   
   return 0;
 }
-  
+
+static void
+source_rcfile ()
+{
+  if (access (GDBMTOOLRC, R_OK) == 0)
+    {
+      if (setsource (GDBMTOOLRC, 0) == 0)
+	yyparse ();
+    }
+  else
+    {
+      char *fname;
+      char *p = getenv ("HOME");
+      if (!p)
+	{
+	  struct passwd *pw = getpwuid (getuid ());
+	  if (!pw)
+	    {
+	      terror (0, _("cannot find home directory"));
+	      return;
+	    }
+	  p = pw->pw_dir;
+	}
+      fname = mkfilename (p, GDBMTOOLRC, NULL);
+      if (access (fname, R_OK) == 0)
+	{
+	  if (setsource (fname, 0) == 0)
+	    yyparse ();
+	}
+      free (fname);
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
-  char cmdbuf[1000];
-
+  int intr;
+  
   int cache_size = DEFAULT_CACHESIZE;
   int block_size = 0;
   
@@ -1369,7 +1465,7 @@ main (int argc, char *argv[])
     file_name = "junk.gdbm";
 
   /* Initialize variables. */
-  interactive = isatty (0);
+  intr = isatty (0);
   dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
   dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
 
@@ -1397,16 +1493,15 @@ main (int argc, char *argv[])
 
   signal (SIGPIPE, SIG_IGN);
 
-  /* Welcome message. */
-  if (interactive && !quiet_option)
-    printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
-
   memset (&param, 0, sizeof (param));
   argmax = 0;
+
+  /* Welcome message. */
+  if (intr && !quiet_option)
+    printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
+
+  source_rcfile ();	  
   
-  setsource ("stdin", stdin);
-    //FIXME
+  setsource ("-", intr);
   return yyparse ();
-  
-  return 0;
 }

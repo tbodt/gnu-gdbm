@@ -57,11 +57,140 @@ char *string_end (void);
 int unescape (int c);
 
 static ssize_t read_input (char *buf, size_t size);
+
+struct context                /* Input context */
+{
+  struct context *parent;     /* Pointer to the parent context */
+  struct locus locus;         /* Locus */
+  struct point point;
+  int interactive;
+  ino_t ino;                  /* Inode number */ 
+  dev_t dev;                  /* Device number */
+  FILE *file;                 /* Input file */
+  YY_BUFFER_STATE buf;        /* Buffer */
+};
+
+static struct context *context_tos;
+static ino_t ino;
+static dev_t dev;
+int interactive;              /* Are we running in interactive mode? */
+
+static void
+context_push ()
+{
+  struct context *cp = ecalloc (1, sizeof (*cp));
+
+  cp->locus = yylloc;
+  cp->point = point;
+  cp->interactive = interactive;
+  cp->ino = ino;
+  cp->dev = dev;
+  cp->file = yyin;
+  cp->buf = YY_CURRENT_BUFFER;
+  cp->parent = context_tos;
+  context_tos = cp;
+}
+
+int
+context_pop ()
+{
+  struct context *cp = context_tos;
+
+  fclose (yyin);
+  yyin = NULL;
+  free (point.file);
+  
+  if (!cp)
+    return 1;
+
+  context_tos = cp->parent;
+  
+  yylloc = cp->locus;
+  point = cp->point;
+  interactive = cp->interactive;
+  ino = cp->ino;
+  dev = cp->dev;
+  yyin = cp->file;
+  yy_delete_buffer (YY_CURRENT_BUFFER);
+  yy_switch_to_buffer (cp->buf);
+
+  return 0;
+}
+
+static struct context *
+findctx (struct stat *st)
+{
+  struct context *cp;
+
+  for (cp = context_tos; cp; cp = cp->parent)
+    if (cp->dev == st->st_dev && cp->ino == st->st_ino)
+      break;
+  return cp;
+}
  
+int
+setsource (const char *name, int intr)
+{
+  int rc;
+  struct stat st;
+  struct context *cp;
+  FILE *fp;
+  
+  if (strcmp (name, "-") == 0)
+    {
+      fp = stdin;
+      name = "stdin";
+    }
+  else
+    {
+      if (stat (name, &st))
+	{
+	  syntax_error (_("cannot open `%s': %s"), name, strerror (errno));
+	  return -1;
+	}
+      else if (!S_ISREG (st.st_mode))
+	{
+	  syntax_error (_("%s is not a regular file"), name);
+	  return -1;
+	}
+
+      cp = findctx (&st);
+      if (cp)
+	{
+	  syntax_error (_("recursive sourcing"));
+	  if (cp->parent)
+	    parse_error (&cp->locus, _("%s already sourced here"), name);
+	  return 1;
+	}
+      
+      fp = fopen (name, "r");
+      if (!fp)
+	{
+	  syntax_error (_("cannot open %s for reading: %s"), name,
+			strerror (errno));
+	  return 1;
+	}
+    }
+  
+  if (yyin)
+    context_push ();
+
+  yyin = fp;
+  yy_switch_to_buffer (yy_create_buffer (yyin, YY_BUF_SIZE));
+
+  interactive = intr;
+  dev = st.st_dev;
+  ino = st.st_ino;
+  
+  point.file = estrdup (name);
+  point.line = 1;
+  point.col = 0;
+
+  return 0;
+}
 %}
 
-%x STR
-%s DEF
+%x STR DEF
 
 WS [ \t][ \t]*
 IDENT [a-zA-Z_][a-zA-Z_0-9-]*
@@ -119,22 +248,11 @@ O [0-7]
                      return T_NUM; };
 <DEF>0|{P}         { yylval.num = strtoul (yytext, NULL, 10);
                      return T_NUM; };
-
-^[ \t]*{IDENT}     { if (YYSTATE == DEF)
-	               {
-			 if (yylval.type = datadef_lookup (yytext))
-			   return T_TYPE;
-		       }
-                     else
-                       {
-			 return command_lookup (yytext, &yylloc, &yylval.cmd);
-		       }
-
-		     yylval.string = estrdup (yytext);
-		     return T_IDENT;
-                   }
-{IDENT}            { if (YYSTATE == DEF &&
-			 (yylval.type = datadef_lookup (yytext)))
+^[ \t]*\?          { return command_lookup ("help", &yylloc, &yylval.cmd); }
+^[ \t]*{IDENT}     { char *p = yytext + strspn (yytext, " \t");
+		     return command_lookup (p, &yylloc, &yylval.cmd);
+		   }
+<DEF>{IDENT}       { if ((yylval.type = datadef_lookup (yytext)))
 			 return T_TYPE;
                      else
 		       {
@@ -142,7 +260,11 @@ O [0-7]
 			 return T_IDENT;
 		       }
                    }
-[^ \t\n\[\]{},=]+  { yylval.string = estrdup (yytext); return T_WORD; }
+{IDENT}            { yylval.string = estrdup (yytext);
+                     return T_IDENT;
+                   }
+<INITIAL,DEF>[^ \t\n\[\]{},=]+  { yylval.string = estrdup (yytext);
+                                  return T_WORD; }
 \"[^\\\"\n]*\"     { yylval.string = emalloc (yyleng - 1);
                      memcpy (yylval.string, yytext+1, yyleng-2);
 		     yylval.string[yyleng-2] = 0;
@@ -158,24 +280,16 @@ O [0-7]
                      return T_WORD; }
 <STR>[^\\\"\n]*\\. { string_add (yytext, yyleng - 2);
                      string_addc (unescape (yytext[yyleng-1])); }
-{WS}               ;
-\n                 { advance_line (); if (YYSTATE == INITIAL) return '\n'; }
-.                  return yytext[0];
+<INITIAL,DEF>{WS}  ;
+<DEF>\n            { advance_line (); }
+\n                 { advance_line (); return '\n'; }
+<INITIAL,DEF>.     return yytext[0];
 %%
-
-void
-setsource (const char *filename, FILE *file)
-{
-  point.file = (char*) filename;
-  point.line = 1;
-  point.col = 0;
-  yyin = file;
-}
 
 int
 yywrap ()
 {
-  return 1;
+  return context_pop ();
 }
 
 void
@@ -309,7 +423,10 @@ vparse_error (struct locus *loc, const char *fmt, va_list ap)
   if (!interactive)
     fprintf (stderr, "%s", progname);
   if (loc)
-    YY_LOCATION_PRINT (stderr, *loc);
+    {
+      fprintf (stderr, ": ");
+      YY_LOCATION_PRINT (stderr, *loc);
+    }
   fprintf (stderr, ": ");
   vfprintf (stderr, fmt, ap);
   fputc ('\n', stderr);
