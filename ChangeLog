@@ -5,7 +5,7 @@
 	* src/datconv.c (s_float): Use strtod.
 	(datum_scan_notag, datum_scan_tag): Made static.
 	(dsprint): New function.
-	* src/gdbmtool.c (status_handler): Print ket and
+	* src/gdbmtool.c (status_handler): Print key and
 	content definitions.
 	(slist_new): Bugfix (missing return statement).
 	* src/gdbmtool.h: Add new prototypes.
