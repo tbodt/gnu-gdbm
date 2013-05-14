@@ -399,6 +399,7 @@ struct handler_param
 };
 	     
 
+/* Open database */
 void
 open_handler (struct handler_param *param)
 {
@@ -409,6 +410,7 @@ open_handler (struct handler_param *param)
     }
 }
 
+/* Close database */
 void
 close_handler (struct handler_param *param)
 {
@@ -419,7 +421,7 @@ close_handler (struct handler_param *param)
 }
 
 
-/* c - count */
+/* count - count items in the database */
 void
 count_handler (struct handler_param *param)
 {
@@ -429,7 +431,7 @@ count_handler (struct handler_param *param)
 	   count);
 }
 
-/* d key - delete */
+/* delete KEY - delete a key*/
 void
 delete_handler (struct handler_param *param)
 {
@@ -442,7 +444,7 @@ delete_handler (struct handler_param *param)
     }
 }
 
-/* f key - fetch */
+/* fetch KEY - fetch a record by its key */
 void
 fetch_handler (struct handler_param *param)
 {
@@ -457,7 +459,7 @@ fetch_handler (struct handler_param *param)
     fprintf (stderr, _("No such item found.\n"));
 }
 
-/* s key data - store */
+/* store KEY DATA - store data */
 void
 store_handler (struct handler_param *param)
 {
@@ -467,7 +469,7 @@ store_handler (struct handler_param *param)
     fprintf (stderr, _("Item not inserted.\n"));
 }
 
-/* 1 - begin iteration */
+/* first - begin iteration */
 
 void
 firstkey_handler (struct handler_param *param)
@@ -490,7 +492,7 @@ firstkey_handler (struct handler_param *param)
     fprintf (param->fp, _("No such item found.\n"));
 }
 
-/* n [key] - next key */
+/* next [KEY] - next key */
 void
 nextkey_handler (struct handler_param *param)
 {
@@ -523,7 +525,7 @@ nextkey_handler (struct handler_param *param)
     }
 }
 
-/* r - reorganize */
+/* reorganize */
 void
 reorganize_handler (struct handler_param *param ARG_UNUSED)
 {
@@ -533,7 +535,7 @@ reorganize_handler (struct handler_param *param ARG_UNUSED)
     fprintf (stderr, _("Reorganization succeeded.\n"));
 }
 
-/* A - print available list */
+/* avail - print available list */
 int
 avail_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
@@ -596,7 +598,7 @@ getnum (int *pnum, char *arg, char **endp)
   return 0;
 }
   
-/* B num - print a bucket and set is a current one.
+/* bucket NUM - print a bucket and set it as a current one.
    Uses print_current_bucket_handler */
 int
 print_bucket_begin (struct handler_param *param, size_t *exp_count)
@@ -621,7 +623,7 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
 }
 
 
-/* D - print hash directory */
+/* dir - print hash directory */
 int
 print_dir_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
@@ -646,7 +648,7 @@ print_dir_handler (struct handler_param *param)
 	     i, (unsigned long) gdbm_file->dir[i]);
 }
 
-/* F - print file handler */
+/* header - print file handler */
 int
 print_header_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
@@ -679,7 +681,7 @@ print_header_handler (struct handler_param *param)
 	   (unsigned long) gdbm_file->header->avail.next_block);
 }  
 
-/* H key - hash the key */
+/* hash KEY - hash the key */
 void
 hash_handler (struct handler_param *param)
 {
@@ -687,7 +689,7 @@ hash_handler (struct handler_param *param)
 	   _gdbm_hash (param->argv[0]->v.dat));
 }
 
-/* K - print the bucket cache */
+/* cache - print the bucket cache */
 int
 print_cache_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
@@ -704,14 +706,14 @@ print_cache_handler (struct handler_param *param)
   _gdbm_print_bucket_cache (param->fp, gdbm_file);
 }
 
-/* V - print GDBM version */
+/* version - print GDBM version */
 void
 print_version_handler (struct handler_param *param)
 {
   fprintf (param->fp, "%s\n", gdbm_version);
 }
 
-/* l - List all entries */
+/* list - List all entries */
 int
 list_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
@@ -749,7 +751,7 @@ list_handler (struct handler_param *param)
     }
 }
 
-/* q - quit the program */
+/* quit - quit the program */
 void
 quit_handler (struct handler_param *param ARG_UNUSED)
 {
@@ -759,7 +761,7 @@ quit_handler (struct handler_param *param ARG_UNUSED)
   exit (EXIT_OK);
 }
 
-/* e file [truncate] - export to a flat file format */
+/* export FILE [truncate] - export to a flat file format */
 void
 export_handler (struct handler_param *param)
 {
@@ -789,7 +791,7 @@ export_handler (struct handler_param *param)
     }
 }
 
-/* i file [replace] - import from a flat file */
+/* import FILE [replace] [nometa] - import from a flat file */
 void
 import_handler (struct handler_param *param)
 {
@@ -857,7 +859,7 @@ import_handler (struct handler_param *param)
     syntax_error (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
 }
 
-/* S - print current program status */
+/* status - print current program status */
 void
 status_handler (struct handler_param *param)
 {

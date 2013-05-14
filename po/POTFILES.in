@@ -24,5 +24,8 @@ src/gdbmfetch.c
 src/gdbmseq.c
 src/gdbmstore.c
 src/parseopt.c
-src/testgdbm.c
+src/gdbmtool.c
 src/update.c
+src/gram.y
+src/lex.l
+src/datconv.c

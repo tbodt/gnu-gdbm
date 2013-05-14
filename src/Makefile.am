@@ -87,6 +87,8 @@ gdbmtool_SOURCES = \
  gdbmtool.c\
  var.c
 
+EXTRA_DIST = gram.h
+
 AM_YFLAGS = -dtv
 #AM_LFLAGS = -d
 
