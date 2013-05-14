@@ -319,7 +319,7 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
     {
       if (kv->key)
 	{
-	  parse_error (&kv->loc,
+	  lerror (&kv->loc,
 		       _("mixing tagged and untagged values is not allowed"));
 	  err = 1;
 	  break;
@@ -336,7 +336,7 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 	    case KV_STRING:
 	      err = ds->v.field.type->scan (&xd, kv->val.s);
 	      if (err)
-		parse_error (&kv->loc, _("cannot convert"));
+		lerror (&kv->loc, _("cannot convert"));
 	      break;
 	      
 	    case KV_LIST:
@@ -346,7 +346,7 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 		  err = ds->v.field.type->scan (&xd, s->str);
 		  if (err)
 		    {
-		      parse_error (&kv->loc,
+		      lerror (&kv->loc,
 				   _("cannot convert value #%d: %s"),
 				   i, s->str);
 		      break;
@@ -383,7 +383,7 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 static int
 datum_scan_tag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 {
-  parse_error (&kv->loc, "tagged values are not yet supported");
+  lerror (&kv->loc, "tagged values are not yet supported");
   return 1;
 }
 

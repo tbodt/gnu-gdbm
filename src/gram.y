@@ -201,8 +201,8 @@ defid     : T_IDENT
 		$$ = DS_CONTENT;
 	      else
 		{
-		  syntax_error (_("expected \"key\" or \"content\", "
-				  "but found \"%s\""), $1);
+		  terror (_("expected \"key\" or \"content\", "
+			    "but found \"%s\""), $1);
 		  YYERROR;
 		}
 	    }
@@ -271,11 +271,11 @@ var       : T_IDENT
 		  break;
 		  
 		case VAR_ERR_NOTDEF:
-		  parse_error (&@1, _("no such variable: %s"), varname);
+		  lerror (&@1, _("no such variable: %s"), varname);
 		  break;
 
 		case VAR_ERR_BADTYPE:
-		  parse_error (&@1, _("%s is not a boolean variable"), varname);
+		  lerror (&@1, _("%s is not a boolean variable"), varname);
 		  break;
 		}
 	      free($1);
@@ -283,38 +283,42 @@ var       : T_IDENT
           | T_IDENT '=' string
 	    {
 	      int rc = variable_set ($1, VART_STRING, $3);
-	      free ($3);
 	      switch (rc)
 		{
 		case VAR_OK:
 		  break;
 		  
 		case VAR_ERR_NOTDEF:
-		  parse_error (&@1, _("no such variable: %s"), $1);
+		  lerror (&@1, _("no such variable: %s"), $1);
 		  break;
 
 		case VAR_ERR_BADTYPE:
-		  parse_error (&@1, _("%s is not a string variable"), $1);
+		  lerror (&@1, _("%s: bad variable type"), $1);
+		  break;
+
+		case VAR_ERR_BADVALUE:
+		  lerror (&@1, _("%s: value %s is not allowed"), $1, $3);
 		  break;
 		}
 	      free($1);
+	      free ($3);
 	    }
           ;
 %%
 
 void
-syntax_error (const char *fmt, ...)
+terror (const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
-  vparse_error (&yylloc, fmt, ap);
+  vlerror (&yylloc, fmt, ap);
   va_end (ap);
 }
 
 int
 yyerror (char *s)
 {
-  syntax_error ("%s", s);
+  terror ("%s", s);
   return 0;
 }

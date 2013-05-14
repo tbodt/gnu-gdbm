@@ -26,7 +26,7 @@ noinst_HEADERS = \
  proto.h\
  systems.h
 
-EXTRA_DIST = gdbm.h.in
+EXTRA_DIST = gdbm.h.in gram.h
 
 # The libraries
 VI_CURRENT  = 4
@@ -85,9 +85,8 @@ gdbmtool_SOURCES = \
  lex.l\
  gdbmtool.h\
  gdbmtool.c\
- var.c
-
-EXTRA_DIST = gram.h
+ var.c\
+ util.c
 
 AM_YFLAGS = -dtv
 #AM_LFLAGS = -d

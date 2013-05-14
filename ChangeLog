@@ -1,5 +1,33 @@
 2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Change variable handling. 
+	
+	* src/util.c: New file.
+	* src/Makefile.am: Add new files.
+	* src/gdbmtool.c (open_mode): New variable.
+	(terror): Remove.
+	(mkfilename, tildexpand): Move to util.c
+	(opendb): Use open_mode.
+	(import_handler): Likewise.
+	(optab): New option -N (--norc).
+
+	* src/gdbmtool.h (vparse_error): Rename to vlerror.
+	(parse_error): Rename to lerror.
+	(syntax_error): Rename tp terror.
+	All uses updated.
+	(VAR_ERR_FAILURE): Remove.
+	(VAR_ERR_BADVALUE): New error code.
+	(variable_mode_name): Remove.
+	(mkfilename, tildexpand)
+	(vgetyn, getyn): New protos.
+	* src/lex.l (initialized): New static.
+	(setsource): Set initialized.
+	(vlerror): Print locus only if the lexer has been
+	initialized.
+	* src/var.c: Rewrite.
+
+2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Provide "open" and "close" commands; implement new variables.
 	
 	* src/datconv.c (datum_format): Don't print field delimiter

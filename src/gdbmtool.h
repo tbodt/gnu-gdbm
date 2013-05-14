@@ -89,10 +89,10 @@ typedef struct locus gdbm_yyltype_t;
     }							  \
   while (0)
 
-void vparse_error (struct locus *loc, const char *fmt, va_list ap);
-void parse_error (struct locus *loc, const char *fmt, ...);
+void vlerror (struct locus *loc, const char *fmt, va_list ap);
+void lerror (struct locus *loc, const char *fmt, ...);
 
-void syntax_error (const char *fmt, ...);
+void terror (const char *fmt, ...);
 
 void print_prompt (void);
 
@@ -100,6 +100,7 @@ int setsource (const char *filename, int intr);
 
 extern char *file_name;
 extern int interactive;
+extern int open_mode;
 
 #define GDBMTOOLRC ".gdbmtoolrc"
 #define GDBMTOOL_DEFFILE "junk.gdbm"
@@ -227,16 +228,15 @@ extern struct dsegm *dsdef[];
 #define VART_BOOL   1
 #define VART_INT    2
 
-#define VAR_OK          0
-#define VAR_ERR_NOTDEF  1
-#define VAR_ERR_BADTYPE 2
-#define VAR_ERR_FAILURE 3
+#define VAR_OK           0
+#define VAR_ERR_NOTDEF   1
+#define VAR_ERR_BADTYPE  2
+#define VAR_ERR_BADVALUE 3
 
 int variable_set (const char *name, int type, void *val);
 int variable_get (const char *name, int type, void **val);
 int variable_is_set (const char *name);
 void variable_print_all (FILE *fp);
-const char *variable_mode_name ();
 
 
 int unescape (int c);
@@ -252,4 +252,7 @@ void datum_format (FILE *fp, datum const *dat, struct dsegm *ds);
 int datum_scan (datum *dat, struct dsegm *ds, struct kvpair *kv);
 void dsprint (FILE *fp, int what, struct dsegm *ds);
 
-
+char *mkfilename (const char *dir, const char *file, const char *suf);
+char *tildexpand (char *s);
+int vgetyn (const char *prompt, va_list ap);
+int getyn (const char *prompt, ...);

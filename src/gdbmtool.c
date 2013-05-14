@@ -37,75 +37,12 @@ GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
 datum key_data;               /* Current key */
 datum return_data;            /* Current data */
 int quiet_option = 0;         /* Omit the usual welcome banner at startup */
+int open_mode;                /* Default open mode */
 
 #define SIZE_T_MAX ((size_t)-1)
 
 unsigned input_line;
 
-
-void
-terror (int code, const char *fmt, ...)
-{
-  va_list ap;
-  if (!interactive)
-    fprintf (stderr, "%s: ", progname);
-  va_start (ap, fmt);
-  vfprintf (stderr, fmt, ap);
-  va_end (ap);
-  fputc ('\n', stderr);
-  if (code)
-    exit (code);
-}
-
-char *
-mkfilename (const char *dir, const char *file, const char *suf)
-{
-  char *tmp;
-  size_t dirlen = strlen (dir);
-  size_t suflen = suf ? strlen (suf) : 0;
-  size_t fillen = strlen (file);
-  size_t len;
-  
-  while (dirlen > 0 && dir[dirlen-1] == '/')
-    dirlen--;
-
-  len = dirlen + (dir[0] ? 1 : 0) + fillen + suflen;
-  tmp = emalloc (len + 1);
-  memcpy (tmp, dir, dirlen);
-  if (dir[0])
-    tmp[dirlen++] = '/';
-  memcpy (tmp + dirlen, file, fillen);
-  if (suf)
-    memcpy (tmp + dirlen + fillen, suf, suflen);
-  tmp[len] = 0;
-  return tmp;
-}
-
-char *
-tildexpand (char *s)
-{
-  if (s[0] == '~')
-    {
-      char *p = s + 1;
-      size_t len = strcspn (p, "/");
-      struct passwd *pw;
-
-      if (len == 0)
-	pw = getpwuid (getuid ());
-      else
-	{
-	  char *user = emalloc (len + 1);
-	  
-	  memcpy (user, p, len);
-	  user[len] = 0;
-	  pw = getpwnam (user);
-	  free (user);
-	}
-      if (pw)
-	return mkfilename (pw->pw_dir, p + len + 1, NULL);
-    }
-  return estrdup (s);
-}
 
 static int
 opendb (char *dbname)
@@ -127,25 +64,28 @@ opendb (char *dbname)
   if (variable_is_set ("sync"))
     flags |= GDBM_SYNC;
       
-  if (variable_is_set ("readonly"))
-    flags = GDBM_READER;
-  else if (variable_is_set ("newdb"))
-    flags |= GDBM_NEWDB;
-  else
-    flags |= GDBM_WRCREAT;
+  if (open_mode == GDBM_NEWDB)
+    {
+      if (interactive && variable_is_set ("confirm") &&
+	  access (dbname, F_OK) == 0)
+	{
+	  if (!getyn (_("database %s already exists; overwrite"), dbname))
+	    return 1;
+	}
+    }
   
-  db = gdbm_open (dbname, block_size, flags, 00664, NULL);
+  db = gdbm_open (dbname, block_size, open_mode | flags, 0644, NULL);
 
   if (db == NULL)
     {
-      syntax_error (_("cannot open database %s: %s"), dbname,
-		     gdbm_strerror (gdbm_errno));
+      terror (_("cannot open database %s: %s"), dbname,
+	      gdbm_strerror (gdbm_errno));
       return 1;
     }
 
   if (gdbm_setopt (db, GDBM_CACHESIZE, &cache_size, sizeof (int)) ==
       -1)
-    syntax_error (_("gdbm_setopt failed: %s"),
+    terror (_("gdbm_setopt failed: %s"),
 		  gdbm_strerror (gdbm_errno));
 
   if (gdbm_file)
@@ -163,7 +103,7 @@ checkdb ()
       if (!file_name)
 	{
 	  file_name = estrdup (GDBMTOOL_DEFFILE);
-	  syntax_error (_("warning: using default database file %s"),
+	  terror (_("warning: using default database file %s"),
 			file_name);
 	}
       return opendb (file_name);
@@ -228,16 +168,17 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
     {
       if (__lseek (dbf, temp, SEEK_SET) != temp)
 	{
-	  terror (0, "lseek: %s", strerror (errno));
+	  terror ("lseek: %s", strerror (errno));
 	  break;
 	}
       
       if ((rc = _gdbm_full_read (dbf, av_stk, size)))
 	{
 	  if (rc == GDBM_FILE_EOF)
-	    terror (0, "read: %s", gdbm_strerror (rc));
+	    terror ("read: %s", gdbm_strerror (rc));
 	  else
-	    terror (0, "read: %s (%s)", gdbm_strerror (rc), strerror (errno));
+	    terror ("read: %s (%s)",
+			  gdbm_strerror (rc), strerror (errno));
 	  break;
 	}
 
@@ -280,16 +221,16 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
     {
       if (__lseek (dbf, temp, SEEK_SET) != temp)
 	{
-	  terror (0, "lseek: %s", strerror (errno));
+	  terror ("lseek: %s", strerror (errno));
 	  break;
 	}
       
       if ((rc = _gdbm_full_read (dbf, av_stk, size)))
 	{
 	  if (rc == GDBM_FILE_EOF)
-	    terror (0, "read: %s", gdbm_strerror (rc));
+	    terror ("read: %s", gdbm_strerror (rc));
 	  else
-	    terror (0, "read: %s (%s)", gdbm_strerror (rc), strerror (errno));
+	    terror ("read: %s (%s)", gdbm_strerror (rc), strerror (errno));
 	  break;
 	}
 
@@ -415,7 +356,7 @@ void
 close_handler (struct handler_param *param)
 {
   if (!gdbm_file)
-    syntax_error (_("nothing to close"));
+    terror (_("nothing to close"));
   gdbm_close (gdbm_file);
   gdbm_file = NULL;
 }
@@ -737,7 +678,10 @@ list_handler (struct handler_param *param)
 
       data = gdbm_fetch (gdbm_file, key);
       if (!data.dptr)
-	terror (0, _("cannot fetch data (key %.*s)"), key.dsize, key.dptr);
+	{
+	  terror (_("cannot fetch data; the key was:"));
+	  datum_format (stderr, &key, dsdef[DS_KEY]);
+	}
       else
 	{
 	  datum_format (param->fp, &key, dsdef[DS_KEY]);
@@ -779,7 +723,7 @@ export_handler (struct handler_param *param)
 	format = GDBM_DUMP_FMT_ASCII;
       else
 	{
-	  syntax_error (_("unrecognized argument: %s"),
+	  terror (_("unrecognized argument: %s"),
 			param->argv[i]->v.string);
 	  return;
 	}
@@ -787,7 +731,8 @@ export_handler (struct handler_param *param)
 
   if (gdbm_dump (gdbm_file, param->argv[0]->v.string, format, flags, 0600))
     {
-      terror (0, _("error dumping database: %s"), gdbm_strerror (gdbm_errno));
+      terror (_("error dumping database: %s"),
+		    gdbm_strerror (gdbm_errno));
     }
 }
 
@@ -809,7 +754,7 @@ import_handler (struct handler_param *param)
 	meta_mask = GDBM_META_MASK_MODE | GDBM_META_MASK_OWNER;
       else
 	{
-	  syntax_error (_("unrecognized argument: %s"),
+	  terror (_("unrecognized argument: %s"),
 			param->argv[i]->v.string);
 	  return;
 	}
@@ -819,13 +764,11 @@ import_handler (struct handler_param *param)
 		  meta_mask, &err_line);
   if (rc && gdbm_errno == GDBM_NO_DBNAME)
     {
-      const char *varname = variable_mode_name ();
-      int t = 1;
+      int t = open_mode;
 
-      variable_set ("newdb", VART_BOOL, &t);
+      open_mode = GDBM_NEWDB;
       rc = checkdb ();
-      if (varname)
-	variable_set (varname, VART_BOOL, &t);
+      open_mode = t;
 
       if (rc)
 	return;
@@ -839,24 +782,24 @@ import_handler (struct handler_param *param)
 	{
 	case GDBM_ERR_FILE_OWNER:
 	case GDBM_ERR_FILE_MODE:
-	  terror (0, _("error restoring metadata: %s (%s)"),
-		  gdbm_strerror (gdbm_errno), strerror (errno));
+	  terror (_("error restoring metadata: %s (%s)"),
+			gdbm_strerror (gdbm_errno), strerror (errno));
 	  break;
 	  
 	default:
 	  if (err_line)
-	    terror (0, "%s:%lu: %s", param->argv[0], err_line,
-		    gdbm_strerror (gdbm_errno));
+	    terror ("%s:%lu: %s", param->argv[0], err_line,
+			  gdbm_strerror (gdbm_errno));
 	  else
-	    terror (0, _("cannot load from %s: %s"), param->argv[0],
-		    gdbm_strerror (gdbm_errno));
+	    terror (_("cannot load from %s: %s"), param->argv[0],
+			  gdbm_strerror (gdbm_errno));
 	}
       return;
     }
 
   free (file_name);
   if (gdbm_setopt (gdbm_file, GDBM_GETDBNAME, &file_name, sizeof (file_name)))
-    syntax_error (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
+    terror (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
 }
 
 /* status - print current program status */
@@ -1104,7 +1047,7 @@ command_lookup (const char *str, struct locus *loc, struct command **pcmd)
     }
 
   if (state == fcom_init)
-    parse_error (loc,
+    lerror (loc,
 		 interactive ? _("Invalid command. Try ? for help.") :
 	                       _("Unknown command"));
   if (!found)
@@ -1124,6 +1067,7 @@ struct gdbm_option optab[] = {
   { 'l', "no-lock",    NULL,       N_("disable file locking") },
   { 'm', "no-mmap",    NULL,       N_("do not use mmap") },
   { 'n', "newdb",      NULL,       N_("create database") },
+  { 'N', "norc",       NULL,       N_("do not read .gdbmtoolrc file") },
   { 'r', "read-only",  NULL,       N_("open database in read-only mode") },
   { 's', "synchronize", NULL,      N_("synchronize to disk after each write") },
   { 'q', "quiet",      NULL,       N_("don't print initial banner") },
@@ -1366,7 +1310,7 @@ coerce (struct gdbmarg *arg, struct argdef *def)
 {
   if (!coerce_tab[def->type][arg->type])
     {
-      parse_error (&arg->loc, _("cannot coerce %s to %s"),
+      lerror (&arg->loc, _("cannot coerce %s to %s"),
 		    argtypestr[arg->type], argtypestr[def->type]);
       return NULL;
     }
@@ -1411,13 +1355,16 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 
       if (!interactive)
 	{
-	  syntax_error (_("%s: not enough arguments"), cmd->name);
+	  terror (_("%s: not enough arguments"), cmd->name);
 	  return 1;
 	}
       printf ("%s? ", argname);
       fflush (stdout);
       if (fgets (argbuf, sizeof argbuf, stdin) == NULL)
-	terror (EXIT_USAGE, _("unexpected eof"));
+	{
+	  terror (_("unexpected eof"));
+	  exit (EXIT_USAGE);
+	}
 
       trimnl (argbuf);
       if (i >= argmax)
@@ -1438,7 +1385,7 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 
   if (arg)
     {
-      syntax_error (_("%s: too many arguments"), cmd->name);
+      terror (_("%s: too many arguments"), cmd->name);
       return 1;
     }
 
@@ -1465,8 +1412,8 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 	    param.fp = pagfp;
 	  else
 	    {
-	      terror (0, _("cannot run pager `%s': %s"), pager,
-		      strerror (errno));
+	      terror (_("cannot run pager `%s': %s"), pager,
+			    strerror (errno));
 	      pager = NULL;
 	      param.fp = stdout;
 	    }	  
@@ -1506,7 +1453,7 @@ source_rcfile ()
 	  struct passwd *pw = getpwuid (getuid ());
 	  if (!pw)
 	    {
-	      terror (0, _("cannot find home directory"));
+	      terror (_("cannot find home directory"));
 	      return;
 	    }
 	  p = pw->pw_dir;
@@ -1527,6 +1474,7 @@ main (int argc, char *argv[])
   int intr;  
   int opt;
   int bv;
+  int norc = 0;
   
   set_progname (argv[0]);
 
@@ -1537,6 +1485,8 @@ main (int argc, char *argv[])
   textdomain (PACKAGE);
 
   sort_commands ();
+
+  variable_set ("open", VART_STRING, "wrcreat");
   
   for (opt = parseopt_first (argc, argv, optab);
        opt != EOF;
@@ -1559,13 +1509,15 @@ main (int argc, char *argv[])
 	break;
 	
       case 'r':
-	bv = 1;
-	variable_set ("readonly", VART_BOOL, &bv);
+	variable_set ("open", VART_STRING, "readonly");
 	break;
 	
       case 'n':
-	bv = 1;
-	variable_set ("newdb", VART_BOOL, &bv);
+	variable_set ("open", VART_STRING, "newdb");
+	break;
+
+      case 'N':
+	norc = 1;
 	break;
 	
       case 'c':
@@ -1585,15 +1537,20 @@ main (int argc, char *argv[])
 	break;
 	
       default:
-	terror (EXIT_USAGE,
-		_("unknown option; try `%s -h' for more info\n"), progname);
+	terror (_("unknown option; try `%s -h' for more info"),
+		      progname);
+	exit (EXIT_USAGE);
       }
 
   argc -= optind;
   argv += optind;
 
   if (argc > 1)
-    terror (EXIT_USAGE, _("too many arguments"));
+    {
+      terror (_("too many arguments"));
+      exit (EXIT_USAGE);
+    }
+      
   if (argc == 1)
     file_name = argv[0];
 
@@ -1611,7 +1568,8 @@ main (int argc, char *argv[])
   if (intr && !quiet_option)
     printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
 
-  source_rcfile ();	  
+  if (!norc)
+    source_rcfile ();	  
   
   setsource ("-", intr);
   return yyparse ();

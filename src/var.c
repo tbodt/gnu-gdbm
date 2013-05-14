@@ -20,22 +20,24 @@
 #define VARF_DFL    0x00
 #define VARF_SET    0x01
 
+union value
+{
+  char *string;
+  int bool;
+  int num;
+};
+
 struct variable
 {
   char *name;
   int type;
   int flags;
-  union
-  {
-    char *string;
-    int bool;
-    int num;
-  } v;
-  int (*hook) (struct variable *, int);
+  union value v;
+  int (*hook) (struct variable *, union value *);
   void *hook_data;
 };
 
-static int mode_toggle (struct variable *var, int after);
+static int open_hook (struct variable *, union value *);
 
 static struct variable vartab[] = {
   /* Top-level prompt */
@@ -46,10 +48,10 @@ static struct variable vartab[] = {
   { "delim1", VART_STRING, VARF_DFL, { "," } },
   /* This delimits structure members */
   { "delim2", VART_STRING, VARF_DFL, { "," } },
+  { "confirm", VART_BOOL, VARF_DFL, { num: 1 } },
   { "cachesize", VART_INT, VARF_DFL, { num: DEFAULT_CACHESIZE } },
   { "blocksize", VART_INT, VARF_DFL, { num: 0 } },
-  { "readonly", VART_BOOL, VARF_DFL, { num: 0 }, mode_toggle },
-  { "newdb", VART_BOOL, VARF_DFL, { 0 }, mode_toggle },
+  { "open", VART_STRING, VARF_DFL, { NULL }, open_hook },
   { "lock", VART_BOOL, VARF_DFL, { num: 1 } },
   { "mmap", VART_BOOL, VARF_DFL, { num: 1 } },
   { "sync", VART_BOOL, VARF_DFL, { num: 0 } },
@@ -57,39 +59,31 @@ static struct variable vartab[] = {
 };
 
 static int
-mode_toggle (struct variable *var, int after)
+open_hook (struct variable *var, union value *v)
 {
-  if (after)
-    {
-      struct variable *vp;
-      int newval = !var->v.bool;
-      
-      for (vp = vartab; vp->name; vp++)
-	{
-	  if (vp == var)
-	    continue;
-	  else if (vp->hook == mode_toggle)
-	    {
-	      vp->v.bool = newval;
-	      newval = 0;
-	    }
-	}
-    }
-  return 0;
+  static struct {
+    char *s;
+    int t;
+  } trans[] = {
+    { "newdb", GDBM_NEWDB },
+    { "wrcreat", GDBM_WRCREAT },
+    { "rw", GDBM_WRCREAT },
+    { "reader", GDBM_READER },
+    { "readonly", GDBM_READER },
+    { NULL }
+  };
+  int i;
+
+  for (i = 0; trans[i].s; i++)
+    if (strcmp (trans[i].s, v->string) == 0)
+      {
+	open_mode = trans[i].t;
+	return VAR_OK;
+      }
+
+  return VAR_ERR_BADVALUE;
 }
-
-const char *
-variable_mode_name ()
-{
-  struct variable *vp;
-
-  for (vp = vartab; vp->name; vp++)
-    if (vp->hook == mode_toggle && vp->v.bool)
-      return vp->name;
-
-  return NULL;
-}
-
+	    
 static struct variable *
 varfind (const char *name)
 {
@@ -102,33 +96,33 @@ varfind (const char *name)
   return NULL;
 }
 
-typedef int (*setvar_t) (struct variable *, void *);
+typedef int (*setvar_t) (union value *, void *);
 
 static int
-s2s (struct variable *vp, void *val)
+s2s (union value *vp, void *val)
 {
-  vp->v.string = estrdup (val);
-  return 0;
+  vp->string = estrdup (val);
+  return VAR_OK;
 }
 
 static int
-b2s (struct variable *vp, void *val)
+b2s (union value *vp, void *val)
 {
-  vp->v.string = estrdup (*(int*)val ? "true" : "false");
-  return 0;
+  vp->string = estrdup (*(int*)val ? "true" : "false");
+  return VAR_OK;
 }
 
 static int
-i2s (struct variable *vp, void *val)
+i2s (union value *vp, void *val)
 {
   char buf[128];
   snprintf (buf, sizeof buf, "%d", *(int*)val);
-  vp->v.string = estrdup (buf);
-  return 0;
+  vp->string = estrdup (buf);
+  return VAR_OK;
 }
 
 static int
-s2b (struct variable *vp, void *val)
+s2b (union value *vp, void *val)
 {
   static char *trueval[] = { "on", "true", "yes", NULL };
   static char *falseval[] = { "off", "false", "no", NULL };
@@ -139,26 +133,26 @@ s2b (struct variable *vp, void *val)
   for (i = 0; trueval[i]; i++)
     if (strcasecmp (trueval[i], val) == 0)
       {
-	vp->v.bool = 1;
+	vp->bool = 1;
 	return 0;
       }
   
   for (i = 0; falseval[i]; i++)
     if (strcasecmp (falseval[i], val) == 0)
       {
-	vp->v.bool = 0;
+	vp->bool = 0;
 	return 1;
       }
   
   n = strtoul (val, &p, 0);
   if (*p)
     return VAR_ERR_BADTYPE;
-  vp->v.bool = !!n;
+  vp->bool = !!n;
   return VAR_OK;
 }
   
 static int
-s2i (struct variable *vp, void *val)
+s2i (union value *vp, void *val)
 {
   char *p;
   int n = strtoul (val, &p, 0);
@@ -166,35 +160,35 @@ s2i (struct variable *vp, void *val)
   if (*p)
     return VAR_ERR_BADTYPE;
 
-  vp->v.num = n;
+  vp->num = n;
   return VAR_OK;
 }
 
 static int
-b2b (struct variable *vp, void *val)
+b2b (union value *vp, void *val)
 {
-  vp->v.bool = !!*(int*)val;
+  vp->bool = !!*(int*)val;
   return VAR_OK;
 }
 
 static int
-b2i (struct variable *vp, void *val)
+b2i (union value *vp, void *val)
 {
-  vp->v.num = *(int*)val;
+  vp->num = *(int*)val;
   return VAR_OK;
 }
 
 static int
-i2i (struct variable *vp, void *val)
+i2i (union value *vp, void *val)
 {
-  vp->v.num = *(int*)val;
+  vp->num = *(int*)val;
   return VAR_OK;
 }
 
 static int
-i2b (struct variable *vp, void *val)
+i2b (union value *vp, void *val)
 {
-  vp->v.bool = *(int*)val;
+  vp->bool = *(int*)val;
   return VAR_OK;
 }
 
@@ -210,24 +204,24 @@ variable_set (const char *name, int type, void *val)
 {
   struct variable *vp = varfind (name);
   int rc;
+  union value v;
   
   if (!vp)
     return VAR_ERR_NOTDEF;
 
-  if (vp->hook && vp->hook (vp, 0))
-    return VAR_ERR_FAILURE;
-  
-  if (vp->type == VART_STRING && (vp->flags && VARF_SET))
-    free (vp->v.string);
-  rc = setvar[vp->type][type] (vp, val);
-
+  memset (&v, 0, sizeof (v));
+  rc = setvar[vp->type][type] (&v, val);
   if (rc)
     return rc;
 
-  vp->flags |= VARF_SET;
+  if (vp->hook && (rc = vp->hook (vp, &v)) != VAR_OK)
+    return rc;
+  
+  if (vp->type == VART_STRING && (vp->flags && VARF_SET))
+    free (vp->v.string);
+  vp->v = v;
 
-  if (vp->hook)
-    vp->hook (vp, 1);
+  vp->flags |= VARF_SET;
 
   return VAR_OK;
 }
@@ -276,7 +270,7 @@ variable_print_all (FILE *fp)
 	  break;
 	  
 	case VART_BOOL:
-	  fprintf (fp, "%s%s", vp->v.bool ? "no" : "", vp->name);
+	  fprintf (fp, "%s%s", vp->v.bool ? "" : "no", vp->name);
 	  break;
 
 	case VART_STRING:

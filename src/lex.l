@@ -74,7 +74,8 @@ static struct context *context_tos;
 static ino_t ino;
 static dev_t dev;
 int interactive;              /* Are we running in interactive mode? */
-
+static int initialized;
+ 
 static void
 context_push ()
 {
@@ -144,28 +145,28 @@ setsource (const char *name, int intr)
     {
       if (stat (name, &st))
 	{
-	  syntax_error (_("cannot open `%s': %s"), name, strerror (errno));
+	  terror (_("cannot open `%s': %s"), name, strerror (errno));
 	  return -1;
 	}
       else if (!S_ISREG (st.st_mode))
 	{
-	  syntax_error (_("%s is not a regular file"), name);
+	  terror (_("%s is not a regular file"), name);
 	  return -1;
 	}
 
       cp = findctx (&st);
       if (cp)
 	{
-	  syntax_error (_("recursive sourcing"));
+	  terror (_("recursive sourcing"));
 	  if (cp->parent)
-	    parse_error (&cp->locus, _("%s already sourced here"), name);
+	    lerror (&cp->locus, _("%s already sourced here"), name);
 	  return 1;
 	}
       
       fp = fopen (name, "r");
       if (!fp)
 	{
-	  syntax_error (_("cannot open %s for reading: %s"), name,
+	  terror (_("cannot open %s for reading: %s"), name,
 			strerror (errno));
 	  return 1;
 	}
@@ -185,6 +186,8 @@ setsource (const char *name, int intr)
   point.line = 1;
   point.col = 0;
 
+  initialized = 1;
+  
   return 0;
 }
 %}
@@ -419,11 +422,11 @@ escape (int c)
 }
 
 void
-vparse_error (struct locus *loc, const char *fmt, va_list ap)
+vlerror (struct locus *loc, const char *fmt, va_list ap)
 {
   if (!interactive)
     fprintf (stderr, "%s: ", progname);
-  if (loc)
+  if (initialized && loc && loc->beg.file)
     {
       YY_LOCATION_PRINT (stderr, *loc);
       fprintf (stderr, ": ");
@@ -433,12 +436,12 @@ vparse_error (struct locus *loc, const char *fmt, va_list ap)
 }
 
 void
-parse_error (struct locus *loc, const char *fmt, ...)
+lerror (struct locus *loc, const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
-  vparse_error (loc, fmt, ap);
+  vlerror (loc, fmt, ap);
   va_end (ap);
 }
 
