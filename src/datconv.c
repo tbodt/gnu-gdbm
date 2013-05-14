@@ -128,7 +128,7 @@ s_float (struct xdatum *xd, char *str)
   char *p;
   
   errno = 0;
-  d = strtof (str, &p);
+  d = strtod (str, &p);
   if (errno || *p)
     return 1;
   xd_store (xd, &d, sizeof (d));
@@ -302,11 +302,11 @@ xd_store (struct xdatum *xd, void *val, size_t size)
     xd->dsize = xd->off;
 } 
 
-int
+static int
 datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 {
   struct xdatum xd;
-  int i, n;
+  int i;
   struct slist *s;
   int err = 0;
   
@@ -377,7 +377,7 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
   return 0;
 }
 
-int
+static int
 datum_scan_tag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 {
   parse_error (&kv->loc, "tagged values are not yet supported");
@@ -388,4 +388,35 @@ int
 datum_scan (datum *dat, struct dsegm *ds, struct kvpair *kv)
 {
   return (kv->key ? datum_scan_tag : datum_scan_notag) (dat, ds, kv);
+}
+
+void
+dsprint (FILE *fp, int what, struct dsegm *ds)
+{
+  static char *dsstr[] = { "key", "content" };
+  
+  fprintf (fp, "define %s {\n", dsstr[what]);
+  for (; ds; ds = ds->next)
+    {
+      switch (ds->type)
+	{
+	case FDEF_FLD:
+	  fprintf (fp, "\t%s", ds->v.field.type->name);
+	  if (ds->v.field.name)
+	    fprintf (fp, " %s", ds->v.field.type->name);
+	  if (ds->v.field.dim > 1)
+	    fprintf (fp, "[%d]", ds->v.field.dim);
+	  fprintf (fp, ",\n");
+	  break;
+	  
+	case FDEF_OFF:
+	  fprintf (fp, "\toff %d,\n", ds->v.n);
+	  break;
+
+	case FDEF_PAD:
+	  fprintf (fp, "\tpad %d,\n", ds->v.n);
+	  break;
+	}
+    }
+  fprintf (fp, "}\n");
 }

@@ -735,17 +735,13 @@ import_handler (struct handler_param *param)
     }
 }
 
-static const char *
-boolstr (int val)
-{
-  return val ? _("yes") : _("no");
-}
-
 /* S - print current program status */
 void
 status_handler (struct handler_param *param)
 {
   fprintf (param->fp, _("Database file: %s\n"), file_name);
+  dsprint (param->fp, DS_KEY, dsdef[DS_KEY]);
+  dsprint (param->fp, DS_CONTENT, dsdef[DS_CONTENT]);
 }
 
 void
@@ -864,7 +860,7 @@ struct command command_tab[] = {
     { { NULL } }, N_("quit the program") },
   { S(set), T_SET,
     NULL, NULL, NULL,
-    { { "[var=value...]" }, NULL }, N_("set or list variables") },
+    { { "[var=value...]" }, { NULL } }, N_("set or list variables") },
   { S(define), T_DEF,
     NULL, NULL, NULL,
     { { "key|content", ARG_STRING },
@@ -960,6 +956,11 @@ command_lookup (const char *str, struct locus *loc, struct command **pcmd)
 	      /* fall through */
 	    case fcom_ambig:
 	      fprintf (stderr, "    %s\n", cmd->name);
+	      break;
+	      
+	    case fcom_abort:
+	      /* should not happen */
+	      abort ();
 	    }
 	}
     }
@@ -1033,6 +1034,7 @@ slist_new (char *s)
   struct slist *lp = emalloc (sizeof (*lp));
   lp->next = NULL;
   lp->str = s;
+  return lp;
 }
 
 void

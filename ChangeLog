@@ -1,5 +1,19 @@
 2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Cleanup.
+	
+	* src/datconv.c (s_float): Use strtod.
+	(datum_scan_notag, datum_scan_tag): Made static.
+	(dsprint): New function.
+	* src/gdbmtool.c (status_handler): Print ket and
+	content definitions.
+	(slist_new): Bugfix (missing return statement).
+	* src/gdbmtool.h: Add new prototypes.
+	* src/lex.l: Remove unused variables, set option
+	nounput.
+
+2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Implement rc files and "source" command; improve lexical analyzer.
 
 	* src/gdbmtool.c (interactive): Move to lex.l;

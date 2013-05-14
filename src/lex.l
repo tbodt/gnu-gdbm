@@ -131,7 +131,6 @@ findctx (struct stat *st)
 int
 setsource (const char *name, int intr)
 {
-  int rc;
   struct stat st;
   struct context *cp;
   FILE *fp;
@@ -190,6 +189,8 @@ setsource (const char *name, int intr)
 }
 %}
 
+%option nounput
+
 %x STR DEF
 
 WS [ \t][ \t]*
@@ -201,7 +202,7 @@ O [0-7]
 
 %%
 ^[ \t]*#[ \t]*line[ \t].*\n {
-  char *p, *q;
+  char *p;
   char *file = NULL;
   int line, len;
   

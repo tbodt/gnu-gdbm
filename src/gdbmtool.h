@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 /* Position in input file */
 struct point
@@ -230,5 +231,19 @@ extern struct dsegm *dsdef[];
 int variable_set (const char *name, int type, void *val);
 int variable_get (const char *name, int type, void **val);
 void variable_print_all (FILE *fp);
+
+
+int unescape (int c);
+int escape (int c);
+void begin_def (void);
+void end_def (void);
+
+int yylex (void);
+int yyerror (char *s);
+int yyparse (void);
+
+void datum_format (FILE *fp, datum const *dat, struct dsegm *ds);
+int datum_scan (datum *dat, struct dsegm *ds, struct kvpair *kv);
+void dsprint (FILE *fp, int what, struct dsegm *ds);
 
 
