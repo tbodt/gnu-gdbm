@@ -422,13 +422,12 @@ void
 vparse_error (struct locus *loc, const char *fmt, va_list ap)
 {
   if (!interactive)
-    fprintf (stderr, "%s", progname);
+    fprintf (stderr, "%s: ", progname);
   if (loc)
     {
-      fprintf (stderr, ": ");
       YY_LOCATION_PRINT (stderr, *loc);
+      fprintf (stderr, ": ");
     }
-  fprintf (stderr, ": ");
   vfprintf (stderr, fmt, ap);
   fputc ('\n', stderr);
 }

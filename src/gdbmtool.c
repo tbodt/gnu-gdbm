@@ -106,7 +106,70 @@ tildexpand (char *s)
     }
   return estrdup (s);
 }
-	  
+
+static int
+opendb (char *dbname)
+{
+  int cache_size;
+  int block_size;
+  int flags = 0;
+  GDBM_FILE db;
+  
+  if (variable_get ("cachesize", VART_INT, (void**) &cache_size))
+    abort ();
+  if (variable_get ("blocksize", VART_INT, (void**) &block_size))
+    abort ();
+
+  if (!variable_is_set ("lock"))
+    flags |= GDBM_NOLOCK;
+  if (!variable_is_set ("mmap"))
+    flags |= GDBM_NOMMAP;
+  if (variable_is_set ("sync"))
+    flags |= GDBM_SYNC;
+      
+  if (variable_is_set ("readonly"))
+    flags = GDBM_READER;
+  else if (variable_is_set ("newdb"))
+    flags |= GDBM_NEWDB;
+  else
+    flags |= GDBM_WRCREAT;
+  
+  db = gdbm_open (dbname, block_size, flags, 00664, NULL);
+
+  if (db == NULL)
+    {
+      syntax_error (_("cannot open database %s: %s"), dbname,
+		     gdbm_strerror (gdbm_errno));
+      return 1;
+    }
+
+  if (gdbm_setopt (db, GDBM_CACHESIZE, &cache_size, sizeof (int)) ==
+      -1)
+    syntax_error (_("gdbm_setopt failed: %s"),
+		  gdbm_strerror (gdbm_errno));
+
+  if (gdbm_file)
+    gdbm_close (gdbm_file);
+  
+  gdbm_file = db;
+  return 0;
+}
+
+static int
+checkdb ()
+{
+  if (!gdbm_file)
+    {
+      if (!file_name)
+	{
+	  file_name = estrdup (GDBMTOOL_DEFFILE);
+	  syntax_error (_("warning: using default database file %s"),
+			file_name);
+	}
+      return opendb (file_name);
+    }
+  return 0;
+}
 
 size_t
 bucket_print_lines (hash_bucket *bucket)
@@ -336,6 +399,26 @@ struct handler_param
 };
 	     
 
+void
+open_handler (struct handler_param *param)
+{
+  if (opendb (param->argv[0]->v.string) == 0)
+    {
+      free (file_name);
+      file_name = estrdup (param->argv[0]->v.string);
+    }
+}
+
+void
+close_handler (struct handler_param *param)
+{
+  if (!gdbm_file)
+    syntax_error (_("nothing to close"));
+  gdbm_close (gdbm_file);
+  gdbm_file = NULL;
+}
+
+
 /* c - count */
 void
 count_handler (struct handler_param *param)
@@ -453,7 +536,9 @@ reorganize_handler (struct handler_param *param ARG_UNUSED)
 /* A - print available list */
 int
 avail_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
-{ 
+{
+  if (checkdb ())
+    return 1;
   if (exp_count)
     *exp_count = _gdbm_avail_list_size (gdbm_file, SIZE_T_MAX);
   return 0;
@@ -470,6 +555,9 @@ int
 print_current_bucket_begin (struct handler_param *param ARG_UNUSED,
 			    size_t *exp_count)
 {
+  if (checkdb ())
+    return 1;
+  
   if (exp_count)
     *exp_count = bucket_print_lines (gdbm_file->bucket) + 3;
   return 0;
@@ -515,6 +603,9 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
 {
   int temp;
 
+  if (checkdb ())
+    return 1;
+  
   if (getnum (&temp, param->argv[0]->v.string, NULL))
     return 1;
 
@@ -534,6 +625,8 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
 int
 print_dir_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
+  if (checkdb ())
+    return 1;
   if (exp_count)
     *exp_count = gdbm_file->header->dir_size / 4 + 3;
   return 0;
@@ -557,6 +650,8 @@ print_dir_handler (struct handler_param *param)
 int
 print_header_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
+  if (checkdb ())
+    return 1;
   if (exp_count)
     *exp_count = 14;
   return 0;
@@ -596,6 +691,8 @@ hash_handler (struct handler_param *param)
 int
 print_cache_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
+  if (checkdb ())
+    return 1;
   if (exp_count)
     *exp_count = gdbm_file->bucket_cache ? gdbm_file->cache_size + 1 : 1;
   return 0;
@@ -618,6 +715,8 @@ print_version_handler (struct handler_param *param)
 int
 list_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
 {
+  if (checkdb ())
+    return 1;
   if (exp_count)
     *exp_count = get_record_count ();
   return 0;
@@ -698,6 +797,7 @@ import_handler (struct handler_param *param)
   unsigned long err_line;
   int meta_mask = 0;
   int i;
+  int rc;
   
   for (i = 1; i < param->argc; i++)
     {
@@ -713,8 +813,25 @@ import_handler (struct handler_param *param)
 	}
     }
 
-  if (gdbm_load (&gdbm_file, param->argv[0]->v.string, flag,
-		 meta_mask, &err_line))
+  rc = gdbm_load (&gdbm_file, param->argv[0]->v.string, flag,
+		  meta_mask, &err_line);
+  if (rc && gdbm_errno == GDBM_NO_DBNAME)
+    {
+      const char *varname = variable_mode_name ();
+      int t = 1;
+
+      variable_set ("newdb", VART_BOOL, &t);
+      rc = checkdb ();
+      if (varname)
+	variable_set (varname, VART_BOOL, &t);
+
+      if (rc)
+	return;
+
+      rc = gdbm_load (&gdbm_file, param->argv[0]->v.string, flag,
+		      meta_mask, &err_line);
+    }
+  if (rc)
     {
       switch (gdbm_errno)
 	{
@@ -732,14 +849,26 @@ import_handler (struct handler_param *param)
 	    terror (0, _("cannot load from %s: %s"), param->argv[0],
 		    gdbm_strerror (gdbm_errno));
 	}
+      return;
     }
+
+  free (file_name);
+  if (gdbm_setopt (gdbm_file, GDBM_GETDBNAME, &file_name, sizeof (file_name)))
+    syntax_error (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
 }
 
 /* S - print current program status */
 void
 status_handler (struct handler_param *param)
 {
-  fprintf (param->fp, _("Database file: %s\n"), file_name);
+  if (file_name)
+    fprintf (param->fp, _("Database file: %s\n"), file_name);
+  else
+    fprintf (param->fp, "%s\n", _("No database name"));
+  if (gdbm_file)
+    fprintf (param->fp, "%s\n", _("Database is open"));
+  else
+    fprintf (param->fp, "%s\n", _("Database is not open"));
   dsprint (param->fp, DS_KEY, dsdef[DS_KEY]);
   dsprint (param->fp, DS_CONTENT, dsdef[DS_CONTENT]);
 }
@@ -780,20 +909,20 @@ struct command
 struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
   { S(count), T_CMD,
-    NULL, count_handler, NULL,
+    checkdb, count_handler, NULL,
     { { NULL } }, N_("count (number of entries)") },
   { S(delete), T_CMD,
-    NULL, delete_handler, NULL,
+    checkdb, delete_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY }, { NULL } }, N_("delete") },
   { S(export), T_CMD,
-    NULL, export_handler, NULL,
+    checkdb, export_handler, NULL,
     { { N_("file"), ARG_STRING },
       { "[truncate]", ARG_STRING },
       { "[binary|ascii]", ARG_STRING },
       { NULL } },
     N_("export") },
   { S(fetch), T_CMD,
-    NULL, fetch_handler, NULL,
+    checkdb, fetch_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY }, { NULL } },  N_("fetch") },
   { S(import), T_CMD,
     NULL, import_handler, NULL,
@@ -806,21 +935,21 @@ struct command command_tab[] = {
     list_begin, list_handler, NULL,
     { { NULL } }, N_("list") },
   { S(next), T_CMD,
-    NULL, nextkey_handler, NULL,
+    checkdb, nextkey_handler, NULL,
     { { N_("[key]"), ARG_STRING },
       { NULL } },
     N_("nextkey") },
   { S(store), T_CMD,
-    NULL, store_handler, NULL,
+    checkdb, store_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY },
       { N_("data"), ARG_DATUM, DS_CONTENT },
       { NULL } },
     N_("store") },
   { S(first), T_CMD,
-    NULL, firstkey_handler, NULL,
+    checkdb, firstkey_handler, NULL,
     { { NULL } }, N_("firstkey") },
   { S(reorganize), T_CMD,
-    NULL, reorganize_handler, NULL,
+    checkdb, reorganize_handler, NULL,
     { { NULL } }, N_("reorganize") },
   { S(avail), T_CMD,
     avail_begin, avail_handler, NULL,
@@ -840,7 +969,7 @@ struct command command_tab[] = {
     print_header_begin , print_header_handler, NULL,
     { { NULL } }, N_("print file header") },
   { S(hash), T_CMD,
-    NULL, hash_handler, NULL,
+    checkdb, hash_handler, NULL,
     { { N_("key"), ARG_DATUM, DS_KEY },
       { NULL } }, N_("hash value of key") },
   { S(cache), T_CMD,
@@ -870,6 +999,13 @@ struct command command_tab[] = {
     NULL, source_handler, NULL,
     { { "file", ARG_STRING },
       { NULL } }, N_("source command script") },
+  { S(close), T_CMD,
+    NULL, close_handler, NULL,
+    { { NULL } }, N_("close the database") },
+  { S(open), T_CMD,
+    NULL, open_handler, NULL,
+    { { "file", ARG_STRING }, { NULL } },
+    N_("open new database") },
 #undef S
   { 0 }
 };
@@ -996,34 +1132,40 @@ struct gdbm_option optab[] = {
 
 
 struct gdbmarg *
-gdbmarg_string (char *string)
+gdbmarg_string (char *string, struct locus *loc)
 {
-  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  struct gdbmarg *arg = ecalloc (1, sizeof (*arg));
   arg->next = NULL;
   arg->type = ARG_STRING;
   arg->ref = 1;
+  if (loc)
+    arg->loc = *loc;
   arg->v.string = string;
   return arg;
 }
 
 struct gdbmarg *
-gdbmarg_datum (datum *dat)
+gdbmarg_datum (datum *dat, struct locus *loc)
 {
-  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  struct gdbmarg *arg = ecalloc (1, sizeof (*arg));
   arg->next = NULL;
   arg->type = ARG_DATUM;
   arg->ref = 1;
+  if (loc)
+    arg->loc = *loc;
   arg->v.dat = *dat;
   return arg;
 }
 
 struct gdbmarg *
-gdbmarg_kvpair (struct kvpair *kvp)
+gdbmarg_kvpair (struct kvpair *kvp, struct locus *loc)
 {
-  struct gdbmarg *arg = emalloc (sizeof (*arg));
+  struct gdbmarg *arg = ecalloc (1, sizeof (*arg));
   arg->next = NULL;
   arg->type = ARG_KVPAIR;
   arg->ref = 1;
+  if (loc)
+    arg->loc = *loc;
   arg->v.kvpair = kvp;
   return arg;
 }
@@ -1188,7 +1330,7 @@ coerce_k2d (struct gdbmarg *arg, struct argdef *def)
   
   if (datum_scan (&d, dsdef[def->ds], arg->v.kvpair))
     return NULL;
-  return gdbmarg_datum (&d);
+  return gdbmarg_datum (&d, &arg->loc);
 }
 
 struct gdbmarg *
@@ -1203,7 +1345,7 @@ coerce_s2d (struct gdbmarg *arg, struct argdef *def)
   
   if (datum_scan (&d, dsdef[def->ds], &kvp))
     return NULL;
-  return gdbmarg_datum (&d);
+  return gdbmarg_datum (&d, &arg->loc);
 }
 
 #define coerce_fail NULL
@@ -1222,8 +1364,7 @@ coerce (struct gdbmarg *arg, struct argdef *def)
 {
   if (!coerce_tab[def->type][arg->type])
     {
-      //FIXME: locus
-      syntax_error (_("cannot coerce %s to %s"),
+      parse_error (&arg->loc, _("cannot coerce %s to %s"),
 		    argtypestr[arg->type], argtypestr[def->type]);
       return NULL;
     }
@@ -1284,7 +1425,7 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 				 sizeof (param.argv[0]) * argmax);
 	}
 
-      t = gdbmarg_string (estrdup (argbuf));
+      t = gdbmarg_string (estrdup (argbuf), &yylloc);
       if ((param.argv[i] = coerce (t, &cmd->args[i])) == NULL)
 	{
 	  gdbmarg_free (t);
@@ -1381,16 +1522,10 @@ source_rcfile ()
 int
 main (int argc, char *argv[])
 {
-  int intr;
-  
-  int cache_size = DEFAULT_CACHESIZE;
-  int block_size = 0;
-  
+  int intr;  
   int opt;
-  char reader = FALSE;
-  char newdb = FALSE;
-  int flags = 0;
-
+  int bv;
+  
   set_progname (argv[0]);
 
 #ifdef HAVE_SETLOCALE
@@ -1407,40 +1542,36 @@ main (int argc, char *argv[])
     switch (opt)
       {
       case 'l':
-	flags = flags | GDBM_NOLOCK;
+	bv = 0;
+	variable_set ("lock", VART_BOOL, &bv);
 	break;
 
       case 'm':
-	flags = flags | GDBM_NOMMAP;
+	bv = 0;
+	variable_set ("mmap", VART_BOOL, &bv);
 	break;
 
       case 's':
-	if (reader)
-	  terror (EXIT_USAGE, _("-s is incompatible with -r"));
-
-	flags = flags | GDBM_SYNC;
+	bv = 1;
+	variable_set ("sync", VART_BOOL, &bv);
 	break;
 	
       case 'r':
-	if (newdb)
-	  terror (EXIT_USAGE, _("-r is incompatible with -n"));
-
-	reader = TRUE;
+	bv = 1;
+	variable_set ("readonly", VART_BOOL, &bv);
 	break;
 	
       case 'n':
-	if (reader)
-	  terror (EXIT_USAGE, _("-n is incompatible with -r"));
-
-	newdb = TRUE;
+	bv = 1;
+	variable_set ("newdb", VART_BOOL, &bv);
 	break;
 	
       case 'c':
-	cache_size = atoi (optarg);
+	variable_set ("cachesize", VART_STRING, optarg);
 	break;
 	
       case 'b':
-	block_size = atoi (optarg);
+	variable_set ("blocksize", VART_STRING, optarg);
 	break;
 	
       case 'g':
@@ -1463,35 +1594,11 @@ main (int argc, char *argv[])
     terror (EXIT_USAGE, _("too many arguments"));
   if (argc == 1)
     file_name = argv[0];
-  else
-    file_name = "junk.gdbm";
 
   /* Initialize variables. */
   intr = isatty (0);
   dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
   dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
-
-  if (reader)
-    {
-      gdbm_file = gdbm_open (file_name, block_size, GDBM_READER, 00664, NULL);
-    }
-  else if (newdb)
-    {
-      gdbm_file =
-	gdbm_open (file_name, block_size, GDBM_NEWDB | flags, 00664, NULL);
-    }
-  else
-    {
-      gdbm_file =
-	gdbm_open (file_name, block_size, GDBM_WRCREAT | flags, 00664, NULL);
-    }
-  if (gdbm_file == NULL)
-    terror (EXIT_FATAL, _("gdbm_open failed: %s"), gdbm_strerror (gdbm_errno));
-
-  if (gdbm_setopt (gdbm_file, GDBM_CACHESIZE, &cache_size, sizeof (int)) ==
-      -1)
-    terror (EXIT_FATAL, _("gdbm_setopt failed: %s"),
-	    gdbm_strerror (gdbm_errno));
 
   signal (SIGPIPE, SIG_IGN);
 

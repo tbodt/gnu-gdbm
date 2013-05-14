@@ -27,10 +27,14 @@ struct dsegm *dsdef[DS_MAX];
 %locations
      
 %token <type> T_TYPE
-%token T_OFF T_PAD T_DEF T_SET T_BOGUS
-%token <cmd> T_CMD
-%token <num> T_NUM
-%token <string> T_IDENT T_WORD 
+%token T_OFF "off"
+       T_PAD "pad"
+       T_DEF "define"
+       T_SET "set"
+       T_BOGUS
+%token <cmd> T_CMD "command verb"
+%token <num> T_NUM "number"
+%token <string> T_IDENT "identifier" T_WORD "word"
 %type <string> string 
 %type <arg> arg
 %type <arglist> arglist arg1list
@@ -116,11 +120,11 @@ arg1list  : arg
 
 arg       : string
             {
-	      $$ = gdbmarg_string ($1);
+	      $$ = gdbmarg_string ($1, &@1);
 	    }
           | compound
 	    {
-	      $$ = gdbmarg_kvpair ($1);
+	      $$ = gdbmarg_kvpair ($1, &@1);
 	    }
 	  ;
 

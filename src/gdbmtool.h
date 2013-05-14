@@ -102,6 +102,7 @@ extern char *file_name;
 extern int interactive;
 
 #define GDBMTOOLRC ".gdbmtoolrc"
+#define GDBMTOOL_DEFFILE "junk.gdbm"
 
 
 struct slist
@@ -144,6 +145,7 @@ struct gdbmarg
   struct gdbmarg *next;
   int type;
   int ref;
+  struct locus loc;
   union
   {
     char *string;
@@ -162,9 +164,9 @@ void gdbmarglist_init (struct gdbmarglist *, struct gdbmarg *);
 void gdbmarglist_add (struct gdbmarglist *, struct gdbmarg *);
 void gdbmarglist_free (struct gdbmarglist *lst);
 
-struct gdbmarg *gdbmarg_string (char *);
-struct gdbmarg *gdbmarg_datum (datum *);
-struct gdbmarg *gdbmarg_kvpair (struct kvpair *kvl);
+struct gdbmarg *gdbmarg_string (char *, struct locus *);
+struct gdbmarg *gdbmarg_datum (datum *, struct locus *);
+struct gdbmarg *gdbmarg_kvpair (struct kvpair *kvl, struct locus *);
 
 int gdbmarg_free (struct gdbmarg *arg);
 void gdbmarg_destroy (struct gdbmarg **parg);
@@ -223,14 +225,18 @@ extern struct dsegm *dsdef[];
 
 #define VART_STRING 0
 #define VART_BOOL   1
+#define VART_INT    2
 
 #define VAR_OK          0
 #define VAR_ERR_NOTDEF  1
 #define VAR_ERR_BADTYPE 2
+#define VAR_ERR_FAILURE 3
 
 int variable_set (const char *name, int type, void *val);
 int variable_get (const char *name, int type, void **val);
+int variable_is_set (const char *name);
 void variable_print_all (FILE *fp);
+const char *variable_mode_name ();
 
 
 int unescape (int c);

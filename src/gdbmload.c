@@ -593,7 +593,14 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
   df.fp = fp;
 
   if (rc == 'V')
-    rc = gdbm_load_bdb_dump (&df, *pdbf, replace);
+    {
+      if (!*pdbf)
+	{
+	  gdbm_errno = GDBM_NO_DBNAME;
+	  return -1;
+	}
+      rc = gdbm_load_bdb_dump (&df, *pdbf, replace);
+    }
   else
     rc = _gdbm_load_file (&df, *pdbf, pdbf, replace, meta_mask);
   dump_file_free (&df);

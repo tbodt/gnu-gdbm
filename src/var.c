@@ -29,8 +29,13 @@ struct variable
   {
     char *string;
     int bool;
+    int num;
   } v;
+  int (*hook) (struct variable *, int);
+  void *hook_data;
 };
+
+static int mode_toggle (struct variable *var, int after);
 
 static struct variable vartab[] = {
   /* Top-level prompt */
@@ -41,8 +46,49 @@ static struct variable vartab[] = {
   { "delim1", VART_STRING, VARF_DFL, { "," } },
   /* This delimits structure members */
   { "delim2", VART_STRING, VARF_DFL, { "," } },
+  { "cachesize", VART_INT, VARF_DFL, { num: DEFAULT_CACHESIZE } },
+  { "blocksize", VART_INT, VARF_DFL, { num: 0 } },
+  { "readonly", VART_BOOL, VARF_DFL, { num: 0 }, mode_toggle },
+  { "newdb", VART_BOOL, VARF_DFL, { 0 }, mode_toggle },
+  { "lock", VART_BOOL, VARF_DFL, { num: 1 } },
+  { "mmap", VART_BOOL, VARF_DFL, { num: 1 } },
+  { "sync", VART_BOOL, VARF_DFL, { num: 0 } },
   { NULL }
 };
+
+static int
+mode_toggle (struct variable *var, int after)
+{
+  if (after)
+    {
+      struct variable *vp;
+      int newval = !var->v.bool;
+      
+      for (vp = vartab; vp->name; vp++)
+	{
+	  if (vp == var)
+	    continue;
+	  else if (vp->hook == mode_toggle)
+	    {
+	      vp->v.bool = newval;
+	      newval = 0;
+	    }
+	}
+    }
+  return 0;
+}
+
+const char *
+variable_mode_name ()
+{
+  struct variable *vp;
+
+  for (vp = vartab; vp->name; vp++)
+    if (vp->hook == mode_toggle && vp->v.bool)
+      return vp->name;
+
+  return NULL;
+}
 
 static struct variable *
 varfind (const char *name)
@@ -56,34 +102,132 @@ varfind (const char *name)
   return NULL;
 }
 
+typedef int (*setvar_t) (struct variable *, void *);
+
+static int
+s2s (struct variable *vp, void *val)
+{
+  vp->v.string = estrdup (val);
+  return 0;
+}
+
+static int
+b2s (struct variable *vp, void *val)
+{
+  vp->v.string = estrdup (*(int*)val ? "true" : "false");
+  return 0;
+}
+
+static int
+i2s (struct variable *vp, void *val)
+{
+  char buf[128];
+  snprintf (buf, sizeof buf, "%d", *(int*)val);
+  vp->v.string = estrdup (buf);
+  return 0;
+}
+
+static int
+s2b (struct variable *vp, void *val)
+{
+  static char *trueval[] = { "on", "true", "yes", NULL };
+  static char *falseval[] = { "off", "false", "no", NULL };
+  int i;
+  unsigned long n;
+  char *p;
+  
+  for (i = 0; trueval[i]; i++)
+    if (strcasecmp (trueval[i], val) == 0)
+      {
+	vp->v.bool = 1;
+	return 0;
+      }
+  
+  for (i = 0; falseval[i]; i++)
+    if (strcasecmp (falseval[i], val) == 0)
+      {
+	vp->v.bool = 0;
+	return 1;
+      }
+  
+  n = strtoul (val, &p, 0);
+  if (*p)
+    return VAR_ERR_BADTYPE;
+  vp->v.bool = !!n;
+  return VAR_OK;
+}
+  
+static int
+s2i (struct variable *vp, void *val)
+{
+  char *p;
+  int n = strtoul (val, &p, 0);
+
+  if (*p)
+    return VAR_ERR_BADTYPE;
+
+  vp->v.num = n;
+  return VAR_OK;
+}
+
+static int
+b2b (struct variable *vp, void *val)
+{
+  vp->v.bool = !!*(int*)val;
+  return VAR_OK;
+}
+
+static int
+b2i (struct variable *vp, void *val)
+{
+  vp->v.num = *(int*)val;
+  return VAR_OK;
+}
+
+static int
+i2i (struct variable *vp, void *val)
+{
+  vp->v.num = *(int*)val;
+  return VAR_OK;
+}
+
+static int
+i2b (struct variable *vp, void *val)
+{
+  vp->v.bool = *(int*)val;
+  return VAR_OK;
+}
+
+static setvar_t setvar[3][3] = {
+            /*    s     b    i */
+  /* s */    {   s2s,  b2s, i2s },
+  /* b */    {   s2b,  b2b, i2b },
+  /* i */    {   s2i,  b2i, i2i }
+};
+
 int
 variable_set (const char *name, int type, void *val)
 {
   struct variable *vp = varfind (name);
-
+  int rc;
+  
   if (!vp)
     return VAR_ERR_NOTDEF;
+
+  if (vp->hook && vp->hook (vp, 0))
+    return VAR_ERR_FAILURE;
   
-  if (type != vp->type)
-    return VAR_ERR_BADTYPE;
-  
-  switch (vp->type)
-    {
-    case VART_STRING:
-      if (vp->flags && VARF_SET)
-	free (vp->v.string);
-      vp->v.string = estrdup (val);
-      break;
- 
-    case VART_BOOL:
-      if (val == NULL)
-	vp->v.bool = 0;
-      else
-	vp->v.bool = *(int*)val;
-      break;
-    }
+  if (vp->type == VART_STRING && (vp->flags && VARF_SET))
+    free (vp->v.string);
+  rc = setvar[vp->type][type] (vp, val);
+
+  if (rc)
+    return rc;
 
   vp->flags |= VARF_SET;
+
+  if (vp->hook)
+    vp->hook (vp, 1);
 
   return VAR_OK;
 }
@@ -108,6 +252,10 @@ variable_get (const char *name, int type, void **val)
     case VART_BOOL:
       *(int*)val = vp->v.bool;
       break;
+      
+    case VART_INT:
+      *(int*)val = vp->v.num;
+      break;
     }
 
   return VAR_OK;
@@ -123,6 +271,10 @@ variable_print_all (FILE *fp)
     {
       switch (vp->type)
 	{
+	case VART_INT:
+	  fprintf (fp, "%s=%d", vp->name, vp->v.num);
+	  break;
+	  
 	case VART_BOOL:
 	  fprintf (fp, "%s%s", vp->v.bool ? "no" : "", vp->name);
 	  break;
@@ -146,3 +298,12 @@ variable_print_all (FILE *fp)
     }
 }
 	   
+int
+variable_is_set (const char *name)
+{
+  int n;
+
+  if (variable_get (name, VART_BOOL, (void **) &n))
+    return 1;
+  return n;
+}

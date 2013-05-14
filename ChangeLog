@@ -1,5 +1,39 @@
 2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Provide "open" and "close" commands; implement new variables.
+	
+	* src/datconv.c (datum_format): Don't print field delimiter
+	after the last field.
+	(dsprint): Bugfix.
+	* src/gdbmload.c (gdbm_load_from_file): Return GDBM_NO_DBNAME 
+	when loading from bdb dump and the database pointer is NULL.
+	* src/gdbmtool.c (opendb, checkdb): New auxiliary functions.
+	(begin handlers): call checkdb.
+	(import_handler): Special handling for GDBM_NO_DBNAME.
+	(status_handler): Print more info.
+	(command_tab): Call checkdb prior to handlers that expect an
+	open database.
+	New commands: open, close
+	(gdbmarg_string, gdbmarg_datum)
+	(gdbmarg_kvpair): Take pointer to locus as the 2nd argument.
+	All uses changed.
+	(coerce): Include locus info in the diagnostic message.
+	(main): Don't open database right away.
+	* src/gdbmtool.h (GDBMTOOL_DEFFILE): New define.
+	(gdbmarg) <loc>: New member.
+	(VART_INT): New variable typ.e
+	(VAR_ERR_FAILURE): New error code.
+	(variable_is_set, varible_mode_name): New protos.
+	* src/gram.y: Provide printable token names for error messages.
+	Pass locus to gdbmarg initialization functions.
+	* src/lex.l (vparse_error): Fix output.
+	* src/var.c (variable) <v.num, hook, hook_data>: New members.
+	(vartab): Define more variables.
+	(variable_set): Accept value of any valid datatype. 
+	(variable_mode_name, variable_is_set): New functions.
+
+2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Cleanup.
 	
 	* src/datconv.c (s_float): Use strtod.

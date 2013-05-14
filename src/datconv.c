@@ -211,7 +211,8 @@ datum_format (FILE *fp, datum const *dat, struct dsegm *ds)
 {
   int off = 0;
   char *delim[2];
-
+  int first_field = 1;
+  
   if (!ds)
     {
       fprintf (fp, "%.*s\n", dat->dsize, dat->dptr);
@@ -228,6 +229,8 @@ datum_format (FILE *fp, datum const *dat, struct dsegm *ds)
       switch (ds->type)
 	{
 	case FDEF_FLD:
+	  if (!first_field)
+	    fwrite (delim[1], strlen (delim[1]), 1, fp);
 	  if (ds->v.field.name)
 	    fprintf (fp, "%s=", ds->v.field.name);
 	  if (ds->v.field.dim > 1)
@@ -259,7 +262,7 @@ datum_format (FILE *fp, datum const *dat, struct dsegm *ds)
 	    }
 	  if (ds->v.field.dim > 1)
 	    fprintf (fp, " }");
-	  fwrite (delim[1], strlen (delim[1]), 1, fp);
+	  first_field = 0;
 	  break;
 	  
 	case FDEF_OFF:
@@ -403,7 +406,7 @@ dsprint (FILE *fp, int what, struct dsegm *ds)
 	case FDEF_FLD:
 	  fprintf (fp, "\t%s", ds->v.field.type->name);
 	  if (ds->v.field.name)
-	    fprintf (fp, " %s", ds->v.field.type->name);
+	    fprintf (fp, " %s", ds->v.field.name);
 	  if (ds->v.field.dim > 1)
 	    fprintf (fp, "[%d]", ds->v.field.dim);
 	  fprintf (fp, ",\n");
