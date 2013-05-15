@@ -228,14 +228,19 @@ extern struct dsegm *dsdef[];
 #define VART_BOOL   1
 #define VART_INT    2
 
-#define VAR_OK           0
-#define VAR_ERR_NOTDEF   1
-#define VAR_ERR_BADTYPE  2
-#define VAR_ERR_BADVALUE 3
+#define VAR_OK           0       /* operation succeeded */
+#define VAR_ERR_NOTSET   1       /* Only for variable_get:
+				    variable is not set */ 
+#define VAR_ERR_NOTDEF   2       /* no such variable */ 
+#define VAR_ERR_BADTYPE  3       /* variable cannot be coerced to the
+				    requested type (software error) */
+#define VAR_ERR_BADVALUE 4       /* Only for variable_set: the value is
+				    not valid for this variable. */
 
 int variable_set (const char *name, int type, void *val);
 int variable_get (const char *name, int type, void **val);
 int variable_is_set (const char *name);
+int variable_is_true (const char *name);
 void variable_print_all (FILE *fp);
 
 

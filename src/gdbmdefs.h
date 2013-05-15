@@ -61,7 +61,7 @@ typedef struct {
 	int   bucket_size;   /* Size in bytes of a hash bucket struct. */
 	int   bucket_elems;  /* Number of elements in a hash bucket. */
 	off_t next_block;    /* The next unallocated block address. */
-	avail_block avail;   /* This must be last because of the psuedo
+	avail_block avail;   /* This must be last because of the pseudo
 				array in avail.  This avail grows to fill
 				the entire block. */
       }  gdbm_file_header;
@@ -162,7 +162,7 @@ struct gdbm_file_info {
   
 	/* Type of file locking in use. */
 	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,
-		LOCKING_FCNTL } lock_type;
+	       LOCKING_FCNTL } lock_type;
 
 	/* The fatal error handling routine. */
 	void (*fatal_err) (const char *);

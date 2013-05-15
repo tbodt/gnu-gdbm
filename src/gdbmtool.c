@@ -54,19 +54,25 @@ opendb (char *dbname)
   
   if (variable_get ("cachesize", VART_INT, (void**) &cache_size))
     abort ();
-  if (variable_get ("blocksize", VART_INT, (void**) &block_size))
-    abort ();
-
-  if (!variable_is_set ("lock"))
+  switch (variable_get ("blocksize", VART_INT, (void**) &block_size))
+    {
+    case VAR_OK:
+    case VAR_ERR_NOTSET:
+      break;
+    default:
+      abort ();
+    }
+  
+  if (!variable_is_true ("lock"))
     flags |= GDBM_NOLOCK;
-  if (!variable_is_set ("mmap"))
+  if (!variable_is_true ("mmap"))
     flags |= GDBM_NOMMAP;
-  if (variable_is_set ("sync"))
+  if (variable_is_true ("sync"))
     flags |= GDBM_SYNC;
       
   if (open_mode == GDBM_NEWDB)
     {
-      if (interactive && variable_is_set ("confirm") &&
+      if (interactive && variable_is_true ("confirm") &&
 	  access (dbname, F_OK) == 0)
 	{
 	  if (!getyn (_("database %s already exists; overwrite"), dbname))
@@ -935,6 +941,9 @@ struct command command_tab[] = {
   { S(set), T_SET,
     NULL, NULL, NULL,
     { { "[var=value...]" }, { NULL } }, N_("set or list variables") },
+  { S(unset), T_UNSET,
+    NULL, NULL, NULL,
+    { { "var..." }, { NULL } }, N_("unset variables") },
   { S(define), T_DEF,
     NULL, NULL, NULL,
     { { "key|content", ARG_STRING },
@@ -1322,10 +1331,12 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 {
   int i;
   struct gdbmarg *arg;
-  char *pager = getenv ("PAGER");
+  char *pager = NULL;
   char argbuf[128];
   size_t expected_lines, *expected_lines_ptr;
   FILE *pagfp = NULL;
+
+  variable_get ("pager", VART_STRING, (void**) &pager);
   
   arg = arglist ? arglist->head : NULL;
 
@@ -1487,6 +1498,7 @@ main (int argc, char *argv[])
   sort_commands ();
 
   variable_set ("open", VART_STRING, "wrcreat");
+  variable_set ("pager", VART_STRING, getenv ("PAGER"));
   
   for (opt = parseopt_first (argc, argv, optab);
        opt != EOF;

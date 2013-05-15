@@ -1,3 +1,28 @@
+2013-05-15  Sergey Poznyakoff  <gray@nxc.no>
+
+	Add "pager" variable and "unset" command.
+
+	* src/gdbmtool.c (command_tab) <unset>: New command.
+	(run_command): Get pager value from the variable.
+	* src/gdbmtool.h (VAR_ERR_NOTSET): New error code.
+	(variable_is_true): New function. Replaces variable_is_set,
+	which changed semantics.
+	* src/gram.y: Implement the unset command.
+	* src/var.c: Support the "unset variable" notion.
+	(VARF_INIT): New flag.
+	(VAR_IS_SET): New define.
+	(vartab): Mark initialized variables with VARF_INIT.
+	New variable "pager".
+	(open_hook): v can be NULL.
+	(variable_set): NULL value unsets the variable.
+	(variable_unset): New function.
+	(variable_get): Return VAR_ERR_NOTSET if the variable is
+	not set.
+	(variable_is_true): Renamed from variable_is_set.
+	(variable_is_set): New function.
+	
+	* src/gdbmdefs.h: Fix some typos.
+
 2013-05-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Change variable handling. 

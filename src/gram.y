@@ -31,7 +31,9 @@ struct dsegm *dsdef[DS_MAX];
        T_PAD "pad"
        T_DEF "define"
        T_SET "set"
+       T_UNSET "unset"
        T_BOGUS
+
 %token <cmd> T_CMD "command verb"
 %token <num> T_NUM "number"
 %token <string> T_IDENT "identifier" T_WORD "word"
@@ -244,14 +246,15 @@ set       : T_SET
             {
 	      variable_print_all (stdout);
             }
-          | T_SET varlist
+          | T_SET asgnlist
+	  | T_UNSET varlist
           ;
 
-varlist   : var
-          | varlist var
+asgnlist  : asgn
+          | asgnlist asgn
           ;
 
-var       : T_IDENT
+asgn      : T_IDENT
             {
 	      int t = 1;
 	      int rc;
@@ -304,6 +307,31 @@ var       : T_IDENT
 	      free ($3);
 	    }
           ;
+
+varlist   : var
+          | varlist var
+          ;
+
+var       : T_IDENT
+            {
+	      int rc = variable_unset ($1);
+	      switch (rc)
+		{
+		case VAR_OK:
+		  break;
+		  
+		case VAR_ERR_NOTDEF:
+		  lerror (&@1, _("no such variable: %s"), $1);
+		  break;
+
+		case VAR_ERR_BADVALUE:
+		  lerror (&@1, _("%s: variable cannot be unset"), $1);
+		  break;
+		}
+	      free($1);
+	    }
+          ;
+
 %%
 
 void

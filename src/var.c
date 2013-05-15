@@ -19,6 +19,9 @@
 
 #define VARF_DFL    0x00
 #define VARF_SET    0x01
+#define VARF_INIT   0x02
+
+#define VAR_IS_SET(v) ((v)->flags & (VARF_SET|VARF_INIT))
 
 union value
 {
@@ -41,20 +44,21 @@ static int open_hook (struct variable *, union value *);
 
 static struct variable vartab[] = {
   /* Top-level prompt */
-  { "ps1", VART_STRING, VARF_DFL, { "%p>%_" } },
+  { "ps1", VART_STRING, VARF_INIT, { "%p>%_" } },
   /* Second-level prompt (used within "def" block) */
-  { "ps2", VART_STRING, VARF_DFL, { "%_>%_" } },
+  { "ps2", VART_STRING, VARF_INIT, { "%_>%_" } },
   /* This delimits array members */
-  { "delim1", VART_STRING, VARF_DFL, { "," } },
+  { "delim1", VART_STRING, VARF_INIT, { "," } },
   /* This delimits structure members */
-  { "delim2", VART_STRING, VARF_DFL, { "," } },
-  { "confirm", VART_BOOL, VARF_DFL, { num: 1 } },
-  { "cachesize", VART_INT, VARF_DFL, { num: DEFAULT_CACHESIZE } },
+  { "delim2", VART_STRING, VARF_INIT, { "," } },
+  { "confirm", VART_BOOL, VARF_INIT, { num: 1 } },
+  { "cachesize", VART_INT, VARF_INIT, { num: DEFAULT_CACHESIZE } },
   { "blocksize", VART_INT, VARF_DFL, { num: 0 } },
   { "open", VART_STRING, VARF_DFL, { NULL }, open_hook },
-  { "lock", VART_BOOL, VARF_DFL, { num: 1 } },
-  { "mmap", VART_BOOL, VARF_DFL, { num: 1 } },
-  { "sync", VART_BOOL, VARF_DFL, { num: 0 } },
+  { "lock", VART_BOOL, VARF_INIT, { num: 1 } },
+  { "mmap", VART_BOOL, VARF_INIT, { num: 1 } },
+  { "sync", VART_BOOL, VARF_INIT, { num: 0 } },
+  { "pager", VART_STRING, VARF_DFL },
   { NULL }
 };
 
@@ -74,6 +78,9 @@ open_hook (struct variable *var, union value *v)
   };
   int i;
 
+  if (!v)
+    return VAR_ERR_BADVALUE;
+  
   for (i = 0; trans[i].s; i++)
     if (strcmp (trans[i].s, v->string) == 0)
       {
@@ -204,24 +211,55 @@ variable_set (const char *name, int type, void *val)
 {
   struct variable *vp = varfind (name);
   int rc;
-  union value v;
+  union value v, *valp;
   
   if (!vp)
     return VAR_ERR_NOTDEF;
 
-  memset (&v, 0, sizeof (v));
-  rc = setvar[vp->type][type] (&v, val);
-  if (rc)
-    return rc;
-
-  if (vp->hook && (rc = vp->hook (vp, &v)) != VAR_OK)
+  if (val)
+    {
+      memset (&v, 0, sizeof (v));
+      rc = setvar[vp->type][type] (&v, val);
+      if (rc)
+	return rc;
+      valp = &v; 
+    }
+  else
+    valp = NULL;
+  
+  if (vp->hook && (rc = vp->hook (vp, valp)) != VAR_OK)
     return rc;
   
   if (vp->type == VART_STRING && (vp->flags && VARF_SET))
     free (vp->v.string);
-  vp->v = v;
 
-  vp->flags |= VARF_SET;
+  if (!val)
+    {
+      vp->flags &= (VARF_INIT|VARF_SET);
+    }
+  else
+    {
+      vp->v = v;
+      vp->flags &= ~VARF_INIT;
+      vp->flags |= VARF_SET;
+    }
+  
+  return VAR_OK;
+}
+
+int
+variable_unset (const char *name)
+{
+  struct variable *vp = varfind (name);
+  int rc;
+    
+  if (!vp)
+    return VAR_ERR_NOTDEF;
+
+  if (vp->hook && (rc = vp->hook (vp, NULL)) != VAR_OK)
+    return rc;
+
+  vp->flags &= ~(VARF_INIT|VARF_SET);
 
   return VAR_OK;
 }
@@ -236,6 +274,9 @@ variable_get (const char *name, int type, void **val)
   
   if (type != vp->type)
     return VAR_ERR_BADTYPE;
+
+  if (!VAR_IS_SET (vp))
+    return VAR_ERR_NOTSET;
   
   switch (vp->type)
     {
@@ -263,37 +304,54 @@ variable_print_all (FILE *fp)
   
   for (vp = vartab; vp->name; vp++)
     {
-      switch (vp->type)
+      if (!VAR_IS_SET (vp))
 	{
-	case VART_INT:
-	  fprintf (fp, "%s=%d", vp->name, vp->v.num);
-	  break;
-	  
-	case VART_BOOL:
-	  fprintf (fp, "%s%s", vp->v.bool ? "" : "no", vp->name);
-	  break;
-
-	case VART_STRING:
-	  fprintf (fp, "%s=\"", vp->name);
-	  for (s = vp->v.string; *s; s++)
+	  fprintf (fp, "# %s is unset", vp->name);
+	}
+      else
+	{
+	  switch (vp->type)
 	    {
-	      int c;
+	    case VART_INT:
+	      fprintf (fp, "%s=%d", vp->name, vp->v.num);
+	      break;
 	      
-	      if (isprint (*s))
-		fputc (*s, fp);
-	      else if ((c = escape (*s)))
-		fprintf (fp, "\\%c", c);
-	      else
-		fprintf (fp, "\\%03o", *s);
+	    case VART_BOOL:
+	      fprintf (fp, "%s%s", vp->v.bool ? "" : "no", vp->name);
+	      break;
+	      
+	    case VART_STRING:
+	      fprintf (fp, "%s=\"", vp->name);
+	      for (s = vp->v.string; *s; s++)
+		{
+		  int c;
+		  
+		  if (isprint (*s))
+		    fputc (*s, fp);
+		  else if ((c = escape (*s)))
+		    fprintf (fp, "\\%c", c);
+		  else
+		    fprintf (fp, "\\%03o", *s);
+		}
+	      fprintf (fp, "\"");
 	    }
-	  fprintf (fp, "\"");
 	}
       fputc ('\n', fp);
     }
 }
-	   
+
 int
 variable_is_set (const char *name)
+{
+  struct variable *vp = varfind (name);
+
+  if (!vp)
+    return 0;
+  return VAR_IS_SET (vp);
+}
+
+int
+variable_is_true (const char *name)
 {
   int n;
 
