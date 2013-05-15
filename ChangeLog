@@ -1,5 +1,18 @@
 2013-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Implement the "quiet" variable.
+
+	* src/var.c (vartab) <quiet>: New variable.
+	(variable_is_true): Return 0 if the value cannot be
+	retrieved.
+	* src/gdbmtool.c (optab): New option --file (-f).
+	(main): Handle the --file option.
+	Retrieve the "quiet" setting from the variable.
+	* src/lex.l (context_pop): Clear both point.file
+	and yylloc.
+
+2013-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Add "pager" variable and "unset" command.
 
 	* src/gdbmtool.c (command_tab) <unset>: New command.

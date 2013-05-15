@@ -59,6 +59,7 @@ static struct variable vartab[] = {
   { "mmap", VART_BOOL, VARF_INIT, { num: 1 } },
   { "sync", VART_BOOL, VARF_INIT, { num: 0 } },
   { "pager", VART_STRING, VARF_DFL },
+  { "quiet", VART_BOOL, VARF_DFL },
   { NULL }
 };
 
@@ -355,7 +356,7 @@ variable_is_true (const char *name)
 {
   int n;
 
-  if (variable_get (name, VART_BOOL, (void **) &n))
-    return 1;
-  return n;
+  if (variable_get (name, VART_BOOL, (void **) &n) == VAR_OK)
+    return n;
+  return 0;
 }

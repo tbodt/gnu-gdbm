@@ -100,6 +100,8 @@ context_pop ()
   fclose (yyin);
   yyin = NULL;
   free (point.file);
+  point.file = NULL;
+  memset (&yylloc, 0, sizeof (yylloc));
   
   if (!cp)
     return 1;

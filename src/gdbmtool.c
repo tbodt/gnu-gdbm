@@ -36,7 +36,6 @@ char *file_name = NULL;       /* Database file name */
 GDBM_FILE gdbm_file = NULL;   /* Database to operate upon */
 datum key_data;               /* Current key */
 datum return_data;            /* Current data */
-int quiet_option = 0;         /* Omit the usual welcome banner at startup */
 int open_mode;                /* Default open mode */
 
 #define SIZE_T_MAX ((size_t)-1)
@@ -1072,6 +1071,7 @@ char *parseopt_program_args = N_("DBFILE");
 struct gdbm_option optab[] = {
   { 'b', "block-size", N_("SIZE"), N_("set block size") },
   { 'c', "cache-size", N_("SIZE"), N_("set cache size") },
+  { 'f', "file",       N_("FILE"), N_("read commands from FILE") },
   { 'g', NULL, "FILE", NULL, PARSEOPT_HIDDEN },
   { 'l', "no-lock",    NULL,       N_("disable file locking") },
   { 'm', "no-mmap",    NULL,       N_("do not use mmap") },
@@ -1486,6 +1486,7 @@ main (int argc, char *argv[])
   int opt;
   int bv;
   int norc = 0;
+  char *source = "-";
   
   set_progname (argv[0]);
 
@@ -1497,6 +1498,11 @@ main (int argc, char *argv[])
 
   sort_commands ();
 
+  /* Initialize variables. */
+  intr = isatty (0);
+  dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
+  dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
+
   variable_set ("open", VART_STRING, "wrcreat");
   variable_set ("pager", VART_STRING, getenv ("PAGER"));
   
@@ -1505,6 +1511,11 @@ main (int argc, char *argv[])
        opt = parseopt_next ())
     switch (opt)
       {
+      case 'f':
+	source = optarg;
+	intr = 0;
+	break;
+	
       case 'l':
 	bv = 0;
 	variable_set ("lock", VART_BOOL, &bv);
@@ -1545,12 +1556,13 @@ main (int argc, char *argv[])
 	break;
 
       case 'q':
-	quiet_option = 1;
+	bv = 1;
+	variable_set ("quiet", VART_BOOL, &bv);
 	break;
 	
       default:
 	terror (_("unknown option; try `%s -h' for more info"),
-		      progname);
+		progname);
 	exit (EXIT_USAGE);
       }
 
@@ -1566,23 +1578,19 @@ main (int argc, char *argv[])
   if (argc == 1)
     file_name = argv[0];
 
-  /* Initialize variables. */
-  intr = isatty (0);
-  dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
-  dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
-
   signal (SIGPIPE, SIG_IGN);
 
   memset (&param, 0, sizeof (param));
   argmax = 0;
 
-  /* Welcome message. */
-  if (intr && !quiet_option)
-    printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
-
   if (!norc)
     source_rcfile ();	  
   
-  setsource ("-", intr);
+  /* Welcome message. */
+  if (intr && !variable_is_true ("quiet"))
+    printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
+
+  if (setsource (source, intr))
+    exit (EXIT_FATAL);
   return yyparse ();
 }
