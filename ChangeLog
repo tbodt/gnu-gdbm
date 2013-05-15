@@ -1,4 +1,4 @@
-2013-05-15  Sergey Poznyakoff  <gray@nxc.no>
+2013-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Add "pager" variable and "unset" command.
 
