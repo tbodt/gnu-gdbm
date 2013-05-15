@@ -1,5 +1,12 @@
 2013-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Minor change
+
+	* src/gdbmtool.c (command_tab): Change variable names
+	in docstrings to uppercase.
+
+2013-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Implement the "quiet" variable.
 
 	* src/var.c (vartab) <quiet>: New variable.
