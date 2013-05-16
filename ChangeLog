@@ -1,7 +1,18 @@
 2013-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Provide support for a simplified "define" construct.
+
+	* doc/gdbm.texinfo: Document the "define" statement.
+	* src/datconv.c: Support short and ushort data types.
+	* src/gdbmtool.c: Don't call checkdb prior to handling
+	the "hash" command.
+	* src/gram.y: Support simplified definition construct:
+	"define key|content type".
+
+2013-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Improve handling of the variables.
-	
+
 	* src/gdbmtool.c (opendb): Allow for unset variables.
 	* src/gram.y: Improve error detection.
 	* src/lex.l: Handle multiline strings.

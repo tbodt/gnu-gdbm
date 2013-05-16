@@ -26,6 +26,8 @@ name (FILE *fp, void *ptr, int size)            \
 }
 
 DEFFMT (f_char, char, "%c")
+DEFFMT (f_short, short, "%hd")
+DEFFMT (f_ushort, unsigned short, "%hu")
 DEFFMT (f_int, int, "%d")
 DEFFMT (f_uint, unsigned, "%u")
 DEFFMT (f_long, long, "%ld")
@@ -100,6 +102,8 @@ name (struct xdatum *xd, char *str)             \
   return 0;                                     \
 }
 
+DEFNSCAN(s_short, short, long, strtol);
+DEFNSCAN(s_ushort, unsigned short, unsigned long, strtoul);
 DEFNSCAN(s_int, int, long, strtol)
 DEFNSCAN(s_uint, unsigned, unsigned long, strtol)
 DEFNSCAN(s_long, long, long, strtoul)
@@ -150,7 +154,9 @@ s_zstring (struct xdatum *xd, char *str)
 }
 
 static struct datadef datatab[] = {
-  { "char",     sizeof(char),      f_char, s_char }, 
+  { "char",     sizeof(char),      f_char, s_char },
+  { "short",    sizeof(short),     f_short, s_short },
+  { "ushort",   sizeof(unsigned short), f_ushort, s_ushort },
   { "int",      sizeof(int),       f_int, s_int  },
   { "unsigned", sizeof(unsigned),  f_uint, s_uint },
   { "uint",     sizeof(unsigned),  f_uint, s_uint },
@@ -413,7 +419,7 @@ dsprint (FILE *fp, int what, struct dsegm *ds)
 	  break;
 	  
 	case FDEF_OFF:
-	  fprintf (fp, "\toff %d,\n", ds->v.n);
+	  fprintf (fp, "\toffset %d,\n", ds->v.n);
 	  break;
 
 	case FDEF_PAD:

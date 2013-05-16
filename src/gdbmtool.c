@@ -924,7 +924,7 @@ struct command command_tab[] = {
     print_header_begin , print_header_handler, NULL,
     { { NULL } }, N_("print database file header") },
   { S(hash), T_CMD,
-    checkdb, hash_handler, NULL,
+    NULL, hash_handler, NULL,
     { { N_("KEY"), ARG_DATUM, DS_KEY },
       { NULL } }, N_("hash value of key") },
   { S(cache), T_CMD,

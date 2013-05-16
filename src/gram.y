@@ -40,7 +40,7 @@ struct dsegm *dsdef[DS_MAX];
 %type <string> string 
 %type <arg> arg
 %type <arglist> arglist arg1list
-%type <dsegm> def
+%type <dsegm> def defbody
 %type <dsegmlist> deflist
 %type <num> defid
 %type <kvpair> kvpair compound value
@@ -183,12 +183,22 @@ string    : T_IDENT
           | T_WORD
           ;
 
-defn      : T_DEF defid { begin_def (); } '{' deflist optcomma '}'
+defn      : T_DEF defid { begin_def (); } defbody
             {
 	      end_def ();
 	      dsegm_free_list (dsdef[$2]);
-	      dsdef[$2] = $5.head;
-	    } 
+	      dsdef[$2] = $4;
+	    }
+          ;
+
+defbody   : '{' deflist optcomma '}'
+            {
+	      $$ = $2.head;
+	    }
+          | T_TYPE
+            {
+	      $$ = dsegm_new_field ($1, NULL, 1);
+	    }
           ;
 
 optcomma  : /* empty */

@@ -1957,7 +1957,7 @@ command sets the @samp{delim2} variable to @samp{;} and the
 @samp{confirm} variable to @samp{false}:
 
 @example
-srt delim2=";" noconfirm
+set delim2=";" noconfirm
 @end example
 @end deffn
 
@@ -1965,8 +1965,8 @@ srt delim2=";" noconfirm
 Unsets the listed variables.  The effect of unsetting depends on the
 variable.  Unless explicitly described in the discussion of the
 variables above, unsetting a boolean variable is equivalent to setting it to
-@samp{false}.  Unsetting a string variable is equivalent to setting it
-to an empty string.
+@samp{false}.  Unsetting a string variable is equivalent to assigning it
+an empty string.
 @end deffn
 
 @node commands
@@ -2125,6 +2125,140 @@ Print the version of @command{gdbm}.
 
 @node definitions
 @subsection Data Definitions
+GDBM databases are able to keep data of any type, both in the key and
+in the content part of a record.  Quite often these data are
+structured, i.e. they consist of several fields of various types.
+@command{Gdbmtool} provides a mechanism for handling such kind of
+records.
+
+The @code{define} command defines a record structure.  The general
+syntax is:
+
+@example
+define @var{what} @var{definition}
+@end example
+
+@noindent
+where @var{what} is @samp{key} to defining the structure of key data and
+@samp{content} to define the structure of the content records.
+
+The @var{definition} can be of two distinct formats.  In the simplest
+case it is a single data type.  For example,
+
+@example
+define content int
+@end example
+
+@noindent
+defines content records consisting of a single integer field.
+Supported data types are:
+
+@table @asis
+@item char
+Single byte (signed).
+@item short
+Signed short integer.
+@item ushort
+Unsigned short integer.
+@item int
+Signed integer.
+@item unsigned
+@itemx uint
+Unsigned integer.
+@item long
+Signed long integer.
+@item ulong
+Unsigned long integer.
+@item llong
+Signed long long integer.
+@item ullong
+Unsigned long long integer.
+@item float
+A float.
+@item double
+A double.
+@item string
+Null-terminated string, trailing null being part of the string.
+@item zstring
+A string of characters without the terminating null.
+@end table
+
+All numeric data types (integer as well as floating point) have the
+same respective widths as in C language on the host where the database
+file resides.
+
+The @samp{string} and @samp{zstring} are special.  Both define a
+string of bytes, similar to @samp{char x[]} in C.  The former
+defines a null-terminated string, the latter - a string without null
+terminator.  This makes difference when the string is the only part of
+datum.  Consider the following two definitions:
+
+@enumerate 1
+@item @code{define key string}
+@item @code{define key zstring}
+@end enumerate
+
+@noindent
+Now, suppose we want to store the string "ab" in the key.  Using the
+definition (1), the @code{dptr} member of GDBM @code{datum} will
+contain three bytes: @samp{a}, @samp{b}, and ASCII 0.  The
+@code{dsize} member will have the value 3.  Using the definition (2),
+the @code{dptr} member will contain two bytes: @samp{a} and @samp{b},
+and the @code{dsize} member will have the value 2.
+
+The second form of the @code{define} statement is similar to the C
+@code{struct} statement and allows for defining structural data.   In
+this form, the @var{definition} part is a comma-separated list of data
+types and variables enclosed in curly braces.  In contrast to the
+rest of @command{gdbm} commands, this command is inherently
+multiline and is terminated with the closing curly brace.  For
+example:
+
+@example
+define content @{
+        int status,
+        pad 8,
+        char id[3],
+        string name
+@}        
+@end example
+
+@noindent
+This defines a structure consisting of three members: an integer
+@code{status}, an array of 8 bytes @code{id}, and a null-terminated
+string @code{name}.  Notice the @code{pad} statement: it allows to
+introduce padding between structure members.  Another useful statement
+is @code{offset}: it specifies that the member following it begins at
+the given offset in the structure.  Assuming the size of @code{int} is
+8 bytes, the above definition can also be written as
+
+@example
+define content @{
+        int status,
+        offset 16,
+        char id[3],
+        string name
+@}        
+@end example
+
+When displaying the structured data, @command{gdbmtool} precedes each
+value with the corresponding field name and delimits parts of the
+structure with the string defined in the @samp{delim1} variable
+(@pxref{variables}).  Array elements are delimited using the string from
+@samp{delim2}.  For example:
+
+@example
+gdbmtool> fetch foo
+status=2,id=@{ a, u, x @},name="quux"
+@end example
+
+To supply a structured datum as an argument to a @command{gdbmtool}
+command, use the same notation, but without field names, e.g.:
+
+@example
+gdbmtool> hash @{ 2, @{a,u,x@}, "quux" @}
+hash value = 13089969.
+@end example
 
 @node startup files
 @subsection Startup Files
