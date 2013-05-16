@@ -1,4 +1,4 @@
-.\" This file is part of GDBM.
+.\" This file is part of GDBM.  -*- nroff -*-
 .\" Copyright (C) 2013 Free Software Foundation, Inc.
 .\"
 .\" GDBM is free software; you can redistribute it and/or modify
@@ -17,10 +17,11 @@
 .SH NAME
 gdbmtool \- examine and modify a GDBM database
 .SH SYNOPSIS
-\fBgdbmtool\fR [\fB\-lmnqrs\fR] [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fISIZE\fR]\
- [\fB\-g\fR \fIFILE\fR] [\fB\-\-block\-size\fR=\fISIZE\fR]
-         [\fB\-\-cache\-size\fR=\fISIZE\fR] [\fB\-\-newdb\fR]\
- [\fB\-\-no\-lock\fR] [\fB\-\-no\-mmap\fR]
+\fBgdbmtool\fR [\fB\-lmNnqrs\fR] [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fISIZE\fR]\
+ [\fB\-f\fR \fIFILE\fR] [\fB\-\-block\-size\fR=\fISIZE\fR]
+         [\fB\-\-cache\-size\fR=\fISIZE\fR] [\fB\-\-file\fR \fIFILE\fR]\
+  [\fB\-\-newdb\fR] [\fB\-\-no\-lock\fR]
+         [\fB\-\-no\-mmap\fR] [\fB\-\-norc\fR]
          [\fB\-\-quiet\fR] [\fB\-\-read\-only\fR] [\fB\-\-synchronize\fR]\
  [\fIDBFILE\fR]
 .sp
@@ -39,10 +40,20 @@ If the named database does not exist, it will be created.  An existing
 database can be cleared (i.e. all records removed from it) using the
 \fB\-\-newdb\fR option (see below).
 .PP
-After successful startup,
+Unless the \fB\-N\fR (\fB\-\-norc\fR) option is given, after startup
+.B gdbmtool
+looks for file named
+.B .gdbmtoolrc
+first in the current working directory, and, if not found there, in
+the home directory of the user who started the program.  If found,
+this file is read and interpreted as a list of
+.B gdbmtool
+commands.
+.PP
+Then
 .B gdbmtool
 starts a loop, in which it reads
-commands from the user, executes them and prints the results on the
+commands from the standard input, executes them and prints the results on the
 standard output.  If the standard input is attached to a console,
 the program runs in interactive mode.
 .PP
@@ -56,8 +67,32 @@ command consists of a command verb, optionally
 followed by one or more arguments, separated by any amount of white
 space.  A command verb can be entered either in full or in an
 abbreviated form, as long as that abbreviation does not match any other
-verb.  Many command verbs have also one-letter abbreviation which can
-be used instead.
+verb.
+.PP
+Any sequence of non-whitespace characters appearing after the command
+verb forms an argument.  If the argument contains whitespace or
+unprintable characters it must be enclosed in double quotes.  Within
+double quotes the usual escape sequences are understood, as
+shown in the table below:
+.sp
+.nf
+.ta 8n 20n
+.ul
+	Escape	Expansion
+	\\a	Audible bell character (ASCII 7)
+	\\b	Backspace character (ASCII 8)
+	\\f	Form-feed character (ASCII 12)
+	\\n	Newline character (ASCII 10)
+	\\r	Carriage return character (ASCII 13)
+	\\t	Horizontal tabulation character (ASCII 9)
+	\\v	Vertical tabulation character (ASCII 11)
+	\\\\	Single slash
+	\"	Double quote
+.fi
+.PP
+In addition, a backslash immediately followed by the end-of-line
+character effectively removes that character, allowing to split long
+arguments over several input lines.
 .SH OPTIONS
 .TP
 \fB\-b\fR, \fB\-\-block\-size\fR=\fISIZE\fR
@@ -65,6 +100,9 @@ Set block size.
 .TP
 \fB\-c\fR, \fB\-\-cache\-size\fR=\fISIZE\fR
 Set cache size.
+.TP
+\fB\-f\fR, \fB\-\-file\fR=\fIFILE\fR
+Read commands from \fIFILE\fR, instead of from the standard input.
 .TP
 \fB\-l\fR, \fB\-\-no\-lock\fR
 Disable file locking.
@@ -94,35 +132,30 @@ Print a list of available options.
 \fB\-V\fR, \fB\-\-version\fR
 Print program version
 .SH SHELL COMMANDS
-For command verbs that have single-letter abbreviations, these are
-printed after a comma.  Either command verb or its abbreviation must
-be used, but not both.
 .TP
-.BR avail ", " A
-Print the "
+.BR avail 
+Print the 
 .BR "avail list" .
 .TP
-\fBbucket\fR, \fBB\fR \fINUM\fR
-Print the bucket number \fINUM\fR.
+\fBbucket\fR \fINUM\fR
+Print the bucket number \fINUM\fR and set is as the current one.
 .TP
-.BR cache ", " K
+.BR cache
 Print the bucket cache.
 .TP
-.BR count ", " c
+.B close
+Close the currently open database.
+.TP
+.BR count
 Print the number of entries in the database.
 .TP
-.BR current ", " C
+.BR current
 Print the current bucket.
 .TP
-.BR data-zero ", " Z
-Toggle data nul-termination.  Use
-.B status
-to examine the current status.
+\fBdelete\fR \fIKEY\fR
+Delete record with the given \fIKEY\fR.
 .TP
-\fBdelete\fR, \fBd\fR \fIKEY\fR
-Delete entry with the given \fIKEY\fR.
-.TP
-.BR dir ", " D
+.BR dir
 Print hash directory.
 .TP
 \fBexport\fR, \fBe\fR \fIFILE\-NAME\fR [\fBtruncate\fR] [\fBbinary\fR|\fBascii\fR]
@@ -134,27 +167,27 @@ This command will not overwrite an existing file, unless the
 parameter is also given.  Another optional parameter determines the type of
 the dump (*note Flat files::).  By default, ASCII dump will be created.
 .TP
-\fBfetch\fR, \fBf\fR \fIKEY\fR
+\fBfetch\fR \fIKEY\fR
 Fetch and display the record with the given \fIKEY\fR.
 .TP
-.BR first ", " 1
+.BR first
 Fetch and display the first record in the database.  Subsequent
 records can be fetched using the
 .B next
 command (see below).
 .TP
-\fBhash\fR, \fBH\fR \fIKEY\fR
-Compute and display hash value for the given \fIKEY\fR.
+\fBhash\fR \fIKEY\fR
+Compute and display the hash value for the given \fIKEY\fR.
 .TP
-.BR header ", " F
+.BR header
 Print file header.
 .TP
-.BR help ", " ?
+.BR help " or " ?
 Print a concise command summary, showing each command letter and
 verb with its parameters and a short description of what it does.
 Optional arguments are enclosed in square brackets.
 .TP
-\fBimport\fR, \fBi\fR \fIFILE\-NAME\fR [\fBreplace\fR] [\fBnometa\fR]
+\fBimport\fR \fIFILE\-NAME\fR [\fBreplace\fR] [\fBnometa\fR]
 Import data from a flat dump file \fIFILE\-NAME\fR.
 If the
 .B replace
@@ -163,26 +196,66 @@ existing ones will replace them.  The
 .B nometa
 argument turns off restoring meta-information from the dump file.
 .TP
-.BR key-zero ", " z
-Toggle key nul-termination.  Use
-.B status
-to inspect the current state.
-.TP
-\fBlist\fR, \fBl\fR
+\fBlist\fR
 List the contents of the database.
 .TP
-\fBnext\fR, \fBn\fR [\fIKEY\fR]
+\fBnext\fR [\fIKEY\fR]
 Sequential access: fetch and display the next record.  If the \fIKEY\fR is
 given, the record following the one with this key will be fetched.
 .TP
-\fBprompt\fR \fITEXT\fR
-Changes the command prompt to the string \fITEXT\fR.  The string can
-contain
-.BR "escape sequences" ,
-the special entities consisting of the
-.B %
-character followed by another character.  These sequences are
-replaced in the generated prompt as follows:
+\fBopen\fR \fIFILE\fR
+Open the database file \fIFILE\fR.  If successful, any previously
+open database is closed.  Otherwise, if the operation fails, the
+currently opened database remains unchanged.
+
+This command takes additional information from the variables
+.BR open ,
+.BR lock ,
+.BR mmap ", and"
+.BR sync .
+See the section
+.BR VARIABLES ,
+for a detailed description of these.
+.TP
+.B quit
+Close the database and quit the utility.
+.TP
+.BR reorganize
+Reorganize the database.
+\fBset\fR [\fIVAR\fR=\fIVALUE\fR...]
+Without arguments, lists variables and their values.  If arguments are
+specified, sets variables.   Boolean variables can be set by specifying
+variable name, optionally prefixed with \fBno\fR, to set it to \fBfalse\fR.
+.TP
+\fBsource\fR \fIFILE\fR
+Read commands from the given \fIFILE\fR.
+.TP
+.BR status
+Print current program status.
+.TP
+\fBstore\fR \fIKEY\fR \fIDATA\fR
+Store the \fIDATA\fR with the given \fIKEY\fR in the database.  If the
+\fIKEY\fR already exists, its data will be replaced.
+.TP
+\fBunset\fR \fIVARIABLE\fR...
+Unsets listed variables.
+.TP
+.BR version
+Print the version of
+.BR gdbm .
+.SH "DATA DEFINITIONS"
+.SH VARIABLES
+.TP
+.BR confirm ", boolean"
+Whether to ask for confirmation before certain destructive operations,
+such as truncating the existing database.  Default is
+.BR true .
+.TP
+.BR ps1 ", string"
+Primary prompt string.  Its value can contain \fIconversion
+specifiers\fR, consisting of the \fB%\fR character followed by another
+character.  These specifiers are expanded in the resulting prompt as
+follows: 
 .sp
 .nf
 .ta 8n 20n
@@ -198,35 +271,69 @@ replaced in the generated prompt as follows:
 .sp
 The default prompt is \fB%p>%_\fR.
 .TP
-.BR quit ", " q
-Close the database and quit the utility.
+.BR ps2 ", string"
+Secondary prompt.  See
+.B ps1
+for a description of its value.
+This prompt is displayed before reading the second and subsequent
+lines of a multi-line command.
+
+The default value is \fB%_>%_\fR.
 .TP
-\fBread\fR, \fB<\fR \fIFILE\fR [\fBreplace\fR]
-Read entries from \fIFILE\fR and store them in the database.  If the
-.B replace
-parameter is given, any existing records with matching keys will be replaced.
+.BR delim1 ", string"
+A string used to delimit fields of a structured datum on output
+(see the section \fBDATA DEFINITIONS\fR).
+
+Default is \fB,\fR (a comma).  This variable cannot be unset.
 .TP
-.BR reorganize ", " r
-Reorganize the database.
+.BR delim2 ", string"
+A string used to delimit array items when printing a structured datum.
+
+Default is \fB,\fR (a comma).  This variable cannot be unset.
 .TP
-.BR status ", " S
-Print current program status.  The following example shows the
-information displayed:
-.sp
-.nf
-.if +2
-Database file: junk.gdbm
-Zero terminated keys: yes
-Zero terminated data: yes
-.fi
+.BR pager ", string"
+The name and command line of the pager program to pipe output to.
+This program is used in interactive mode when the estimated number of
+output lines is greater then the number of lines on your screen.
+
+The default value is inherited from the environment variable
+\fBPAGER\fR.  Unsetting this variable disables paging.
 .TP
-\fBstore\fR, \fBs\fR \fIKEY\fR \fIDATA\fR
-Store the \fIDATA\fR with the given \fIKEY\fR in the database.  If the
-\fIKEY\fR already exists, its data will be replaced.
+.BR quiet ", boolean"
+Whether to display welcome banner at startup.  This variable should
+be set in a startup script file.
+.PP
+The following variables control how the database is opened:
 .TP
-.BR version ", " v
-Print the version of
-.BR gdbm .
+.BR cachesize ", numeric"
+Sets the cache size.  By default this variable is not set.
+.TP
+.BR blocksize ", numeric"
+Sets the block size.  Unset by default.
+.TP
+.BR open ", string"
+Open mode.  The following values are allowed:
+.RS 7
+.TP
+.BR newdb
+Truncate the database if it exists or create a new one.  Open it in
+read-write mode.
+.TP
+.BR wrcreat " or " rw
+Open the database in read-write mode.  Create it if it does not
+exist.  This is the default.
+.TP
+.BR reader " or " readonly
+Open the database in read-only mode.  Signal an error if it does not
+exist.
+.RE
+.TP
+.BR lock ", boolean"
+Lock the database.  This is the default.
+.TP
+.BR mmap ", boolean"
+Use memory mapping.  This is the default.
+
 .SH "SEE ALSO"
 .BR gdbm_dump (1),
 .BR gdbm_load (1),

@@ -20,6 +20,7 @@
 #define VARF_DFL    0x00
 #define VARF_SET    0x01
 #define VARF_INIT   0x02
+#define VARF_PROT   0x04
 
 #define VAR_IS_SET(v) ((v)->flags & (VARF_SET|VARF_INIT))
 
@@ -48,12 +49,12 @@ static struct variable vartab[] = {
   /* Second-level prompt (used within "def" block) */
   { "ps2", VART_STRING, VARF_INIT, { "%_>%_" } },
   /* This delimits array members */
-  { "delim1", VART_STRING, VARF_INIT, { "," } },
+  { "delim1", VART_STRING, VARF_INIT|VARF_PROT, { "," } },
   /* This delimits structure members */
-  { "delim2", VART_STRING, VARF_INIT, { "," } },
+  { "delim2", VART_STRING, VARF_INIT|VARF_PROT, { "," } },
   { "confirm", VART_BOOL, VARF_INIT, { num: 1 } },
-  { "cachesize", VART_INT, VARF_INIT, { num: DEFAULT_CACHESIZE } },
-  { "blocksize", VART_INT, VARF_DFL, { num: 0 } },
+  { "cachesize", VART_INT, VARF_DFL },
+  { "blocksize", VART_INT, VARF_DFL },
   { "open", VART_STRING, VARF_DFL, { NULL }, open_hook },
   { "lock", VART_BOOL, VARF_INIT, { num: 1 } },
   { "mmap", VART_BOOL, VARF_INIT, { num: 1 } },
@@ -142,14 +143,14 @@ s2b (union value *vp, void *val)
     if (strcasecmp (trueval[i], val) == 0)
       {
 	vp->bool = 1;
-	return 0;
+	return VAR_OK;
       }
   
   for (i = 0; falseval[i]; i++)
     if (strcasecmp (falseval[i], val) == 0)
       {
 	vp->bool = 0;
-	return 1;
+	return VAR_OK;
       }
   
   n = strtoul (val, &p, 0);
@@ -226,12 +227,16 @@ variable_set (const char *name, int type, void *val)
       valp = &v; 
     }
   else
-    valp = NULL;
+    {
+      if (vp->flags & VARF_PROT)
+	return VAR_ERR_BADVALUE;
+      valp = NULL;
+    }
   
   if (vp->hook && (rc = vp->hook (vp, valp)) != VAR_OK)
     return rc;
-  
-  if (vp->type == VART_STRING && (vp->flags && VARF_SET))
+
+  if (vp->type == VART_STRING && (vp->flags & VARF_SET))
     free (vp->v.string);
 
   if (!val)
@@ -256,6 +261,8 @@ variable_unset (const char *name)
     
   if (!vp)
     return VAR_ERR_NOTDEF;
+  if (vp->flags & VARF_PROT)
+    return VAR_ERR_BADVALUE;
 
   if (vp->hook && (rc = vp->hook (vp, NULL)) != VAR_OK)
     return rc;

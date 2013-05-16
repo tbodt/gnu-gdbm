@@ -1629,7 +1629,7 @@ existing @acronym{GDBM} database or to create a new one.
 When invoked without arguments, it tries to open a database file called
 @file{junk.gdbm}, located in the current working directory.  You can
 change this default by supplying the name of the database to use as
-the only argument to @command{gdbmtool}, e.g.:
+an argument to the program, e.g.:
 
 @example
 $ gdbmtool file.db
@@ -1669,9 +1669,15 @@ Set block size.
 @item -c @var{size}
 @itemx --cache-size=@var{size}
 Set cache size.
+@item -f @var{file}
+@item --file @var{file}
+Read commands from @var{file}, instead of the standard input.
 @item -h
 @itemx --help
 Print a concise help summary.
+@item -N
+@itemx --norc
+Don't read startup files (@pxref{startup files}).
 @item -n
 @itemx --newdb
 Create the database.
@@ -1681,9 +1687,11 @@ Disable file locking.
 @item -m
 @itemx --no-mmap
 Disable mmap.
+@anchor{-q option}
 @item -q
 @itemx --quiet
-Don't print the usual welcome banner at startup.
+Don't print the usual welcome banner at startup.  This is the same as
+setting the variable @samp{quiet} in the startup file.  @xref{quiet}.
 @item -r
 @itemx --read-only
 Open the database in read-only mode.
@@ -1703,10 +1711,10 @@ command line options.
 @cindex interactive mode, @command{gdbmtool}
 
 After successful startup, @command{gdbmtool} starts a loop, in which
-it reads commands from the user, executes them and prints the results
-on the standard output.  If the standard input is attached to a console,
-@command{gdbmtool} runs in interactive mode, which is indicated by its
-@dfn{prompt}:
+it reads commands from the standard input, executes them and prints
+the results on the standard output.  If the standard input is attached
+to a console, @command{gdbmtool} runs in interactive mode, which is
+indicated by its @dfn{prompt}:
 
 @example
 gdbmtool> _
@@ -1716,30 +1724,49 @@ The utility finishes when it reads the @samp{quit} command (see below) or
 detects end-of-file on its standard input, whichever occurs first.
 
 A @command{gdbmtool} command consists of a @dfn{command verb},
-optionally followed by one or two @dfn{arguments}, separated by any
+optionally followed by @dfn{arguments}, separated by any
 amount of white space.  A command verb can be entered either in full
 or in an abbreviated form, as long as that abbreviation does not match
 any other verb.  For example, @samp{co} can be used instead of
-@samp{count} and @samp{ca} instead of @samp{cache}.  Furthermore,
-many command verbs also have single-letter forms, called @dfn{command
-letters}.
+@samp{count} and @samp{ca} instead of @samp{cache}.  
 
-An argument is any sequence of non-whitespace characters.  Notice,
-that currently there is no way to enter arguments containing white
-space.  This limitation will be removed in future releases.
+Any sequence of non-whitespace characters appearing after the command
+verb forms an argument.  If the argument contains whitespace or
+unprintable characters it must be enclosed in double quotes.  Within
+double quotes the usual @dfn{escape sequences} are understood, as
+shown in the table below:
 
-Each command takes at most two @dfn{formal parameters}, which can be
-optional or mandatory.  If the number of actual arguments is less than the
-number of mandatory parameters, @command{gdbmtool} will prompt you to
-supply missing arguments.  For example, the @samp{store} command takes two
-mandatory parameters, so if you invoked it with no arguments, you
-would be prompted twice to supply the necessary data, as shown in 
-example below:
+@float Table, backslash-interpretation
+@caption{Backslash escapes}
+@multitable @columnfractions 0.30 .5
+@item Sequence @tab Replaced with
+@item \a @tab Audible bell character (@acronym{ASCII} 7)
+@item \b @tab Backspace character (@acronym{ASCII} 8)
+@item \f @tab Form-feed character (@acronym{ASCII} 12)
+@item \n @tab Newline character (@acronym{ASCII} 10)
+@item \r @tab Carriage return character (@acronym{ASCII} 13)
+@item \t @tab Horizontal tabulation character (@acronym{ASCII} 9)
+@item \v @tab Vertical tabulation character (@acronym{ASCII} 11)
+@item \\ @tab Single slash
+@item \" @tab Double quote
+@end multitable
+@end float
+
+In addition, a backslash immediately followed by the end-of-line
+character effectively removes that character, allowing to split long
+arguments over several input lines.
+
+Command parameters may be optional or mandatory.  If the number of
+actual arguments is less than the number of mandatory parameters,
+@command{gdbmtool} will prompt you to supply missing arguments.  For
+example, the @samp{store} command takes two mandatory parameters, so
+if you invoked it with no arguments, you would be prompted twice to
+supply the necessary data, as shown in  example below:
 
 @example
 gdbmtool> @kbd{store}
-key> @kbd{three}
-data> @kbd{3}
+key? @kbd{three}
+data? @kbd{3}
 @end example
 
 However, such prompting is possible only in interactive mode.  In
@@ -1747,39 +1774,238 @@ non-interactive mode (e.g.@: when running a script), all arguments must
 be supplied with each command, otherwise @command{gdbmtool} will report an
 error and exit immediately.
 
-@anchor{pager}
-@cindex pager, @command{gdbmtool}
-@cindex @env{PAGER}
-Some commands produce excessive amounts of output.  To help you follow
-it, @command{gdbmtool} uses a pager utility to display such
-output.  The name of the pager utility is taken from the environment
-variable @env{PAGER}.  The pager is invoked only in interactive mode
-and only if the estimated number of output lines is greater then the
-number of lines on your screen.  
+@menu
+* variables::      shell variables.
+* commands::       shell commands.
+* definitions::    how to define structured data.
+* startup files::
+@end menu
 
-@anchor{nul-termination}
-Many of the @command{gdbmtool} commands operate on database key and
-data values.  The utility assumes that both keys and data are
-@acronym{ASCII} strings, either nul-terminated or not.  By default,
-it is assumed that strings are nul-terminated.  You can change this
-by using @code{z} (@code{key-zero}, for keys) and @code{Z}
-(@code{data-zero}, for data) commands.
+@node variables
+@subsection Shell Variables
+@cindex variables, gdbmtool
+A number of @command{gdbmtool} parameters is kept in its internal
+variables.
 
-The following table summarizes all available commands:
+@deftypevr {gdbmtool variable} bool confirm
+Whether to ask for confirmation before certain destructive operations,
+such as truncating the existing database.
+
+Default is @samp{true}.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} string ps1
+Primary prompt string.  Its value can contain @dfn{conversion
+specifiers}, consisting of the @samp{%} character followed by another
+character.  These specifiers are expanded in the resulting prompt as
+follows: 
+
+@multitable @columnfractions 0.4 0.5
+@headitem Sequence @tab Expansion
+@item %f @tab name of the current database file
+@item %p @tab program invocation name
+@item %P @tab package name (@samp{GDBM})
+@item %v @tab program version
+@item %_ @tab single space character
+@item %% @tab %
+@end multitable
+
+The default value is @samp{%p>%_}, i.e. the program name, followed by
+a ``greater than'' sign, followed by a single space.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} string ps2
+Secondary prompt.  See @samp{ps1} for a description of its value.
+This prompt is displayed before reading the second and subsequent
+lines of a multi-line command.
+
+The default value is @samp{%_>%_}.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} string delim1
+A string used to delimit fields of a structured datum on output
+(@pxref{definitions}).
+
+Default is @samp{,} (a comma).  This variable cannot be unset.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} string delim2
+A string used to delimit array items when printing a structured datum
+(@pxref{definitions}).
+
+Default is @samp{,} (a comma).  This variable cannot be unset.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} string pager
+The name and command line of the pager program to pipe output to.
+This program is used in interactive mode when the estimated number of
+output lines is greater then the number of lines on your screen.
+
+The default value is inherited from the environment variable
+@env{PAGER}.  Unsetting this variable disables paging.
+@end deftypevr
+
+@anchor{quiet}
+@deftypevr {gdbmtool variable} bool quiet
+Whether to display a welcome banner at startup.  This variable should
+be set in a startup script file (@pxref{startup files}).
+@xref{-q option}.
+@end deftypevr
+
+@anchor{open parameters}
+The following variables control how the database is opened:
+
+@deftypevr {gdbmtool variable} numeric cachesize
+Sets the cache size.  @xref{Options, GDBM_SETCACHESIZE}.
+By default this variable is not set.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} numeric blocksize
+Sets the block size.  @xref{Open, block_size}.  Unset by default.
+@end deftypevr
+
+@anchor{openvar}
+@deftypevr {gdbmtool variable} string open
+Open mode.  The following values are allowed:
+
+@table @asis
+@item newdb
+Truncate the database if it exists or create a new one.  Open it in
+read-write mode.
+
+Technically, this sets the @samp{GDBM_NEWDB} flag in call to @samp{gdbm_open}.
+@xref{Open, GDBM_NEWDB}.
+@item wrcreat
+@itemx rw
+Open the database in read-write mode.  Create it if it does not
+exist.  This is the default.
+
+Technically speaking, it sets the @samp{GDBM_WRCREAT} flag in call to
+@code{gdbm_open}.  @xref{Open, GDBM_WRCREAT}.
+@item reader
+@itemx readonly
+Open the database in read-only mode.  Signal an error if it does not
+exist.
+
+This sets the @samp{GDBM_READER} flag (@pxref{Open, GDBM_READER}).
+@end table
+
+Attempting to set any other value or to unset this variable produces
+an error.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} bool lock
+Lock the database.  This is the default.
+
+Setting this variable to false or unsetting it results in passing
+@samp{GDBM_NOLOCK} flag to @code{gdbm_open} (@pxref{Open, GDBM_NOLOCK}).
+@end deftypevr
+
+@deftypevr {gdbmtool variable} bool mmap
+Use memory mapping.  This is the default.
+
+Setting this variable to false or unsetting it results in passing
+@samp{GDBM_NOMMAP} flag to @code{gdbm_open} (@pxref{Open, GDBM_NOMMAP}).
+@end deftypevr
+
+@deftypevr {gdbmtool variable} bool sync
+Flush all database writes on disk immediately.  Default is false.
+@xref{Open, GDBM_SYNC}.
+@end deftypevr
+
+The following commands are used to list or modify the variables:
+
+@deffn {command verb} set [@var{assignments}]
+When used without arguments, lists all variables and their values.
+Unset variables are shown after a comment sign (@samp{#}).  For string
+and numeric variables, values are shown after an equals sign.  For
+boolean variables, only the variable name is displayed if the variable
+is @samp{true}.  If it is @samp{false}, its name is prefixed with
+@samp{no}. 
+
+For example:
+
+@example
+@group
+ps1="%p>%_"
+ps2="%_>%_"
+delim1=","
+delim2=","
+confirm
+# cachesize is unset
+# blocksize is unset
+open="wrcreat"
+lock
+mmap
+nosync
+pager="less"
+# quiet is unset
+@end group
+@end example
+
+If used with arguments, the @code{set} command alters the specified
+variables.  In this case, arguments are variable assignments in the
+form @samp{@var{name}=@var{value}}.  For boolean variables, the
+@var{value} is interpreted as follows: if it is numeric, @samp{0}
+stands for @samp{false}, any non-zero value stands for @samp{true}.
+Otherwise, the values @samp{on}, @samp{true}, and @samp{yes} denote
+@samp{true}, and @samp{off}, @samp{false}, @samp{no} stand for
+@samp{false}.  Alternatively, only the name of a boolean variable can be
+supplied to set it to @samp{true}, and its name prefixed with
+@samp{no} can be used to set it to false.  For example, the following
+command sets the @samp{delim2} variable to @samp{;} and the
+@samp{confirm} variable to @samp{false}:
+
+@example
+srt delim2=";" noconfirm
+@end example
+@end deffn
+
+@deffn {command verb} unset @var{variables}
+Unsets the listed variables.  The effect of unsetting depends on the
+variable.  Unless explicitly described in the discussion of the
+variables above, unsetting a boolean variable is equivalent to setting it to
+@samp{false}.  Unsetting a string variable is equivalent to setting it
+to an empty string.
+@end deffn
+
+@node commands
+@subsection Gdbmtool Commands
+
+@deffn {command verb} avail
+Print the @dfn{avail list}.
+@end deffn
+
+@deffn {command verb} bucket @var{num}
+Print the bucket number @var{num} and set it as the current one.
+@end deffn
+
+@deffn {command verb} cache
+Print the bucket cache.
+@end deffn
+
+@deffn {command verb} close
+Close the currently open database.
+@end deffn
 
 @deffn {command verb} count
-@deffnx {command letter} c
 Print the number of entries in the database.
 @end deffn
 
+@deffn {command verb} current
+Print the current bucket.
+@end deffn
+
 @deffn {command verb} delete @var{key}
-@deffnx {command letter} d @var{key}
-Delete entry with the given @var{key}
+Delete record with the given @var{key}
+@end deffn
+
+@deffn {command verb} dir
+Print hash directory.
 @end deffn
 
 @anchor{gdbmtool export}
 @deffn {command verb} export @var{file-name} [truncate] [binary|ascii]
-@deffnx {command letter} e @var{file-name} [truncate] [binary|ascii]
 Export the database to the flat file @var{file-name}.  @xref{Flat files},
 for a description of the flat file format and its purposes.  This
 command will not overwrite an existing file, unless the
@@ -1791,13 +2017,32 @@ See also @ref{gdbmexport}.
 @end deffn
 
 @deffn {command verb} fetch @var{key}
-@deffnx {command letter} f @var{key}
 Fetch and display the record with the given @var{key}.
+@end deffn
+
+@deffn {command verb} first
+Fetch and display the first record in the database.  Subsequent
+records can be fetched using the @code{next} command (see below). 
+@xref{Sequential}, for more information on sequential access.
+@end deffn
+
+@deffn {command verb} hash @var{key}
+Compute and display the hash value for the given @var{key}.
+@end deffn
+
+@deffn {command verb} header
+Print file header.
+@end deffn
+
+@deffn {command verb} help
+@deffnx {command verb} ?
+Print a concise command summary, showing each command verb
+with its parameters and a short description of what it does.  Optional
+arguments are enclosed in square brackets.
 @end deffn
 
 @anchor{gdbmtool import}
 @deffn {command verb} import @var{file-name} [replace] [nometa]
-@deffnx {command letter} i @var{file-name} [replace] [nometa]
 Import data from a flat dump file @var{file-name}
 (@pxref{Flat files}).  If the word @samp{replace} is given
 as an argument, any records with the same keys as the already
@@ -1806,135 +2051,111 @@ restoring meta-information from the dump file.
 @end deffn
 
 @deffn {command verb} list
-@deffnx {command letter} l
-List the contents of the database (@pxref{pager}).
+List the contents of the database.
 @end deffn
 
 @deffn {command verb} next [@var{key}]
-@deffnx {command letter} n [@var{key}]
 Sequential access: fetch and display the next record.  If the @var{key} is
 given, the record following the one with this key will be fetched.
 
-See also @code{first}, below.
+See also @code{first}, above.
 
 @xref{Sequential}, for more information on sequential access.
 @end deffn
 
-@deffn {command verb} prompt @var{text}
-Changes the command prompt to the string @var{text}.  The string can
-contain @dfn{escape sequences}, the special entities consisting of the
-@samp{%} character followed by another character.  These sequences are
-replaced in the generated prompt as follows:
+@deffn {command verb} open @var{filename}
+Open the database file @var{filename}.  If successful, any previously
+open database is closed.  Otherwise, if the operation fails, the
+currently opened database remains unchanged.
 
-@multitable @columnfractions 0.4 0.5
-@headitem Sequence @tab Expansion
-@item %f @tab name of the db file
-@item %% @tab %
-@end multitable
+This command takes additional information from the following
+variables:
+
+@table @samp
+@item open
+The database access mode.  @xref{openvar,, The @var{open} variable},
+for a list of its values.
+@item lock
+Whether or not to lock the database.  Default is @samp{on}.
+@item mmap
+Use the memmory mapping.  Default is @samp{on}.
+@item sync
+Synchronize after each write.  Default is @samp{off}.
+@end table
+
+@xref{open parameters}, for a detailed description of these variables.
 @end deffn
 
 @deffn {command verb} quit
-@deffnx {command letter} q
 Close the database and quit the utility.
 @end deffn
 
-@deffn {command verb} store @var{key} @var{data}
-@deffnx {command letter} s @var{key} @var{data}
-Store the @var{data} with @var{key} in the database.  If @var{key}
-already exists, its data will be replaced.
-@end deffn
-
-@deffn {command verb} first
-@deffnx {command letter} 1
-Fetch and display the first record in the database.  Subsequent
-records can be fetched using the @code{next} command (see above). 
-@xref{Sequential}, for more information on sequential access.
-@end deffn
-
-@deffn {command verb} read @var{file} [replace]
-@deffnx {command letter} < @var{file} [replace] 
-Read entries from @var{file} and store them in the database.  If the
-@samp{replace} parameter is given, any existing records with matching
-keys will be replaced.
-@end deffn
-
 @deffn {command verb} reorganize
-@deffnx {command letter} r
 Reorganize the database (@pxref{Reorganization}).
 @end deffn
 
-@deffn {command verb} key-zero
-@deffnx {command letter} z
-Toggle key nul-termination.  Use @code{status} to inspect the current
-state.  @xref{nul-termination}.
-@end deffn
-
-@deffn {command verb} avail
-@deffnx {command letter} A
-Print the @dfn{avail list}.
-@end deffn
-
-@deffn {command verb} bucket
-@deffnx {command letter} B
-Print the bucket number @var{num}.
-@end deffn
-
-@deffn {command verb} current
-@deffnx {command letter} C
-Print the current bucket.
-@end deffn
-
-@deffn {command verb} dir
-@deffnx {command letter} D
-Print hash directory.
-@end deffn
-
-@deffn {command verb} header
-@deffnx {command letter} F
-Print file header.
-@end deffn
-
-@deffn {command verb} hash @var{key}
-@deffnx {command letter} H @var{key}
-Compute and display the hash value for the given @var{key}.
-@end deffn
-
-@deffn {command verb} cache
-@deffnx {command letter} K
-Print the bucket cache.
+@deffn {command verb} source @var{filename}
+Read @command{gdbmtool} commands from the file @var{filename}.
 @end deffn
 
 @deffn {command verb} status
-@deffnx {command letter} S
 Print current program status.  The following example shows the
 information displayed:
 
 @example
 Database file: junk.gdbm
-Zero terminated keys: yes
-Zero terminated data: yes
+Database is open
+define key @{
+        string,
+@}
+define content @{
+        string,
+@}
 @end example
 @end deffn
 
+@deffn {command verb} store @var{key} @var{data}
+Store the @var{data} with @var{key} in the database.  If @var{key}
+already exists, its data will be replaced.
+@end deffn
+
 @deffn {command verb} version
-@deffnx {command letter} v
 Print the version of @command{gdbm}.
 @end deffn
 
-@deffn {command verb} data-zero
-@deffnx {command letter} Z
-Toggle data nul-termination.  Use @code{status} to examine the current
-status.
+@node definitions
+@subsection Data Definitions
 
-@xref{nul-termination}.
-@end deffn
+@node startup files
+@subsection Startup Files
+@cindex startup file, gdbmtool
+@cindex init file, gdbmtool
+@flindex .gdbmtoolrc
+Upon startup @command{gdbmtool} looks for a file named
+@samp{.gdbmtoolrc} first in the current working directory and, if not
+found, in the home directory of the user who started the command.
 
-@deffn {command verb} help
-@deffnx {command letter} ?
-Print a concise command summary, showing each command letter and verb
-with its parameters and a short description of what it does.  Optional
-arguments are enclosed in square brackets.
-@end deffn
+If found, this file is read and interpreted as a list of
+@command{gdbmtool} commands.  This allows you to customize the
+program behavior.
+
+Following is an example startup file which disables the welcome
+banner, sets command line prompt to contain the name of the database
+file in parentheses and defines the structure of the database content
+records:
+
+@example
+@group
+set quiet
+set ps1="(%f) "
+
+define content @{
+        int time,
+        pad 4,
+        int status
+@}
+@end group
+@end example
 
 @node gdbm_dump
 @chapter The @command{gdbm_dump} utility

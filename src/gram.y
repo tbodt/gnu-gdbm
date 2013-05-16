@@ -280,6 +280,9 @@ asgn      : T_IDENT
 		case VAR_ERR_BADTYPE:
 		  lerror (&@1, _("%s is not a boolean variable"), varname);
 		  break;
+
+		default:
+		  lerror (&@1, _("unexpected error setting %s: %d"), $1, rc);
 		}
 	      free($1);
 	    }
@@ -302,8 +305,11 @@ asgn      : T_IDENT
 		case VAR_ERR_BADVALUE:
 		  lerror (&@1, _("%s: value %s is not allowed"), $1, $3);
 		  break;
+
+		default:
+		  lerror (&@1, _("unexpected error setting %s: %d"), $1, rc);
 		}
-	      free($1);
+	      free ($1);
 	      free ($3);
 	    }
           ;

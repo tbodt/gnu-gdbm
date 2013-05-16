@@ -1,3 +1,21 @@
+2013-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Improve handling of the variables.
+	
+	* src/gdbmtool.c (opendb): Allow for unset variables.
+	* src/gram.y: Improve error detection.
+	* src/lex.l: Handle multiline strings.
+	(pe_file_name): file_name can be NULL.
+	* src/var.c (VARF_PROT): New flag. Protects the variable
+	from being unset.
+	(vartab): Use VARF_PROT if needed.
+	(s2b): Fix return values.
+	(variable_set, variable_unset): Return error if attempting
+	to unset a variable marked with VARF_PROT.
+
+	* doc/gdbm.info: Update.
+	* doc/gdbmtool.1: Update.
+
 2013-05-15  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Minor change

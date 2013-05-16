@@ -46,13 +46,19 @@ unsigned input_line;
 static int
 opendb (char *dbname)
 {
-  int cache_size;
-  int block_size;
+  int cache_size = 0;
+  int block_size = 0;
   int flags = 0;
   GDBM_FILE db;
   
-  if (variable_get ("cachesize", VART_INT, (void**) &cache_size))
-    abort ();
+  switch (variable_get ("cachesize", VART_INT, (void**) &cache_size))
+    {
+    case VAR_OK:
+    case VAR_ERR_NOTSET:
+      break;
+    default:
+      abort ();
+    }
   switch (variable_get ("blocksize", VART_INT, (void**) &block_size))
     {
     case VAR_OK:
@@ -88,10 +94,9 @@ opendb (char *dbname)
       return 1;
     }
 
-  if (gdbm_setopt (db, GDBM_CACHESIZE, &cache_size, sizeof (int)) ==
-      -1)
-    terror (_("gdbm_setopt failed: %s"),
-		  gdbm_strerror (gdbm_errno));
+  if (cache_size &&
+      gdbm_setopt (db, GDBM_CACHESIZE, &cache_size, sizeof (int)) == -1)
+    terror (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
 
   if (gdbm_file)
     gdbm_close (gdbm_file);

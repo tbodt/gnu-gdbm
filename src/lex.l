@@ -196,7 +196,7 @@ setsource (const char *name, int intr)
 
 %option nounput
 
-%x STR DEF
+%x STR MLSTR DEF
 
 WS [ \t][ \t]*
 IDENT [a-zA-Z_][a-zA-Z_0-9-]*
@@ -259,7 +259,7 @@ O [0-7]
 		     return command_lookup (p, &yylloc, &yylval.cmd);
 		   }
 <DEF>{IDENT}       { if ((yylval.type = datadef_lookup (yytext)))
-			 return T_TYPE;
+		       return T_TYPE;
                      else
 		       {
 			 yylval.string = estrdup (yytext);
@@ -269,23 +269,27 @@ O [0-7]
 {IDENT}            { yylval.string = estrdup (yytext);
                      return T_IDENT;
                    }
-<INITIAL,DEF>[^ \t\n\[\]{},=]+  { yylval.string = estrdup (yytext);
-                                  return T_WORD; }
+<INITIAL,DEF>[^ \"\t\n\[\]{},=]+  { yylval.string = estrdup (yytext);
+                                    return T_WORD; }
 \"[^\\\"\n]*\"     { yylval.string = emalloc (yyleng - 1);
                      memcpy (yylval.string, yytext+1, yyleng-2);
 		     yylval.string[yyleng-2] = 0;
 		     return T_WORD; }
+\"[^\\\"\n]*\\$    { string_begin ();
+                     string_add (yytext + 1, yyleng - 2);
+                     BEGIN (MLSTR); }
 \"[^\\\"\n]*\\.    { string_begin ();
                      string_add (yytext + 1, yyleng - 3);
 		     string_addc (unescape (yytext[yyleng-1]));
                      BEGIN (STR); }
-<STR>[^\\\"\n]*\"  { if (yyleng > 1)
-		       string_add (yytext, yyleng - 1);
-		     yylval.string = string_end ();
-		     BEGIN (INITIAL);
-                     return T_WORD; }
-<STR>[^\\\"\n]*\\. { string_add (yytext, yyleng - 2);
-                     string_addc (unescape (yytext[yyleng-1])); }
+<STR,MLSTR>[^\\\"\n]*\"  { if (yyleng > 1)
+		             string_add (yytext, yyleng - 1);
+		           yylval.string = string_end ();
+		           BEGIN (INITIAL);
+                           return T_WORD; }
+<STR,MLSTR>[^\\\"\n]*\\$ { string_add (yytext, yyleng - 1); }
+<STR,MLSTR>[^\\\"\n]*\\. { string_add (yytext, yyleng - 2);
+                           string_addc (unescape (yytext[yyleng-1])); }
 <INITIAL,DEF>{WS}  ;
 <DEF>\n            { advance_line (); }
 \n                 { advance_line (); return '\n'; }
@@ -453,7 +457,8 @@ struct prompt_exp;
 void
 pe_file_name (struct prompt_exp *p)
 {
-  fwrite (file_name, strlen (file_name), 1, stdout);
+  if (file_name)
+    fwrite (file_name, strlen (file_name), 1, stdout);
 }
 
 void
@@ -520,7 +525,7 @@ expand_char (int c)
 char const *
 psname ()
 {
-  if (YYSTATE == DEF)
+  if (YYSTATE == DEF || YYSTATE == MLSTR)
     return "ps2";
   return "ps1";
 }
@@ -531,9 +536,18 @@ print_prompt ()
   const char *s;
   const char *prompt;
 
-  if (variable_get (psname (), VART_STRING, (void *) &prompt))
-    abort ();
+  switch (variable_get (psname (), VART_STRING, (void *) &prompt))
+    {
+    case VAR_OK:
+      break;
 
+    case VAR_ERR_NOTSET:
+      return;
+      
+    default:
+      abort ();
+    }
+  
   for (s = prompt; *s; s++)
     {
       if (*s == '%')
