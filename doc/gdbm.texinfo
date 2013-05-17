@@ -2243,7 +2243,7 @@ define content @{
 @}        
 @end example
 
-@empth{NOTE}: The @samp{string} type can reasonably be used only if it
+@emph{NOTE}: The @samp{string} type can reasonably be used only if it
 is the last or the only member of the data structure.  That's because it
 provides no information about the number of elements in the array, so
 it is interpreted to contain all bytes up to the end of the datum.
