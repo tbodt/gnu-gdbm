@@ -38,7 +38,7 @@ DEFFMT (f_float, float, "%f")
 DEFFMT (f_double, double, "%e")
 
 static int
-f_string (FILE *fp, void *ptr, int size)
+f_stringz (FILE *fp, void *ptr, int size)
 {
   int sz;
   char *s;
@@ -58,7 +58,7 @@ f_string (FILE *fp, void *ptr, int size)
 }
 
 static int
-f_zstring (FILE *fp, void *ptr, int size)
+f_string (FILE *fp, void *ptr, int size)
 {
   int sz;
   char *s;
@@ -140,14 +140,14 @@ s_float (struct xdatum *xd, char *str)
 }
 
 int
-s_string (struct xdatum *xd, char *str)
+s_stringz (struct xdatum *xd, char *str)
 {
   xd_store (xd, str, strlen (str) + 1);
   return 0;
 }
 
 int
-s_zstring (struct xdatum *xd, char *str)
+s_string (struct xdatum *xd, char *str)
 {
   xd_store (xd, str, strlen (str));
   return 0;
@@ -166,8 +166,8 @@ static struct datadef datatab[] = {
   { "ullong",   sizeof(unsigned long long), f_ullong, s_ullong },
   { "float",    sizeof(float),     f_float, s_float }, 
   { "double",   sizeof(double),    f_double, s_double },
+  { "stringz",  0, f_stringz, s_stringz },
   { "string",   0, f_string, s_string },
-  { "zstring",  0, f_zstring, s_zstring },
   { NULL }
 };
 
@@ -403,29 +403,40 @@ void
 dsprint (FILE *fp, int what, struct dsegm *ds)
 {
   static char *dsstr[] = { "key", "content" };
+  int delim;
   
-  fprintf (fp, "define %s {\n", dsstr[what]);
+  fprintf (fp, "define %s", dsstr[what]);
+  if (ds->next)
+    {
+      fprintf (fp, " {\n");
+      delim = '\t';
+    }
+  else
+    delim = ' ';
   for (; ds; ds = ds->next)
     {
       switch (ds->type)
 	{
 	case FDEF_FLD:
-	  fprintf (fp, "\t%s", ds->v.field.type->name);
+	  fprintf (fp, "%c%s", delim, ds->v.field.type->name);
 	  if (ds->v.field.name)
 	    fprintf (fp, " %s", ds->v.field.name);
 	  if (ds->v.field.dim > 1)
 	    fprintf (fp, "[%d]", ds->v.field.dim);
-	  fprintf (fp, ",\n");
 	  break;
 	  
 	case FDEF_OFF:
-	  fprintf (fp, "\toffset %d,\n", ds->v.n);
+	  fprintf (fp, "%coffset %d", delim, ds->v.n);
 	  break;
 
 	case FDEF_PAD:
-	  fprintf (fp, "\tpad %d,\n", ds->v.n);
+	  fprintf (fp, "%cpad %d", delim, ds->v.n);
 	  break;
 	}
+      if (ds->next)
+	fputc (',', fp);
+      fputc ('\n', fp);
     }
-  fprintf (fp, "}\n");
+  if (delim == '\t')
+    fputs ("}\n", fp);
 }

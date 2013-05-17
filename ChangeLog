@@ -1,3 +1,14 @@
+2013-05-17  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Update the docs.
+	
+	* NEWS: Update.
+	* doc/gdbm.texinfo: Update.
+	* doc/gdbmtool.1: Document the "define" statement.
+	* src/datconv.c: Rename string datatypes to reflect their
+	meaning.
+	(dsprint): Improve output presentation.
+	
 2013-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Provide support for a simplified "define" construct.

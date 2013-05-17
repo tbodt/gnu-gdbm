@@ -13,7 +13,7 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM_DUMP 1 "May 9, 2013" "GDBM" "GDBM User Reference"
+.TH GDBM_DUMP 1 "May 17, 2013" "GDBM" "GDBM User Reference"
 .SH NAME
 gdbmtool \- examine and modify a GDBM database
 .SH SYNOPSIS
@@ -244,6 +244,91 @@ Unsets listed variables.
 Print the version of
 .BR gdbm .
 .SH "DATA DEFINITIONS"
+The \fBdefine\fR statement provides a mechanism for defining key or
+content structures.  It is similar to the \fBC\fR \fBstruct\fR
+declaration:
+.sp
+.nf
+.in +4
+\fBdefine\fR \fBkey\fR|\fBcontent\fR \fB{\fR \fIdefnlist\fR \fB}\fR
+.in
+.fi
+.PP
+The \fIdefnlist\fR is a comma-separated list of member declarations.
+Within \fIdefnlist\fR the newline character looses its special meaning
+as the command terminator, so each declaration can appear on a
+separate line and arbitrary number of comments can be inserted to
+document the definition.
+.PP
+Each declaration has one of the following formats
+.sp
+.nf
+.in +4
+\fItype\fR \fIname\fR
+\fItype\fR \fIname\fR \fB[\fIN\fB]\fR
+.in
+.fi
+.sp
+where \fItype\fR is a data type and \fIname\fR is the member name.
+The second format defines the member \fIname\fR as an array of \fIN\fR
+elements of \fItype\fR.
+.PP
+The supported types are:
+.sp
+.nf
+.ta 8n 20n
+.ul
+	type	meaning
+	char	single byte (signed)
+	short	signed short integer
+	ushort	unsigned short integer
+	int	signed integer
+	unsigned	unsigned integer
+	uint	ditto
+	long	signed long integer
+	ulong	unsigned long integer
+	llong	signed long long integer
+	ullong	unsigned long long integer
+	float	a floating point number
+	double	double-precision floating point number
+	string	array of characters (see the \fBNOTE\fR below)
+	stringz	null-terminated string of characters
+.fi
+.PP
+The following alignment declarations can be used within \fIdefnlist\fR:
+.TP
+\fBoffset\fR \fIN\fR
+The next member begins at offset \fIN\fR.
+.TP
+\fBpad\fR \fIN\fR
+Add \fIN\fR bytes of padding to the previous member.
+.PP
+For example:
+.sp
+.nf
+.in +4
+\fBdefine content {
+        int status,
+        pad 8,
+        char id[3],
+        stringz name
+}\fR
+.fi
+.PP
+To define data consisting of a single data member, the following
+simplified construct can be used:
+.sp
+.nf
+.in +4
+\fBdefine\fR \fBkey\fR|\fBcontent\fR \fItype\fR
+.fi        
+.PP
+where \fItype\fR is one of the types discussed above.
+.PP
+\fBNOTE\fR: The \fBstring\fR type can reasonably be used only if it is
+the last or the only member of the data structure.  That's because it
+provides no information about the number of elements in the array, so
+it is interpreted to contain all bytes up to the end of the datum.
 .SH VARIABLES
 .TP
 .BR confirm ", boolean"

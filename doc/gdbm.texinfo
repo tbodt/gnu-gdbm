@@ -773,7 +773,7 @@ this error equally as @samp{GDBM_ILLEGAL_DATA}.
 
 Mild errors mean that the function was able to successfully load and
 restore the data, but was unable to change database file metadata
-afterwards.  The table below lists possible values for @code{gdbm_errno}
+afterward.  The table below lists possible values for @code{gdbm_errno}
 in this case.  To get more detail, inspect the system @code{errno} variable.
 
 @table @asis
@@ -2078,7 +2078,7 @@ for a list of its values.
 @item lock
 Whether or not to lock the database.  Default is @samp{on}.
 @item mmap
-Use the memmory mapping.  Default is @samp{on}.
+Use the memory mapping.  Default is @samp{on}.
 @item sync
 Synchronize after each write.  Default is @samp{off}.
 @end table
@@ -2105,13 +2105,13 @@ information displayed:
 @example
 Database file: junk.gdbm
 Database is open
-define key @{
-        string,
-@}
-define content @{
-        string,
-@}
+define key string
+define content string
 @end example
+
+The two @samp{define} strings show the defined formats for key and
+content data.  @xref{definitions}, for a detailed discussion of their
+meaning.
 @end deffn
 
 @deffn {command verb} store @var{key} @var{data}
@@ -2174,37 +2174,39 @@ Signed long long integer.
 @item ullong
 Unsigned long long integer.
 @item float
-A float.
+A floating point number.
 @item double
-A double.
+Double-precision floating point number.
 @item string
+Array of bytes.
+@item stringz
 Null-terminated string, trailing null being part of the string.
-@item zstring
-A string of characters without the terminating null.
 @end table
 
 All numeric data types (integer as well as floating point) have the
 same respective widths as in C language on the host where the database
 file resides.
 
-The @samp{string} and @samp{zstring} are special.  Both define a
+The @samp{string} and @samp{stringz} are special.  Both define a
 string of bytes, similar to @samp{char x[]} in C.  The former
-defines a null-terminated string, the latter - a string without null
-terminator.  This makes difference when the string is the only part of
-datum.  Consider the following two definitions:
+defines an array of bytes, the latter - a null-terminated string.
+This makes a difference, in particular, when the string is the only
+part of datum.  Consider the following two definitions:
 
 @enumerate 1
 @item @code{define key string}
-@item @code{define key zstring}
+@item @code{define key stringz}
 @end enumerate
 
 @noindent
 Now, suppose we want to store the string "ab" in the key.  Using the
 definition (1), the @code{dptr} member of GDBM @code{datum} will
-contain three bytes: @samp{a}, @samp{b}, and ASCII 0.  The
-@code{dsize} member will have the value 3.  Using the definition (2),
-the @code{dptr} member will contain two bytes: @samp{a} and @samp{b},
-and the @code{dsize} member will have the value 2.
+contain two bytes: @samp{a}, and @samp{b}.  Consequently, the
+@code{dsize} member will have the value 2.  Using the definition (2),
+the @code{dptr} member will contain three bytes: @samp{a}, @samp{b},
+and ASCII 0.  The @code{dsize} member will have the value 3.
+
+The definition (1) is the default for both key and content.
 
 The second form of the @code{define} statement is similar to the C
 @code{struct} statement and allows for defining structural data.   In
@@ -2240,6 +2242,11 @@ define content @{
         string name
 @}        
 @end example
+
+@empth{NOTE}: The @samp{string} type can reasonably be used only if it
+is the last or the only member of the data structure.  That's because it
+provides no information about the number of elements in the array, so
+it is interpreted to contain all bytes up to the end of the datum.
 
 When displaying the structured data, @command{gdbmtool} precedes each
 value with the corresponding field name and delimits parts of the
@@ -2282,7 +2289,7 @@ records:
 @group
 set quiet
 set ps1="(%f) "
-
+define key stringz
 define content @{
         int time,
         pad 4,
