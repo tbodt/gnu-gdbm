@@ -79,6 +79,8 @@ extern "C" {
 # define GDBM_GETMAXMAPSIZE   14 /* Get maximum mapped memory size */
 # define GDBM_GETDBNAME       15 /* Return database file name */
 
+typedef @GDBM_COUNT_T@ gdbm_count_t;
+  
 /* The data and key structure. */
 typedef struct {
 	char *dptr;
@@ -86,7 +88,7 @@ typedef struct {
       } datum;
 
 
-/* The file information header. This is good enough for most applications. */
+/* A pointer to the GDBM file. */
 typedef struct gdbm_file_info *GDBM_FILE;
 
 /* External variable, the gdbm build release string. */
@@ -120,6 +122,8 @@ extern int gdbm_export_to_file (GDBM_FILE dbf, FILE *fp);
 extern int gdbm_import (GDBM_FILE, const char *, int);
 extern int gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag);
 
+extern int gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount);
+  
 #define GDBM_DUMP_FMT_BINARY 0
 #define GDBM_DUMP_FMT_ASCII  1
 

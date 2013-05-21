@@ -207,6 +207,8 @@ struct gdbm_file_info {
 				  begins */
       };
 
+#define GDBM_DIR_COUNT(db) ((db)->header->dir_size / sizeof (off_t))
+
 /* Execute CODE without clobbering errno */
 #define SAVE_ERRNO(code)			\
   do						\

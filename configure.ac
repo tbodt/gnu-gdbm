@@ -87,6 +87,14 @@ AC_SYS_LARGEFILE
 AC_PROG_YACC
 AC_PROG_LEX
 AC_C_CONST
+AC_TYPE_UNSIGNED_LONG_LONG_INT
+
+AC_SUBST(GDBM_COUNT_T)
+if test $ac_cv_type_unsigned_long_long_int = yes; then
+	GDBM_COUNT_T="unsigned long long int"
+else
+	GDBM_COUNT_T="unsigned long"
+fi
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])

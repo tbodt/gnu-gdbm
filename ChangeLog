@@ -1,3 +1,23 @@
+2013-05-21  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	New function gdbm_count.
+	
+	* configure.ac: Check for unsigned long long, define
+	substitution variable GDBM_COUNT_T.
+	* src/gdbmcount.c: New file.
+	* src/Makefile.am (libgdbm_la_SOURCES): Add gdbmcount.c.
+	* src/bucket.c (_gdbm_read_bucket_at): New function.
+	* src/gdbm.h.in (gdbm_count_t): New typedef.
+	(gdbm_count): New proto.
+	* src/gdbmdefs.h (GDBM_DIR_COUNT): New define.
+	* src/proto.h (_gdbm_read_bucket_at): New proto.
+	* src/var.c: New variable "filemode".
+
+	* src/gdbmtool.c: Use gdbm_count.  Various bugfixes.
+	
+	* NEWS: Update.
+	* doc/gdbm.texinfo: Update.
+	
 2013-05-17  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Update the docs.

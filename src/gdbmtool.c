@@ -49,6 +49,7 @@ opendb (char *dbname)
   int cache_size = 0;
   int block_size = 0;
   int flags = 0;
+  int filemode;
   GDBM_FILE db;
   
   switch (variable_get ("cachesize", VART_INT, (void**) &cache_size))
@@ -85,7 +86,10 @@ opendb (char *dbname)
 	}
     }
   
-  db = gdbm_open (dbname, block_size, open_mode | flags, 0644, NULL);
+  if (variable_get ("filemode", VART_INT, (void**) &filemode))
+    abort ();
+
+  db = gdbm_open (dbname, block_size, open_mode | flags, filemode, NULL);
 
   if (db == NULL)
     {
@@ -320,22 +324,6 @@ get_screen_lines ()
   return -1;
 }
 
-int
-get_record_count ()
-{
-  datum key, data;
-  int count = 0;
-  data = gdbm_firstkey (gdbm_file);
-  while (data.dptr != NULL)
-    {
-      count++;
-      key = data;
-      data = gdbm_nextkey (gdbm_file, key);
-      free (key.dptr);
-    }
-  return count;
-}
-
 
 #define ARG_UNUSED __attribute__ ((__unused__))
 
@@ -367,19 +355,55 @@ close_handler (struct handler_param *param)
 {
   if (!gdbm_file)
     terror (_("nothing to close"));
-  gdbm_close (gdbm_file);
-  gdbm_file = NULL;
+  else
+    {
+      gdbm_close (gdbm_file);
+      gdbm_file = NULL;
+    }
 }
 
 
+static char *
+count_to_str (gdbm_count_t count, char *buf, size_t bufsize)
+{
+  char *p = buf + bufsize;
+
+  *--p = 0;
+  if (count == 0)
+    *--p = '0';
+  else
+    while (count)
+      {
+	if (p == buf)
+	  return NULL;
+	*--p = '0' + count % 10;
+	count /= 10;
+      }
+  return p;
+}
+  
 /* count - count items in the database */
 void
 count_handler (struct handler_param *param)
 {
-  int count = get_record_count ();
-  fprintf (param->fp, ngettext ("There is %d item in the database.\n",
-				"There are %d items in the database.\n", count),
-	   count);
+  gdbm_count_t count;
+
+  if (gdbm_count (gdbm_file, &count))
+    terror ("gdbm_count: %s", gdbm_strerror (gdbm_errno));
+  else
+    {
+      char buf[128];
+      char *p = count_to_str (count, buf, sizeof buf);
+
+      if (!p)
+	terror (_("count buffer overflow"));
+      else
+	fprintf (param->fp, 
+		 ngettext ("There is %s item in the database.\n",
+			   "There are %s items in the database.\n",
+			   count),
+		 p);
+    }
 }
 
 /* delete KEY - delete a key*/
@@ -389,9 +413,9 @@ delete_handler (struct handler_param *param)
   if (gdbm_delete (gdbm_file, param->argv[0]->v.dat) != 0)
     {
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-	terror (0, _("Item not found"));
+	terror (_("Item not found"));
       else
-	terror (0, _("Can't delete: %s"),  gdbm_strerror (gdbm_errno));
+	terror (_("Can't delete: %s"),  gdbm_strerror (gdbm_errno));
     }
 }
 
@@ -562,7 +586,7 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
   if (getnum (&temp, param->argv[0]->v.string, NULL))
     return 1;
 
-  if (temp >= gdbm_file->header->dir_size / 4)
+  if (temp >= GDBM_DIR_COUNT (gdbm_file))
     {
       fprintf (stderr, _("Not a bucket.\n"));
       return 1;
@@ -581,7 +605,7 @@ print_dir_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
   if (checkdb ())
     return 1;
   if (exp_count)
-    *exp_count = gdbm_file->header->dir_size / 4 + 3;
+    *exp_count = GDBM_DIR_COUNT (gdbm_file) + 3;
   return 0;
 }
 
@@ -594,7 +618,7 @@ print_dir_handler (struct handler_param *param)
   fprintf (param->fp, _("  Size =  %d.  Bits = %d. \n\n"),
 	   gdbm_file->header->dir_size, gdbm_file->header->dir_bits);
   
-  for (i = 0; i < gdbm_file->header->dir_size / 4; i++)
+  for (i = 0; i < GDBM_DIR_COUNT (gdbm_file); i++)
     fprintf (param->fp, "  %10d:  %12lu\n",
 	     i, (unsigned long) gdbm_file->dir[i]);
 }
@@ -671,7 +695,17 @@ list_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
   if (checkdb ())
     return 1;
   if (exp_count)
-    *exp_count = get_record_count ();
+    {
+      gdbm_count_t count;
+      
+      if (gdbm_count (gdbm_file, &count))
+	*exp_count = 0;
+      else if (count > SIZE_T_MAX)
+	*exp_count = SIZE_T_MAX;
+      else
+	*exp_count = count;
+    }
+
   return 0;
 }
 
@@ -722,6 +756,7 @@ export_handler (struct handler_param *param)
   int format = GDBM_DUMP_FMT_ASCII;
   int flags = GDBM_WRCREAT;
   int i;
+  int filemode;
   
   for (i = 1; i < param->argc; i++)
     {
@@ -739,7 +774,9 @@ export_handler (struct handler_param *param)
 	}
     }
 
-  if (gdbm_dump (gdbm_file, param->argv[0]->v.string, format, flags, 0600))
+  if (variable_get ("filemode", VART_INT, (void**) &filemode))
+    abort ();
+  if (gdbm_dump (gdbm_file, param->argv[0]->v.string, format, flags, filemode))
     {
       terror (_("error dumping database: %s"),
 		    gdbm_strerror (gdbm_errno));
@@ -1570,7 +1607,7 @@ main (int argc, char *argv[])
 		progname);
 	exit (EXIT_USAGE);
       }
-
+  
   argc -= optind;
   argv += optind;
 

@@ -104,6 +104,44 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
   return;
 }
 
+int
+_gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
+		      size_t size)
+{
+  off_t file_pos;
+  int i, rc;
+
+  if (dbf->cache_entry && dbf->cache_entry->ca_adr == off)
+    {
+      memcpy (bucket, dbf->bucket, size);
+      return 0;
+    }
+
+  /* Look in the cache. */
+  for (i = 0; i < dbf->cache_size; i++)
+    {
+      if (dbf->bucket_cache[i].ca_adr == off)
+	{
+	  memcpy (bucket, dbf->bucket_cache[i].ca_bucket, size);
+	  return 0;
+	}
+    }
+
+  /* Read the bucket. */
+  file_pos = __lseek (dbf, off, SEEK_SET);
+  if (file_pos != off)
+    {
+      gdbm_errno = GDBM_FILE_SEEK_ERROR;
+      return -1;
+    }
+  rc = _gdbm_full_read (dbf, bucket, size);
+  if (rc)
+    {
+      gdbm_errno = rc;
+      return -1;
+    }
+  return 0;
+}
 
 /* Split the current bucket.  This includes moving all items in the bucket to
    a new bucket.  This doesn't require any disk reads because all hash values
@@ -177,8 +215,6 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       adr_1 = _gdbm_alloc (dbf, dbf->header->bucket_size);
       dbf->bucket_cache[cache_1].ca_adr = adr_1;
 
-      
-      
       /* Double the directory size if necessary. */
       if (dbf->header->dir_bits == dbf->bucket->bucket_bits)
 	{
@@ -186,8 +222,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  dir_adr  = _gdbm_alloc (dbf, dir_size);
 	  new_dir  = (off_t *) malloc (dir_size);
 	  if (new_dir == NULL) _gdbm_fatal (dbf, _("malloc error"));
-	  for (index = 0;
-	  	index < dbf->header->dir_size/sizeof (off_t); index++)
+	  for (index = 0; index < GDBM_DIR_COUNT (dbf); index++)
 	    {
 	      new_dir[2*index]   = dbf->dir[index];
 	      new_dir[2*index+1] = dbf->dir[index];

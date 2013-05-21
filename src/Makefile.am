@@ -38,6 +38,7 @@ libgdbm_la_LIBADD = @LTLIBINTL@
 
 libgdbm_la_SOURCES = \
  gdbmclose.c\
+ gdbmcount.c\
  gdbmdelete.c\
  gdbmdump.c\
  gdbmerrno.c\

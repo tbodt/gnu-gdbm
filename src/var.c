@@ -17,10 +17,11 @@
 
 #include "gdbmtool.h"
 
-#define VARF_DFL    0x00
-#define VARF_SET    0x01
-#define VARF_INIT   0x02
-#define VARF_PROT   0x04
+#define VARF_DFL    0x00   /* Default flags -- everything disabled */
+#define VARF_SET    0x01   /* Variable is set */
+#define VARF_INIT   0x02   /* Variable is initialized */
+#define VARF_PROT   0x04   /* Variable is protected, i.e. cannot be unset */
+#define VARF_OCTAL  0x08   /* For integer variables -- use octal base */
 
 #define VAR_IS_SET(v) ((v)->flags & (VARF_SET|VARF_INIT))
 
@@ -38,7 +39,6 @@ struct variable
   int flags;
   union value v;
   int (*hook) (struct variable *, union value *);
-  void *hook_data;
 };
 
 static int open_hook (struct variable *, union value *);
@@ -59,6 +59,7 @@ static struct variable vartab[] = {
   { "lock", VART_BOOL, VARF_INIT, { num: 1 } },
   { "mmap", VART_BOOL, VARF_INIT, { num: 1 } },
   { "sync", VART_BOOL, VARF_INIT, { num: 0 } },
+  { "filemode", VART_INT, VARF_INIT|VARF_OCTAL|VARF_PROT, { num: 0644 } },
   { "pager", VART_STRING, VARF_DFL },
   { "quiet", VART_BOOL, VARF_DFL },
   { NULL }
@@ -105,24 +106,24 @@ varfind (const char *name)
   return NULL;
 }
 
-typedef int (*setvar_t) (union value *, void *);
+typedef int (*setvar_t) (union value *, void *, int);
 
 static int
-s2s (union value *vp, void *val)
+s2s (union value *vp, void *val, int flags)
 {
   vp->string = estrdup (val);
   return VAR_OK;
 }
 
 static int
-b2s (union value *vp, void *val)
+b2s (union value *vp, void *val, int flags)
 {
   vp->string = estrdup (*(int*)val ? "true" : "false");
   return VAR_OK;
 }
 
 static int
-i2s (union value *vp, void *val)
+i2s (union value *vp, void *val, int flags)
 {
   char buf[128];
   snprintf (buf, sizeof buf, "%d", *(int*)val);
@@ -131,7 +132,7 @@ i2s (union value *vp, void *val)
 }
 
 static int
-s2b (union value *vp, void *val)
+s2b (union value *vp, void *val, int flags)
 {
   static char *trueval[] = { "on", "true", "yes", NULL };
   static char *falseval[] = { "off", "false", "no", NULL };
@@ -161,10 +162,10 @@ s2b (union value *vp, void *val)
 }
   
 static int
-s2i (union value *vp, void *val)
+s2i (union value *vp, void *val, int flags)
 {
   char *p;
-  int n = strtoul (val, &p, 0);
+  int n = strtoul (val, &p, (flags & VARF_OCTAL) ? 8 : 10);
 
   if (*p)
     return VAR_ERR_BADTYPE;
@@ -174,28 +175,28 @@ s2i (union value *vp, void *val)
 }
 
 static int
-b2b (union value *vp, void *val)
+b2b (union value *vp, void *val, int flags)
 {
   vp->bool = !!*(int*)val;
   return VAR_OK;
 }
 
 static int
-b2i (union value *vp, void *val)
+b2i (union value *vp, void *val, int flags)
 {
   vp->num = *(int*)val;
   return VAR_OK;
 }
 
 static int
-i2i (union value *vp, void *val)
+i2i (union value *vp, void *val, int flags)
 {
   vp->num = *(int*)val;
   return VAR_OK;
 }
 
 static int
-i2b (union value *vp, void *val)
+i2b (union value *vp, void *val, int flags)
 {
   vp->bool = *(int*)val;
   return VAR_OK;
@@ -221,7 +222,7 @@ variable_set (const char *name, int type, void *val)
   if (val)
     {
       memset (&v, 0, sizeof (v));
-      rc = setvar[vp->type][type] (&v, val);
+      rc = setvar[vp->type][type] (&v, val, vp->flags);
       if (rc)
 	return rc;
       valp = &v; 
@@ -304,11 +305,26 @@ variable_get (const char *name, int type, void **val)
   return VAR_OK;
 }
 
+static int
+varcmp (const void *a, const void *b)
+{
+  return strcmp (((struct variable const *)a)->name,
+		 ((struct variable const *)b)->name);
+}
+
 void
 variable_print_all (FILE *fp)
 {
   struct variable *vp;
   char *s;
+  static int sorted;
+  
+  if (!sorted)
+    {
+      qsort (vartab, sizeof (vartab) / sizeof (vartab[0]) - 1,
+	     sizeof (vartab[0]), varcmp);
+      sorted = 1;
+    }
   
   for (vp = vartab; vp->name; vp++)
     {
@@ -321,7 +337,8 @@ variable_print_all (FILE *fp)
 	  switch (vp->type)
 	    {
 	    case VART_INT:
-	      fprintf (fp, "%s=%d", vp->name, vp->v.num);
+	      fprintf (fp, (vp->flags & VARF_OCTAL) ? "%s=%03o" : "%s=%d",
+		       vp->name, vp->v.num);
 	      break;
 	      
 	    case VART_BOOL:

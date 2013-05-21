@@ -101,6 +101,7 @@ Functions:
 
 * Open::                       Opening the database.
 * Close::                      Closing the database.
+* Count::                      Counting records in the database.
 * Store::                      Inserting and replacing records in the database.
 * Fetch::                      Searching records in the database.
 * Delete::                     Removing records from the database.
@@ -224,6 +225,12 @@ int gdbm_exists(dbf, key);
 char *gdbm_strerror(errno);
 int gdbm_setopt(dbf, option, value, size);
 int gdbm_fdesc(dbf);
+int gdbm_export (GDBM_FILE, const char *, int, int);
+int gdbm_export_to_file (GDBM_FILE dbf, FILE *fp);
+int gdbm_import (GDBM_FILE, const char *, int);
+int gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag);
+int gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount);
+int gdbm_version_cmp (int const a[], int const b[]);
 @end example
 
 The @code{gdbm.h} include file is often in the @file{/usr/local/include}
@@ -341,6 +348,17 @@ associated with it.  The parameter is:
 @item dbf
 The pointer returned by @code{gdbm_open}.
 @end table
+@end deftypefn
+
+@node Count
+@chapter Number of Records
+@cindex number of records
+@deftypefn {gdbm interface} int gdbm_count (GDBM_FILE @var{dbf}, @
+  gdbm_count_t *@var{pcount})
+Counts number of records in the database @var{dbf}.  On success,
+stores it in the memory location pointed to by @var{pcount} and return
+0.  On error, sets @code{gdbm_errno} (if relevant, also @code{errno})
+and returns -1.
 @end deftypefn
 
 @node Store
@@ -833,6 +851,12 @@ is entirely equivalent to
 gdbm_dump(@var{dbf}, @var{exportfile}, GDBM_DUMP_FMT_BINARY,
           @var{flag}, @var{mode})
 @end example
+
+@end deftypefn
+
+@deftypefn {gdbm interface} int gdbm_export_to_file (GDBM_FILE @var{dbf}, FILE *@var{fp})
+This is an alternative entry point to @code{gdbm_export}.  This
+function writes to file @var{fp} a binary dump of the database @var{dbf}.
 @end deftypefn
 
 @deftypefn {gdbm interface} int gdbm_import (GDBM_FILE @var{dbf}, @
@@ -847,8 +871,24 @@ following construct:
                        @var{flag} == GDBM_REPLACE ?
                          GDBM_WRCREAT : GDBM_NEWDB,
                        0600, NULL);
-gdbm_load (&@var{dbf}, @var{exportfile}, GDBM_DUMP_FMT_BINARY,
-           @var{flag}, NULL)
+gdbm_load (&@var{dbf}, @var{exportfile}, 0, @var{flag}, NULL)
+@end example
+@end deftypefn
+
+@deftypefn {gdbm interface} int gdbm_import_from_file (GDBM_FILE @var{dbf}, @
+      FILE *@var{fp}, int @var{flag})
+An alternative entry point to @code{gdbm_import}.  Reads the binary
+dump from the file @var{fp} and stores the key/value pairs to
+@var{dbf}.  @xref{Store}, for a description of @var{flag}.
+
+This function is equivalent to:
+
+@example
+@var{dbf} = gdbm_open (@var{importfile}, 0,
+                       @var{flag} == GDBM_REPLACE ?
+                         GDBM_WRCREAT : GDBM_NEWDB,
+                       0600, NULL);
+gdbm_load_from_file (@var{dbf}, @var{fp}, @var{flag}, 0, NULL);
 @end example
 @end deftypefn
 
@@ -1894,6 +1934,12 @@ Attempting to set any other value or to unset this variable produces
 an error.
 @end deftypevr
 
+@anchor{filemode}
+@deftypevr {gdbmtool variable} number filemode
+File mode (in octal) for creating new database files and database
+dumps.
+@end deftypevr
+
 @deftypevr {gdbmtool variable} bool lock
 Lock the database.  This is the default.
 
@@ -2013,6 +2059,9 @@ command will not overwrite an existing file, unless the
 determines the type of the dump (@pxref{Flat files}).  By default, ASCII
 dump is created.
 
+The global variable @code{filemode} specifies the permissions to use
+for the created output file.
+
 See also @ref{gdbmexport}.
 @end deffn
 
@@ -2081,6 +2130,8 @@ Whether or not to lock the database.  Default is @samp{on}.
 Use the memory mapping.  Default is @samp{on}.
 @item sync
 Synchronize after each write.  Default is @samp{off}.
+@item filemode
+Specifies the permissions to use in case a new file is created.
 @end table
 
 @xref{open parameters}, for a detailed description of these variables.

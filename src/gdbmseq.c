@@ -49,12 +49,12 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
 
 	  /* Find the next bucket.  It is possible several entries in
 	     the bucket directory point to the same bucket. */
-	  while (dbf->bucket_dir < dbf->header->dir_size / sizeof (off_t)
+	  while (dbf->bucket_dir < GDBM_DIR_COUNT (dbf)
 		 && dbf->cache_entry->ca_adr == dbf->dir[dbf->bucket_dir])
 	    dbf->bucket_dir++;
 
 	  /* Check to see if there was a next bucket. */
-	  if (dbf->bucket_dir < dbf->header->dir_size / sizeof (off_t))
+	  if (dbf->bucket_dir < GDBM_DIR_COUNT (dbf))
 	    _gdbm_get_bucket (dbf, dbf->bucket_dir);	      
 	  else
 	    /* No next key, just return. */
