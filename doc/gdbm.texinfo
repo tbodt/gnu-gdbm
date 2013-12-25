@@ -1895,13 +1895,13 @@ be set in a startup script file (@pxref{startup files}).
 @anchor{open parameters}
 The following variables control how the database is opened:
 
+@deftypevr {gdbmtool variable} numeric blocksize
+Sets the block size.  @xref{Open, block_size}.  Unset by default.
+@end deftypevr
+
 @deftypevr {gdbmtool variable} numeric cachesize
 Sets the cache size.  @xref{Options, GDBM_SETCACHESIZE}.
 By default this variable is not set.
-@end deftypevr
-
-@deftypevr {gdbmtool variable} numeric blocksize
-Sets the block size.  @xref{Open, block_size}.  Unset by default.
 @end deftypevr
 
 @anchor{openvar}
@@ -2370,7 +2370,7 @@ By default the utility creates dumps in ASCII format (@pxref{Flat
 files,ASCII}).  Another format can be requested using the
 @option{--format} (@option{-H}) option.
 
-The @command{gdbm_load} utility understands the following command line
+The @command{gdbm_dump} utility understands the following command line
 options:
 
 @table @option
@@ -2405,18 +2405,31 @@ The format of the input file is detected automatically.
 By default the utility attempts to restore the database under its
 original name, as stored in the input file.  It will fail to do so if
 the input is in binary format.  In that case, the name of the database
-to create can be given as the second argument.
+must be given as the second argument.
 
-In general, if two arguments are given, the second one is treated as
+In general, if two arguments are given the second one is treated as
 the name of the database to create, overriding the file name specified
 in the flat file.
 
 The utility understands the following command line arguments:
 
 @table @option
+
+@item -b @var{num}
+@itemx --block-size=@var{num}
+Sets block size.  @xref{Open, block_size}.
+
+@item -c @var{num}
+@itemx --cache-size=@var{num}
+Sets cache size.  @xref{Options, GDBM_SETCACHESIZE}.
+
+@item -M
+@itemx --mmap
+Use memory mapping.
+
 @item -m @var{mode}
 @item --mode=@var{mode}
-Set file mode.  The argument is the desired file mode in octal.
+Sets the file mode.  The argument is the desired file mode in octal.
 
 @item -n
 @itemx --no-meta

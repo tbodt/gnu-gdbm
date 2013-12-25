@@ -1,4 +1,4 @@
-.\" This file is part of GDBM.
+.\" This file is part of GDBM.            -*- nroff -*-
 .\" Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 .\"
 .\" GDBM is free software; you can redistribute it and/or modify
@@ -13,12 +13,15 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM_LOAD 1 "May 8, 2013" "GDBM" "GDBM User Reference"
+.TH GDBM_LOAD 1 "December 25, 2013" "GDBM" "GDBM User Reference"
 .SH NAME
 gdbm_load \- re-create a GDBM database from a dump file.
 .SH SYNOPSIS
-\fBgdbm_load\fR [\fB\-nr\fR] [\fB\-m\fR \fIMODE\fR]\
+\fBgdbm_load\fR [\fB\-Mnr\fR] [\fB\-b\fR \fINUM\fR] [\fB\-c\fR \fINUM]\
+ [\fB\-m\fR \fIMODE\fR]\
  [\fB\-u\fR \fINAME\fR|\fIUID\fR[:\fINAME\fR|\fIGID\fR]]
+          [\fB\-\-block\-size\fR=\fINUM\fR] [\fB\-\-cache\-size\fR=\fINUM\fR]\
+ [\fB\-\-mmap\fR=\fINUM\fR]
           [\fB\-\-mode\fR=\fIMODE\fR]\
  [\fB\-\-no\-meta\fR] [\fB\-\-replace\fR]
           [\fB\-\-user\fR=\fINAME\fR|\fIUID\fR[:\fINAME\fR|\fIGID\fR]]\
@@ -41,6 +44,15 @@ If the input file is in ASCII dump format, the mode and ownership of
 the created database are restored from the information in the dump.
 This can be overridden using the command line options (see below).
 .SH OPTIONS
+.TP
+\fB\-b\fR, \fB\-\-block\-size\fR=\fINUM\fR
+Sets block size.
+.TP
+\fB\-c\fR, \fB\-\-cache\-size\fR=\fINUM\fR
+Sets cache size.
+.TP
+\fB\-M\fR, \fB\-\-mmap\fR
+Use memory mapping.
 .TP
 \fB\-m\fR, \fB\-\-mode\fR=\fIMODE\fR
 Set database file mode (octal number).

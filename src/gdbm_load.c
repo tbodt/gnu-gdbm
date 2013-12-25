@@ -36,6 +36,9 @@ struct gdbm_option optab[] = {
   { 'm', "mode", N_("MODE"), N_("set file mode") },
   { 'u', "user", N_("NAME|UID[:NAME|GID]"), N_("set file owner") },
   { 'n', "no-meta", NULL, N_("do not attempt to set file meta-data") },
+  { 'M', "mmap", NULL, N_("use memory mapping") },
+  { 'c', "cache-size", N_("NUM"), N_("set the cache size") },
+  { 'b', "block-size", N_("NUM"), N_("set the block size") },
   { 0 }
 };
 
@@ -63,6 +66,27 @@ set_meta_info (GDBM_FILE dbf)
   return 0;
 }
 
+static int
+get_int (const char *arg)
+{
+  char *p;
+  long n;
+ 
+  errno = 0;
+  n = strtol (arg, &p, 0);
+  if (*p)
+    {
+      error (_("invalid number: %s"), arg);
+      exit (EXIT_USAGE);
+    }
+  if (errno)
+    {
+      error (_("invalid number: %s: %s"), arg, strerror (errno));
+      exit (EXIT_USAGE);
+    }
+  return n;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -72,6 +96,9 @@ main (int argc, char **argv)
   FILE *fp;
   unsigned long err_line, n;
   char *end;
+  int oflags = GDBM_NEWDB|GDBM_NOMMAP;
+  int cache_size = 0;
+  int block_size = 0;
   
 #ifdef HAVE_SETLOCALE
   setlocale (LC_ALL, "");
@@ -87,6 +114,14 @@ main (int argc, char **argv)
     {
     switch (opt)
       {
+      case 'b':
+	block_size = get_int (optarg);
+	break;
+	
+      case 'c':
+	cache_size = get_int (optarg);
+	break;
+
       case 'm':
 	{
 	  errno = 0;
@@ -171,6 +206,10 @@ main (int argc, char **argv)
       case 'n':
 	no_meta_option = 1;
 	break;
+
+      case 'M':
+	oflags &= ~GDBM_NOMMAP;
+	break;
 	
       default:
 	error (_("unknown option"));
@@ -216,12 +255,16 @@ main (int argc, char **argv)
   
   if (dbname)
     {
-      dbf = gdbm_open (dbname, 0, GDBM_NEWDB, 0600, NULL);
+      dbf = gdbm_open (dbname, block_size, oflags, 0600, NULL);
       if (!dbf)
 	{
 	  gdbm_perror (_("gdbm_open failed"));
 	  exit (EXIT_FATAL);
 	}
+
+      if (cache_size &&
+	  gdbm_setopt (dbf, GDBM_SETCACHESIZE, &cache_size, sizeof (int)) == -1)
+	error (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
     }
   
   rc = gdbm_load_from_file (&dbf, fp, replace,
@@ -248,7 +291,7 @@ main (int argc, char **argv)
 	  rc = EXIT_FATAL;
 	}
     }
-  
+
   if (dbf)
     {
       if (!no_meta_option && set_meta_info (dbf))

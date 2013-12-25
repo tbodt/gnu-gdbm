@@ -104,9 +104,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* Get the file address for the new space.
      (Current bucket's free space is first place to look.) */
   if (file_adr == 0)
-    {
-      file_adr = _gdbm_alloc (dbf, new_size);
-    }
+    file_adr = _gdbm_alloc (dbf, new_size);
 
   /* If this is a new entry in the bucket, we need to do special things. */
   if (elem_loc == -1)
@@ -120,10 +118,10 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
       /* Find space to insert into bucket and set elem_loc to that place. */
       elem_loc = new_hash_val % dbf->header->bucket_elems;
       while (dbf->bucket->h_table[elem_loc].hash_value != -1)
-	{  elem_loc = (elem_loc + 1) % dbf->header->bucket_elems; }
+	elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
 
       /* We now have another element in the bucket.  Add the new information.*/
-      dbf->bucket->count += 1;
+      dbf->bucket->count++;
       dbf->bucket->h_table[elem_loc].hash_value = new_hash_val;
       memcpy (dbf->bucket->h_table[elem_loc].key_start, key.dptr,
 	     (SMALL < key.dsize ? SMALL : key.dsize));
@@ -137,7 +135,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 
   /* Write the data to the file. */
   file_pos = __lseek (dbf, file_adr, SEEK_SET);
-  if (file_pos != file_adr) _gdbm_fatal (dbf, _("lseek error"));
+  if (file_pos != file_adr)
+    _gdbm_fatal (dbf, _("lseek error"));
   rc = _gdbm_full_write (dbf, key.dptr, key.dsize);
   if (rc)
     _gdbm_fatal (dbf, gdbm_strerror (rc));

@@ -1,3 +1,16 @@
+2013-12-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Minor changes.
+
+	* src/gdbm_load.c: New options: --mmap, --cache-size and
+	--block-size.
+
+	* doc/gdbm.texinfo: Document new gdbm_load options.
+	* doc/gdbm_load.1: Likewise.
+
+	* src/gdbmdelete.c: Stylistic changes.
+	* src/gdbmstore.c: Likewise.
+
 2013-05-21  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	New function gdbm_count.
