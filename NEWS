@@ -25,7 +25,7 @@ pointed to by `count'.
 
 * New utilities: gdbm_dump and gdbm_load.
 
-Gdbm_dump create a plain-text dump of the GDBM database.  This dump
+Gdbm_dump creates a plain-text dump of the GDBM database.  This dump
 can be used to create an exact copy of the database afterward.
 
 The gdbm_load performs the reverse: given the dump file, it creates a
