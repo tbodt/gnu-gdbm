@@ -1,7 +1,7 @@
 /* falloc.c - The file space management routines for dbm. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 1994, 2007, 2011 Free Software
+   Copyright (C) 1990, 1991, 1993, 1994, 2007, 2011, 2013 Free Software
    Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify

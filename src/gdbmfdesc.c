@@ -1,7 +1,7 @@
 /* gdbfdesc.c - return the file descriptor associated with the database. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1999, 2007, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2007, 2011, 2013 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

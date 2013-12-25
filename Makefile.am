@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011, 2013 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ if ENABLE_EXPORT
 endif
 SUBDIRS = po src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
 
-DISTCHECK_CONFIGURE_FLAGS = --enable-libgdbm-compat
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-libgdbm-compat
 
 dist-hook:
 	rm -f $(distdir)/src/version.c; \

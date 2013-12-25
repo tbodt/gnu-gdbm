@@ -1,5 +1,9 @@
 2013-12-25  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Version 1.11
+
+2013-12-25  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	Minor changes.
 
 	* src/gdbm_load.c: New options: --mmap, --cache-size and
