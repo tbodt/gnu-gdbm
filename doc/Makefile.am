@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011, 2014 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@ info_TEXINFOS = gdbm.texinfo
 gdbm_TEXINFOS=\
   fdl.texi
 
-man_MANS   = gdbm.3 gdbm_dump.1 gdbm_load.1 gdbmtool.1
-EXTRA_DIST = $(man_MANS)
+dist_man_MANS   = gdbm.3 gdbm_dump.1 gdbm_load.1 gdbmtool.1
 
 GENDOCS=gendocs.sh 
 
