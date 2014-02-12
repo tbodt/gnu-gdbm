@@ -1,3 +1,9 @@
+2014-02-12  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/gdbmimp.c (gdbm_import_from_file): Read record sizes as
+	unsigned long, as they are stored by gdbm_export_to_file.
+	Improve error reporting.
+
 2014-02-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/Makefile.am: Use dist_man_MANS

@@ -18,6 +18,7 @@
 
 # include "autoconf.h"
 # include <arpa/inet.h>
+# include <limits.h>
 
 # include "gdbmdefs.h"
 # include "gdbm.h"
@@ -25,9 +26,11 @@
 int
 gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
 {
-  int seenbang, seennewline, rsize, size, kbufsize, dbufsize, rret;
-  int c;
+  int seenbang, seennewline, rret;
+  unsigned long rsize, size;
+  int ec;
   char *kbuffer, *dbuffer;
+  size_t kbufsize, dbufsize;
   datum key, data;
   int count = 0;
 
@@ -39,12 +42,15 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   /* Read (and discard) four lines begining with ! and ending with \n. */
   while (1)
     {
-      if ((c = fgetc (fp)) == -1)
-	goto read_fail;
+      if ((rret = fgetc (fp)) == -1)
+	{
+	  gdbm_errno = GDBM_FILE_READ_ERROR;
+	  return -1;
+	}
       
-      if (c == '!')
+      if (rret == '!')
 	seenbang++;
-      if (c == '\n')
+      if (rret == '\n')
 	{
 	  if (seenbang > 3 && seennewline > 2)
 	    {
@@ -72,69 +78,89 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
       return -1;
     }
 
+  ec = GDBM_NO_ERROR;
   /* Insert/replace records in the database until we run out of file. */
   while ((rret = fread (&rsize, sizeof (rsize), 1, fp)) == 1)
     {
       /* Read the key. */
       size = ntohl (rsize);
+      if (size > INT_MAX)
+	{
+	  ec = GDBM_ILLEGAL_DATA;
+	  break;
+	}
+      
       if (size > kbufsize)
 	{
 	  kbufsize = (size + 512);
 	  kbuffer = realloc (kbuffer, kbufsize);
 	  if (kbuffer == NULL)
 	    {
-	      free (dbuffer);
-	      gdbm_errno = GDBM_MALLOC_ERROR;
-	      return -1;
+	      ec = GDBM_MALLOC_ERROR;
+	      break;
 	    }
 	}
       if (fread (kbuffer, size, 1, fp) != 1)
-	goto read_fail;
+	{
+	  ec = GDBM_FILE_READ_ERROR;
+	  break;
+	}
 
       key.dptr = kbuffer;
-      key.dsize = size;
+      key.dsize = (int) size;
 
       /* Read the data. */
       if (fread (&rsize, sizeof (rsize), 1, fp) != 1)
-	goto read_fail;
+	{
+	  ec = GDBM_FILE_READ_ERROR;
+	  break;
+	}
 
       size = ntohl (rsize);
+      if (size > INT_MAX)
+	{
+	  ec = GDBM_ILLEGAL_DATA;
+	  break;
+	}
       if (size > dbufsize)
 	{
 	  dbufsize = (size + 512);
 	  dbuffer = realloc (dbuffer, dbufsize);
 	  if (dbuffer == NULL)
 	    {
-	      free (kbuffer);
-	      gdbm_errno = GDBM_MALLOC_ERROR;
-	      return -1;
+	      ec = GDBM_MALLOC_ERROR;
+	      break;
 	    }
 	}
       if (fread (dbuffer, size, 1, fp) != 1)
-	goto read_fail;
+	{
+	  ec = GDBM_FILE_READ_ERROR;
+	  break;
+	}
 
       data.dptr = dbuffer;
-      data.dsize = size;
+      data.dsize = (int) size;
 
       if (gdbm_store (dbf, key, data, flag) != 0)
 	{
 	  /* Keep the existing errno. */
-	  free (kbuffer);
-	  free (dbuffer);
-	  return -1;
+	  ec = gdbm_errno;
+	  break;
 	}
 
       count++;
     }
 
-  if (rret == 0)
-    return count;
-
-read_fail:
-
+  if (rret < 0)
+    ec = GDBM_FILE_READ_ERROR;
+  
   free (kbuffer);
   free (dbuffer);
-  gdbm_errno = GDBM_FILE_READ_ERROR;
+
+  if (ec == GDBM_NO_ERROR)
+    return count;
+
+  gdbm_errno = ec;
   return -1;
 }
 
