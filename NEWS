@@ -1,8 +1,20 @@
-GNU dbm NEWS -- history of user-visible changes. 2013-12-25
-Copyright (C) 1990-2013 Free Software Foundation, Inc.
+GNU dbm NEWS -- history of user-visible changes. 2014-02-14
+Copyright (C) 1990-2014 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
+
+Version 1.11.90
+
+* New configuration variable COMPATINCLUDEDIR
+
+When used with --enable-libgdbm-compat, this variable points to the
+directory where the headers file dbm.h and ndbm.h will be installed.
+Use this variable to avoid conflicts with already installed headers.
+E.g.:
+
+ ./configure --enable-libgdbm-compat COMPATINCLUDEDIR=/usr/include/gdbm
+
 
 Version 1.11, 2013-12-25
 
@@ -234,7 +246,7 @@ Version 0.9
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1990-2013 Free Software Foundation, Inc.
+Copyright (C) 1990-2014 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

@@ -1,3 +1,14 @@
+2014-02-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Optionally install compatibility headers into a separate directory.
+
+	* configure.ac: Version 1.11.90
+	(COMPATINCLUDEDIR): New substitution variable.
+	* compat/Makefile.am (compatincludedir): New variable.
+	(include_HEADERS): Rename to compatinclude_HEADERS.
+	* NEWS: Document COMPATINCLUDEDIR.
+	* README: Likewise.
+
 2014-02-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* src/gdbmimp.c (gdbm_import_from_file): Read record sizes as
