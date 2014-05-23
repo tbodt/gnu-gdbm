@@ -21,7 +21,7 @@ AT_CHECK([
 AT_SORT_PREREQ
 num2word 1:10 | gtload test.db
 gtdel test.db 8
-gtdump test.db | sort -k1,2 -n
+gtdump test.db | sort -k1n,2n
 ],
 [0],
 [1	one

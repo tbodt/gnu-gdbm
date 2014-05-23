@@ -21,7 +21,7 @@ AT_CHECK([
 AT_SORT_PREREQ
 num2word 1:1000 > input
 gtload test.db < input
-gtdump test.db | sort -k1,2 -n > output
+gtdump test.db | sort -k1n,2n > output
 cmp -s input output || diff -u input output
 ])
 

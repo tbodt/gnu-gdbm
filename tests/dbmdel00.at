@@ -22,7 +22,7 @@ AT_COMPAT_PREREQ
 AT_SORT_PREREQ
 num2word 1:10 | dtload test
 dtdel test 8
-dtdump test | sort -k1,2 -n
+dtdump test | sort -k1n,2n
 ],
 [0],
 [1	one

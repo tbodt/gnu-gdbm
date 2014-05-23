@@ -905,22 +905,22 @@ struct command command_tab[] = {
     { { NULL } }, N_("count (number of entries)") },
   { S(delete), T_CMD,
     checkdb, delete_handler, NULL,
-    { { N_("KEY"), ARG_DATUM, DS_KEY }, { NULL } }, N_("delete a record") },
+    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } }, N_("delete a record") },
   { S(export), T_CMD,
     checkdb, export_handler, NULL,
-    { { N_("FILE"), ARG_STRING },
-      { "[truncate]", ARG_STRING },
-      { "[binary|ascii]", ARG_STRING },
+    { { N_("FILE"), GDBM_ARG_STRING },
+      { "[truncate]", GDBM_ARG_STRING },
+      { "[binary|ascii]", GDBM_ARG_STRING },
       { NULL } },
     N_("export") },
   { S(fetch), T_CMD,
     checkdb, fetch_handler, NULL,
-    { { N_("KEY"), ARG_DATUM, DS_KEY }, { NULL } },  N_("fetch record") },
+    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },  N_("fetch record") },
   { S(import), T_CMD,
     NULL, import_handler, NULL,
-    { { N_("FILE"), ARG_STRING },
-      { "[replace]", ARG_STRING },
-      { "[nometa]" , ARG_STRING },
+    { { N_("FILE"), GDBM_ARG_STRING },
+      { "[replace]", GDBM_ARG_STRING },
+      { "[nometa]" , GDBM_ARG_STRING },
       { NULL } },
     N_("import") },
   { S(list), T_CMD,
@@ -928,13 +928,13 @@ struct command command_tab[] = {
     { { NULL } }, N_("list") },
   { S(next), T_CMD,
     checkdb, nextkey_handler, NULL,
-    { { N_("[KEY]"), ARG_STRING },
+    { { N_("[KEY]"), GDBM_ARG_STRING },
       { NULL } },
     N_("nextkey") },
   { S(store), T_CMD,
     checkdb, store_handler, NULL,
-    { { N_("KEY"), ARG_DATUM, DS_KEY },
-      { N_("DATA"), ARG_DATUM, DS_CONTENT },
+    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY },
+      { N_("DATA"), GDBM_ARG_DATUM, DS_CONTENT },
       { NULL } },
     N_("store") },
   { S(first), T_CMD,
@@ -948,7 +948,7 @@ struct command command_tab[] = {
     { { NULL } }, N_("print avail list") }, 
   { S(bucket), T_CMD,
     print_bucket_begin, print_current_bucket_handler, NULL,
-    { { N_("NUMBER"), ARG_STRING },
+    { { N_("NUMBER"), GDBM_ARG_STRING },
       { NULL } }, N_("print a bucket") },
   { S(current), T_CMD,
     print_current_bucket_begin, print_current_bucket_handler, NULL,
@@ -962,7 +962,7 @@ struct command command_tab[] = {
     { { NULL } }, N_("print database file header") },
   { S(hash), T_CMD,
     NULL, hash_handler, NULL,
-    { { N_("KEY"), ARG_DATUM, DS_KEY },
+    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY },
       { NULL } }, N_("hash value of key") },
   { S(cache), T_CMD,
     print_cache_begin, print_cache_handler, NULL,
@@ -987,19 +987,19 @@ struct command command_tab[] = {
     { { "VAR..." }, { NULL } }, N_("unset variables") },
   { S(define), T_DEF,
     NULL, NULL, NULL,
-    { { "key|content", ARG_STRING },
-      { "{ FIELD-LIST }", ARG_STRING },
+    { { "key|content", GDBM_ARG_STRING },
+      { "{ FIELD-LIST }", GDBM_ARG_STRING },
       { NULL } }, N_("define datum structure") },
   { S(source), T_CMD,
     NULL, source_handler, NULL,
-    { { "FILE", ARG_STRING },
+    { { "FILE", GDBM_ARG_STRING },
       { NULL } }, N_("source command script") },
   { S(close), T_CMD,
     NULL, close_handler, NULL,
     { { NULL } }, N_("close the database") },
   { S(open), T_CMD,
     NULL, open_handler, NULL,
-    { { "FILE", ARG_STRING }, { NULL } },
+    { { "FILE", GDBM_ARG_STRING }, { NULL } },
     N_("open new database") },
 #undef S
   { 0 }
@@ -1133,7 +1133,7 @@ gdbmarg_string (char *string, struct locus *loc)
 {
   struct gdbmarg *arg = ecalloc (1, sizeof (*arg));
   arg->next = NULL;
-  arg->type = ARG_STRING;
+  arg->type = GDBM_ARG_STRING;
   arg->ref = 1;
   if (loc)
     arg->loc = *loc;
@@ -1146,7 +1146,7 @@ gdbmarg_datum (datum *dat, struct locus *loc)
 {
   struct gdbmarg *arg = ecalloc (1, sizeof (*arg));
   arg->next = NULL;
-  arg->type = ARG_DATUM;
+  arg->type = GDBM_ARG_DATUM;
   arg->ref = 1;
   if (loc)
     arg->loc = *loc;
@@ -1159,7 +1159,7 @@ gdbmarg_kvpair (struct kvpair *kvp, struct locus *loc)
 {
   struct gdbmarg *arg = ecalloc (1, sizeof (*arg));
   arg->next = NULL;
-  arg->type = ARG_KVPAIR;
+  arg->type = GDBM_ARG_KVPAIR;
   arg->ref = 1;
   if (loc)
     arg->loc = *loc;
@@ -1240,15 +1240,15 @@ gdbmarg_free (struct gdbmarg *arg)
     {
       switch (arg->type)
 	{
-	case ARG_STRING:
+	case GDBM_ARG_STRING:
 	  free (arg->v.string);
 	  break;
 
-	case ARG_KVPAIR:
+	case GDBM_ARG_KVPAIR:
 	  kvlist_free (arg->v.kvpair);
 	  break;
 
-	case ARG_DATUM:
+	case GDBM_ARG_DATUM:
 	  free (arg->v.dat.dptr);
 	  break;
 	}
@@ -1347,7 +1347,7 @@ coerce_s2d (struct gdbmarg *arg, struct argdef *def)
 
 #define coerce_fail NULL
 
-coerce_type_t coerce_tab[ARG_MAX][ARG_MAX] = {
+coerce_type_t coerce_tab[GDBM_ARG_MAX][GDBM_ARG_MAX] = {
   /*             s            d            k */
   /* s */  { coerce_ref,  coerce_fail, coerce_fail },
   /* d */  { coerce_s2d,  coerce_ref,  coerce_k2d }, 

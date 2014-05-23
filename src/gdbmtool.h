@@ -135,10 +135,10 @@ struct kvpair *kvpair_string (struct locus *loc, char *val);
 struct kvpair *kvpair_list (struct locus *loc, struct slist *s);
 
 
-#define ARG_STRING 0
-#define ARG_DATUM  1
-#define ARG_KVPAIR 2
-#define ARG_MAX    3
+#define GDBM_ARG_STRING 0
+#define GDBM_ARG_DATUM  1
+#define GDBM_ARG_KVPAIR 2
+#define GDBM_ARG_MAX    3
 
 /* Argument to a command handler */
 struct gdbmarg
