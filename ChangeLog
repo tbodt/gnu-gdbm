@@ -1,3 +1,9 @@
+2014-07-03  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Bugfix.
+
+	* src/lex.l (expand_char): Don't return any value.
+
 2014-02-14  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Optionally install compatibility headers into a separate directory.

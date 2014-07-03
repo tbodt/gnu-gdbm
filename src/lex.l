@@ -514,7 +514,8 @@ expand_char (int c)
 	    {
 	      if (p->cache)
 		free (p->cache);
-	      return p->fun (p);
+	      p->fun (p);
+	      return;
 	    }
 	}
     }
