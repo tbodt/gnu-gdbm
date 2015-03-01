@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007, 2011, 2014 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011, 2014, 2015 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ gdbm_TEXINFOS=\
 
 dist_man_MANS   = gdbm.3 gdbm_dump.1 gdbm_load.1 gdbmtool.1
 
-GENDOCS=gendocs.sh 
+GENDOCS=$(srcdir)/gendocs.sh
 
-TEXI2DVI=texi2dvi -E
+TEXI2DVI=texi2dvi -t '@set $(RENDITION)'
 
 # Make sure you set TEXINPUTS.
 # TEXINPUTS=/usr/share/texmf/pdftex/plain/misc/ is ok for most distributions
@@ -33,7 +33,7 @@ manual:
 	TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$(TEXINPUTS) \
 	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS)" \
 	 TEXI2DVI="$(TEXI2DVI) -t @finalout" \
-	 $(GENDOCS) --texi2html $(PACKAGE) '$(PACKAGE_NAME) manual'
+	 $(GENDOCS) --no-copy-images $(PACKAGE) '$(PACKAGE_NAME) manual'
 
 # Checking
 check-tabs:

@@ -75,7 +75,8 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
    return value is the location in the current hash bucket of the KEY's
    entry.  If it is found, a pointer to the data and the key are returned
    in DPTR.  If it is not found, the value -1 is returned.  Since find
-   key computes the hash value of key, that value */
+   key computes the hash value of key, that value is returned in
+   NEW_HASH_VAL. */
 int
 _gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
 {

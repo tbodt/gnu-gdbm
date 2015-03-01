@@ -722,11 +722,11 @@ output file, replacing it if it already exists.
 
 @item mode
 The permissions to use when creating the output file.
-See @ifhtml
-@uref{http://www.manpagez.com/man/2/open},
+@ifhtml
+See @uref{http://www.manpagez.com/man/2/open},
 @end ifhtml
 @ifnothtml
-@ref{open,,open a file,open(2), open(2) man page},
+See @ref{open,,open a file,open(2), open(2) man page},
 @end ifnothtml
 for a detailed discussion.
 @end table

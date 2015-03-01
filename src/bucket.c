@@ -46,7 +46,7 @@ _gdbm_new_bucket (GDBM_FILE dbf, hash_bucket *bucket, int bits)
 /* Find a bucket for DBF that is pointed to by the bucket directory from
    location DIR_INDEX.   The bucket cache is first checked to see if it
    is already in memory.  If not, a bucket may be tossed to read the new
-   bucket.  In any case, the requested bucket is make the "current" bucket
+   bucket.  In any case, the requested bucket becomes the "current" bucket
    and dbf->bucket points to the correct bucket. */
 
 void
