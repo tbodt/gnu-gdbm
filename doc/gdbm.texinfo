@@ -8,9 +8,9 @@
 @ifinfo
 @dircategory Programming & development tools
 @direntry
-* GDBM: (gdbm).                 The GNU database manager.
-* gdbm_dump: gdbm_dump(gdbm).   Dump the GDBM database into a flat file.
-* gdbm_load: gdbm_load(gdbm).   Load the database from a flat file.
+* GDBM: (gdbm).                  The GNU database manager.
+* gdbm_dump: (gdbm) gdbm_dump.   Dump the GDBM database into a flat file.
+* gdbm_load: (gdbm) gdbm_load.   Load the database from a flat file.
 @end direntry
 @end ifinfo
 
