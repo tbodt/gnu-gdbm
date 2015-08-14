@@ -1,7 +1,14 @@
+2015-08-14  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Fix doc generation.
+
+	* doc/Config: Rename to doc/html.init.
+	* doc/gdbm.texinfo: Fix sectioning.
+
 2015-08-13  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	Minor fix in docs
-	
+
 	* doc/gdbm.texinfo: Fix direntry records.
 
 2014-07-03  Sergey Poznyakoff  <gray@gnu.org.ua>

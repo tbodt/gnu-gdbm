@@ -112,9 +112,9 @@ Functions:
 * Errors::                     Convert internal error codes into English.
 * Options::                    Setting internal options.
 * Locking::                    File locking.
+* Variables::                  Useful global variables.
 
 * Error codes::                Error codes returned by @code{gdbm} calls.
-* Variables::                  Two useful variables.
 * Compatibility::              Compatibility with UNIX dbm and ndbm.
 
 Programs
