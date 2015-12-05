@@ -1,3 +1,7 @@
+2015-12-05  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* doc/gendocs_template: Add references to manpages.
+
 2015-12-05  Harald Hoyer <harald@redhat.com>
 
 	* doc/gdbmtool.1: Minor change.

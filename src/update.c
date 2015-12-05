@@ -106,9 +106,7 @@ _gdbm_fatal (GDBM_FILE dbf, const char *val)
   if ((dbf != NULL) && (dbf->fatal_err != NULL))
     (*dbf->fatal_err) (val);
   else
-    {
-      fprintf (stderr, _("gdbm fatal: %s\n"), val ? val : "");
-    }
+    fprintf (stderr, _("gdbm fatal: %s\n"), val ? val : "");
   exit (1);
   /* NOTREACHED */
 }

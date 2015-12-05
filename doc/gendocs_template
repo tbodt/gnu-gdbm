@@ -51,6 +51,11 @@
       (%%PDF_SIZE%%K characters)</a>.</li>
   <li><a href="manual/%%PACKAGE%%.texi.tar.gz">Texinfo source
       (%%TEXI_TGZ_SIZE%%K characters gzipped tar file)</a></li>
+  <li><a href="http://man.gnu.org.ua/manpage/?3+gdbm">gdbm(3) manpage</a></li>
+  <li><a href="http://man.gnu.org.ua/manpage/?1+gdbm_dump">gdbm_dump(1) manpage</a></li>
+  <li><a href="http://man.gnu.org.ua/manpage/?1+gdbm_load">gdbm_load(1) manpage</a></li>
+  <li><a href="http://man.gnu.org.ua/manpage/?1+gdbmtool">gdbmtool(1) manpage</a></li>
+
 </ul>
 
 </div>
