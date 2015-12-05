@@ -44,7 +44,6 @@
 	* NEWS: Document COMPATINCLUDEDIR.
 	* README: Likewise.
 
->>>>>>> 1.102
 2014-02-12  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* src/gdbmimp.c (gdbm_import_from_file): Read record sizes as
