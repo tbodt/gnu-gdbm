@@ -1,5 +1,9 @@
 2016-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
 
+	Version 1.12
+
+2016-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
 	* src/gdbmtool.c (_gdbm_print_bucket_cache): Use %zu to print
 	size_t.
 	* src/gdbmtool.h (variable_unset): New proto.
