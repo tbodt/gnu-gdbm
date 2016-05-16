@@ -1,6 +1,6 @@
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -239,6 +239,7 @@ extern struct dsegm *dsdef[];
 
 int variable_set (const char *name, int type, void *val);
 int variable_get (const char *name, int type, void **val);
+int variable_unset(const char *name);
 int variable_is_set (const char *name);
 int variable_is_true (const char *name);
 void variable_print_all (FILE *fp);
@@ -250,7 +251,7 @@ void begin_def (void);
 void end_def (void);
 
 int yylex (void);
-int yyerror (char *s);
+int yyerror (char const *s);
 int yyparse (void);
 
 void datum_format (FILE *fp, datum const *dat, struct dsegm *ds);

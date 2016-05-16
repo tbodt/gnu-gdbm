@@ -361,7 +361,7 @@ terror (const char *fmt, ...)
 }
 
 int
-yyerror (char *s)
+yyerror (char const *s)
 {
   terror ("%s", s);
   return 0;

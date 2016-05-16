@@ -270,7 +270,7 @@ _gdbm_print_bucket_cache (FILE *fp, GDBM_FILE dbf)
   if (dbf->bucket_cache != NULL)
     {
       fprintf (fp,
-	_("Bucket Cache (size %d):\n  Index:  Address  Changed  Data_Hash \n"),
+	_("Bucket Cache (size %zu):\n  Index:  Address  Changed  Data_Hash \n"),
 	 dbf->cache_size);
       for (index = 0; index < dbf->cache_size; index++)
 	{

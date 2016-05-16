@@ -240,7 +240,8 @@ print_option_descr (const char *descr, size_t lmargin, size_t rmargin)
 		break;
 	    }
 	}
-      printf ("%*.*s\n", s, s, descr);
+      fwrite (descr, 1, s, stdout);
+      fputc ('\n', stdout);
       descr += s;
       if (*descr)
 	{

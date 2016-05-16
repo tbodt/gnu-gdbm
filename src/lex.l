@@ -194,6 +194,7 @@ setsource (const char *name, int intr)
 }
 %}
 
+%option noinput
 %option nounput
 
 %x STR MLSTR DEF

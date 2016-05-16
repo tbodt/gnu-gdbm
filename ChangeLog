@@ -1,3 +1,15 @@
+2016-05-16  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	* src/gdbmtool.c (_gdbm_print_bucket_cache): Use %zu to print
+	size_t.
+	* src/gdbmtool.h (variable_unset): New proto.
+	(yyerror): Argument is char const *.
+	* src/gram.y: Likewise.
+	* src/lex.l: Add option noinput
+	* src/parseopt.c (print_option_descr): Use fwrite instead of
+	printf.
+	* src/var.c: Fix initializers to suppress warnings.
+
 2015-12-05  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/gendocs_template: Add references to manpages.

@@ -45,20 +45,20 @@ static int open_hook (struct variable *, union value *);
 
 static struct variable vartab[] = {
   /* Top-level prompt */
-  { "ps1", VART_STRING, VARF_INIT, { "%p>%_" } },
+  { "ps1", VART_STRING, VARF_INIT, { .string = "%p>%_" } },
   /* Second-level prompt (used within "def" block) */
-  { "ps2", VART_STRING, VARF_INIT, { "%_>%_" } },
+  { "ps2", VART_STRING, VARF_INIT, { .string = "%_>%_" } },
   /* This delimits array members */
-  { "delim1", VART_STRING, VARF_INIT|VARF_PROT, { "," } },
+  { "delim1", VART_STRING, VARF_INIT|VARF_PROT, { .string = "," } },
   /* This delimits structure members */
-  { "delim2", VART_STRING, VARF_INIT|VARF_PROT, { "," } },
-  { "confirm", VART_BOOL, VARF_INIT, { .num = 1 } },
+  { "delim2", VART_STRING, VARF_INIT|VARF_PROT, { .string = "," } },
+  { "confirm", VART_BOOL, VARF_INIT, { .bool = 1 } },
   { "cachesize", VART_INT, VARF_DFL },
   { "blocksize", VART_INT, VARF_DFL },
   { "open", VART_STRING, VARF_DFL, { NULL }, open_hook },
-  { "lock", VART_BOOL, VARF_INIT, { .num = 1 } },
-  { "mmap", VART_BOOL, VARF_INIT, { .num = 1 } },
-  { "sync", VART_BOOL, VARF_INIT, { .num = 0 } },
+  { "lock", VART_BOOL, VARF_INIT, { .bool = 1 } },
+  { "mmap", VART_BOOL, VARF_INIT, { .bool = 1 } },
+  { "sync", VART_BOOL, VARF_INIT, { .bool = 0 } },
   { "filemode", VART_INT, VARF_INIT|VARF_OCTAL|VARF_PROT, { .num = 0644 } },
   { "pager", VART_STRING, VARF_DFL },
   { "quiet", VART_BOOL, VARF_DFL },
