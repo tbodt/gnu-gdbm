@@ -1,0 +1,164 @@
+# Texi2any configuration for gdbm documentation. -*- perl -*-
+# Copyright (C) 2011, 2015 Sergey Poznyakoff
+#
+# Gdbm is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# Gdbm is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Gdbm.  If not, see <http://www.gnu.org/licenses/>.
+use strict;
+
+my $top_html_dir="/software/gdbm";
+my $graphics_dir="$top_html_dir/graphics";
+    
+# Show TOC in place of the @contents directive.
+set_from_init_file('INLINE_CONTENTS', 1);
+# Do not show Texinfo menus.
+set_from_init_file('SHOW_MENU', 0);
+# Inhibit output of CSS lines in page headers.
+set_from_init_file('CSS_LINES', '');
+
+set_from_init_file('BODYTEXT', "");
+
+set_from_init_file('EXTRA_HEAD', "\
+  <link rev=\"made\" href=\"mailto:gray\@gnu.org.ua\">\
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"${top_html_dir}/gray.css\">\
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"${top_html_dir}/texi.css\">\
+  <link rel=\"icon\" type=\"image/png\" href=\"/graphics/gnu-head-icon.png\">");
+
+set_from_init_file('AFTER_BODY_OPEN', qq{
+<!--#include virtual=\"${top_html_dir}/inc/header.html\" -->
+<ul class='tabs'>
+  <li><a href="${top_html_dir}/gdbm.html">Main</a></li>
+  <li><a href="${top_html_dir}/download.html">Downloads</a></li>
+  <li><a class="active" href="${top_html_dir}/manual.html">Documentation</a></li>
+</ul>
+});
+
+sub gray_end_file($)
+{
+    my $self = shift;
+    my $program_text = '';
+    if ($self->get_conf('PROGRAM_NAME_IN_FOOTER')) {
+	my $program_string = &{$self->{'format_program_string'}}($self);
+	$program_text = "<p>
+  $program_string
+</p>";
+  }
+  my $pre_body_close = $self->get_conf('PRE_BODY_CLOSE');
+  $pre_body_close = '' if (!defined($pre_body_close));
+  return "</div>
+<div class=\"copyright\">
+$program_text
+
+$pre_body_close
+</div>
+</div>
+</body>
+</html>
+";
+}
+
+texinfo_register_formatting_function('end_file', \&gray_end_file);
+
+set_from_init_file('PRE_BODY_CLOSE',
+		   'Verbatim copying and distribution of this entire article is permitted in any medium, provided this notice is preserved.');
+
+# Print generating program name at the bottom of a page.
+set_from_init_file('PROGRAM_NAME_IN_FOOTER',1);
+
+# Disable horizontal bars
+set_from_init_file('DEFAULT_RULE', '');
+set_from_init_file('BIG_RULE', '');
+
+# Turn off navigation bars at the bottom of each section in chapter split mode,
+# or subsection in section split mode.
+set_from_init_file('HEADERS', undef)
+    if ((get_conf('SPLIT') eq 'chapter') or (get_conf('SPLIT') eq 'section'));
+# Use navigation icons
+
+set_from_init_file('ICONS', 1);
+
+set_from_init_file('ACTIVE_ICONS',
+    {
+     'Top'         =>    "$graphics_dir/top.png",
+     'Contents'    =>    "$graphics_dir/ctx.png",
+     'Overview'    =>    '',
+     'Index'       =>    "$graphics_dir/idx.png",
+     'This'        =>    '',
+     'Back'        =>    "$graphics_dir/left.png",
+     'FastBack'    =>    "$graphics_dir/bwd.png",
+     'Prev'        =>    "",
+     'Up'          =>    "$graphics_dir/up.png",
+     'Next'        =>    "$graphics_dir/right.png",
+     'NodeUp'      =>    "$graphics_dir/left.png",
+     'NodeNext'    =>    "$graphics_dir/up.png",
+     'NodePrev'    =>    "$graphics_dir/right.png",
+     'Following'   =>    "$graphics_dir/right.png",
+     'Forward'     =>    "$graphics_dir/right.png",
+     'FastForward' =>    "$graphics_dir/fwd.png",
+     'About'       =>    '',
+     'First'       =>    '',
+     'Last'        =>    '',
+     ' '           =>    ''
+    });
+
+sub gray_split_status()
+{
+    my $split = get_conf('SPLIT');
+    if ($split eq '') {
+	return '';
+    } elsif ($split eq 'node') {
+	return ' <span class="splitstatus">(split by node)</span>';
+    } elsif ($split eq 'section') {
+	return ' <span class="splitstatus">(split by section)</span>';
+    } elsif ($split eq 'chapter') {
+	return ' <span class="splitstatus">(split by chapter)</span>';
+    }
+}
+
+sub gray_document_title($$)
+{
+    my $self = shift;
+    my $direction = shift;
+    my $status = gray_split_status();
+
+    return q{<span class="title">} . $self->{title_string} . '</span>' .$status . q{<span class="title">:</span>};
+}
+
+sub gray_sec_ref($$)
+{
+    return q{<span class="navtext">Section:</span>};
+}
+
+sub gray_chap_ref($$)
+{
+    return q{<span class="navtext">Chapter:</span>};
+}
+
+
+my @gray_buttons = (\&gray_document_title, ' ',
+		    \&gray_sec_ref, 'Back', 'Forward', ' ',
+		    \&gray_chap_ref,
+		    'FastBack', ' ', 'Up', ' ', 'FastForward', ' ',
+		    'Contents', 'Index' );
+
+set_from_init_file('TOP_BUTTONS', undef);
+set_from_init_file('SECTION_BUTTONS', \@gray_buttons);
+set_from_init_file('CHAPTER_BUTTONS', \@gray_buttons);
+set_from_init_file('NODE_FOOTER_BUTTONS', \@gray_buttons);
+set_from_init_file('SECTION_FOOTER_BUTTONS', \@gray_buttons);
+set_from_init_file('MISC_BUTTONS',
+		   [\&gray_document_title,
+		    'Contents',
+		    'Index',
+		    ' ',
+		    'About'
+		   ]);
