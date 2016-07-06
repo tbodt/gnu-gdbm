@@ -233,7 +233,7 @@ int gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount);
 int gdbm_version_cmp (int const a[], int const b[]);
 @end example
 
-The @code{gdbm.h} include file is often in the @file{/usr/local/include}
+The @code{gdbm.h} include file is often in the @file{/usr/include}
 directory. (The actual location of @code{gdbm.h} depends on your local
 installation of @code{gdbm}.)
 
@@ -1419,7 +1419,7 @@ option may also be required, depending on where @code{gdbm} is
 installed, e.g.:
 
 @example
-cc ... -L/usr/local/lib -lgdbm -lgdbm_compat
+cc ... -lgdbm -lgdbm_compat
 @end example
 
 @cindex @samp{dir} file

@@ -13,7 +13,7 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM 3 "December 5, 2015" "GDBM" "GDBM User Reference"
+.TH GDBM 3 "July 6, 2016" "GDBM" "GDBM User Reference"
 .SH NAME
 GDBM \- The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
 compatibility.
@@ -74,7 +74,7 @@ compatibility.
 .br
 .BI "int dbmclose (void);"
 .PP
-.SS NDBM Compatability routines:
+.SS NDBM Compatibility routines:
 .PP
 .B #include <ndbm.h>
 .sp
@@ -233,7 +233,7 @@ To search for some data, without retrieving it:
 the key data to search for.
 
 If the \fIkey\fR is found within the database, the return value 
-will be true.  If nothing appropiate is found, false is returned.
+will be true.  If nothing appropriate is found, false is returned.
 This routine is useful for checking for the existence of a record,
 without performing the memory allocation done by \fBgdbm_fetch\fR.
 .PP
