@@ -13,6 +13,13 @@
 	* doc/gdbm.texinfo: Rename to doc/gdbm.texi
 	* doc/Makefile.am: Update
 
+        Generate ChangeLog from Git log
+
+	* ChangeLog: Rename to ChangeLog.cvs
+	* Makefile.am: Recreate ChangeLog
+	* bootstrap: Create a ChangeLog placeholder.
+	* git2chg.awk: New file.
+
 2016-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/gdbm.texinfo: Normal installation prefix is /usr.

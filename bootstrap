@@ -1,5 +1,5 @@
 #! /bin/sh
-# Copyright (C) 2011 Free Software Foundation, Inc.
+# Copyright (C) 2011-2016 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -68,4 +68,7 @@ fi
 get_po
 
 test -d m4 || mkdir m4
+test -f ChangeLog || cat > ChangeLog <<EOF
+# This file is a placeholder.  Run make to generate actual ChangeLog.
+EOF
 autoreconf -f -i -s
