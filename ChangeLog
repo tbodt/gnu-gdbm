@@ -1,3 +1,18 @@
+2016-07-07  Sergey Poznyakoff  <gray@gnu.org.ua>
+
+	Switch to Git repository
+
+	* .cvsignore: Rename to .gitignore
+	* compat/.cvsignore: Likewise.
+	* doc/.cvsignore: Likewise.
+	* export/.cvsignore: Likewise.
+	* po/.cvsignore: Likewise.
+	* src/.cvsignore: Likewise.
+	* tests/.cvsignore: Likewise.
+
+	* doc/gdbm.texinfo: Rename to doc/gdbm.texi
+	* doc/Makefile.am: Update
+
 2016-07-06  Sergey Poznyakoff  <gray@gnu.org.ua>
 
 	* doc/gdbm.texinfo: Normal installation prefix is /usr.

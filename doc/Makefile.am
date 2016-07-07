@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007, 2011, 2014, 2015 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011, 2014-2016 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 # Documentation
 
-info_TEXINFOS = gdbm.texinfo
+info_TEXINFOS = gdbm.texi
 gdbm_TEXINFOS=\
   fdl.texi
 
