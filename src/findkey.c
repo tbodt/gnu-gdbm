@@ -1,8 +1,8 @@
 /* findkey.c - The routine that finds a key entry in the file. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -74,9 +74,9 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 /* Find the KEY in the file and get ready to read the associated data.  The
    return value is the location in the current hash bucket of the KEY's
    entry.  If it is found, a pointer to the data and the key are returned
-   in DPTR.  If it is not found, the value -1 is returned.  Since find
-   key computes the hash value of key, that value is returned in
-   NEW_HASH_VAL. */
+   in DPTR.  If it is not found, the value -1 is returned and gdbm_errno is
+   set to GDBM_ITEM_NOT_FOUND.  Since find key computes the hash value of key,
+   that value is returned in NEW_HASH_VAL. */
 int
 _gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
 {
@@ -116,7 +116,8 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
 	{
 	  /* Current elem_loc is not the item, go to next item. */
 	  elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
-	  if (elem_loc == home_loc) return -1;
+	  if (elem_loc == home_loc)
+	    break;
 	  bucket_hash_val = dbf->bucket->h_table[elem_loc].hash_value;
 	}
       else
@@ -134,13 +135,15 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
 	    {
 	      /* Not the item, try the next one.  Return if not found. */
 	      elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
-	      if (elem_loc == home_loc) return -1;
+	      if (elem_loc == home_loc)
+		break;
 	      bucket_hash_val = dbf->bucket->h_table[elem_loc].hash_value;
 	    }
 	}
     }
 
   /* If we get here, we never found the key. */
+  gdbm_errno = GDBM_ITEM_NOT_FOUND;
   return -1;
 
 }

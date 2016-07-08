@@ -1,5 +1,5 @@
 /* This file is part of GDBM test suite.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -105,9 +105,17 @@ main (int argc, char **argv)
       if (data.dptr == NULL)
 	{
 	  rc = 2;
-	  fprintf (stderr, "%s: ", progname);
-	  print_key (stderr, key, delim);
-	  fprintf (stderr, ": not found\n");
+	  if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
+	    {
+	      fprintf (stderr, "%s: ", progname);
+	      print_key (stderr, key, delim);
+	      fprintf (stderr, ": not found\n");
+	    }
+	  else
+	    {
+	      fprintf (stderr, "%s: error: %s\n", progname,
+		       gdbm_strerror (gdbm_errno));
+	    }
 	  continue;
 	}
       if (delim)

@@ -9,6 +9,8 @@
 *.tar.gz
 *.tar.xz
 *~
+*.gdbm
+*.cflow
 .deps
 .emacs*
 .libs

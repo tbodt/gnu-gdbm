@@ -1,8 +1,8 @@
 /* gdbmfetch.c - Find a key and return the associated data.  */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011,
+   2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -53,11 +53,13 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
 	return_val.dptr = (char *) malloc (1);
       else
 	return_val.dptr = (char *) malloc (return_val.dsize);
-      if (return_val.dptr == NULL) _gdbm_fatal (dbf, _("malloc error"));
+      if (return_val.dptr == NULL)
+	{
+	  gdbm_errno = GDBM_MALLOC_ERROR;
+	  return return_val;
+	}
       memcpy (return_val.dptr, find_data, return_val.dsize);
     }
-
-  /* Check for an error and return. */
-  if (return_val.dptr == NULL) gdbm_errno = GDBM_ITEM_NOT_FOUND;
+  
   return return_val;
 }

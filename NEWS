@@ -1,8 +1,26 @@
-GNU dbm NEWS -- history of user-visible changes. 2016-05-16
+GNU dbm NEWS -- history of user-visible changes. 2016-07-08
 Copyright (C) 1990-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
+
+Version 1.12.90 (Git)
+
+* gdbm_fetch, gdbm_firstkey, and gdbm_nextkey behavior
+
+If the requested key was not found, these functions return datum with
+dptr pointing to NULL and set gdbm_errno to GDBM_ITEM_NOT_FOUND (in
+prior releases, gdbm_errno was set to GDBM_NO_ERROR),
+
+If an error occurred, dptr is set to NULL, and gdbm_errno to
+the error code.
+
+In any case gdbm_errno is guaranteed to have meaningful value upon
+return.
+
+The gdbm_fetch function no longer aborts on memory allocation errors.
+Instead it sets gdbm_errno to GDBM_MALLOC_ERROR and returns NULL datum.
+
 
 Version 1.12, 2016-05-16
 

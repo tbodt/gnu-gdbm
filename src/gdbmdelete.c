@@ -1,8 +1,8 @@
 /* gdbmdelete.c - Remove the key and its associated data from the database. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -51,10 +51,7 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   /* Find the item. */
   elem_loc = _gdbm_findkey (dbf, key, &find_data, &hash_val);
   if (elem_loc == -1)
-    {
-      gdbm_errno = GDBM_ITEM_NOT_FOUND;
-      return -1;
-    }
+    return -1;
 
   /* Save the element.  */
   elem = dbf->bucket->h_table[elem_loc];

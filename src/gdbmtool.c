@@ -415,7 +415,7 @@ delete_handler (struct handler_param *param)
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
 	terror (_("Item not found"));
       else
-	terror (_("Can't delete: %s"),  gdbm_strerror (gdbm_errno));
+	terror (_("Can't delete: %s"), gdbm_strerror (gdbm_errno));
     }
 }
 
@@ -430,8 +430,10 @@ fetch_handler (struct handler_param *param)
       fputc ('\n', param->fp);
       free (return_data.dptr);
     }
-  else
+  else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
     fprintf (stderr, _("No such item found.\n"));
+  else
+    terror (_("Can't fetch data: %s"), gdbm_strerror (gdbm_errno));
 }
 
 /* store KEY DATA - store data */
@@ -463,8 +465,10 @@ firstkey_handler (struct handler_param *param)
 
       free (return_data.dptr);
     }
-  else
+  else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
     fprintf (param->fp, _("No such item found.\n"));
+  else
+    terror (_("Can't find key: %s"), gdbm_strerror (gdbm_errno));
 }
 
 /* next [KEY] - next key */
@@ -492,12 +496,14 @@ nextkey_handler (struct handler_param *param)
 
       free (return_data.dptr);
     }
-  else
+  else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
     {
       fprintf (stderr, _("No such item found.\n"));
       free (key_data.dptr);
       key_data.dptr = NULL;
     }
+  else
+    terror (_("Can't find key: %s"), gdbm_strerror (gdbm_errno));
 }
 
 /* reorganize */

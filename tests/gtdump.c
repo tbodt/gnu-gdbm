@@ -1,5 +1,5 @@
 /* This file is part of GDBM test suite.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ main (int argc, char **argv)
   while (key.dptr)
     {
       size_t i;
-      datum nextkey = gdbm_nextkey (dbf, key);
+      datum nextkey;
       
       for (i = 0; i < key.dsize && key.dptr[i]; i++)
 	{
@@ -103,11 +103,18 @@ main (int argc, char **argv)
       free (data.dptr);
       
       fputc ('\n', stdout);
-      
+
+      nextkey = gdbm_nextkey (dbf, key);
       free (key.dptr);
       key = nextkey;
     }
 
+  if (gdbm_errno != GDBM_ITEM_NOT_FOUND)
+    {
+      fprintf (stderr, "unexpected error: %s\n", gdbm_strerror (gdbm_errno));
+      exit (1);
+    }
+  
   gdbm_close (dbf);
   exit (0);
 }

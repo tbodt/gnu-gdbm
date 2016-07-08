@@ -1,5 +1,5 @@
 .\" This file is part of GDBM.
-.\" Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+.\" Copyright (C) 2011, 2013, 2016 Free Software Foundation, Inc.
 .\"
 .\" GDBM is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM 3 "July 6, 2016" "GDBM" "GDBM User Reference"
+.TH GDBM 3 "July 8, 2016" "GDBM" "GDBM User Reference"
 .SH NAME
 GDBM \- The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
 compatibility.
@@ -171,7 +171,7 @@ if it detects a fatal error. The only parameter of this function is a string.
 If the value of 0 is provided, \fBgdbm\fR will use a default function.
 
 The return value is the pointer needed by all other routines to
-access that gdbm file.  If the return is the NULL pointer, \fBgdbm_open\fR
+access that gdbm file.  If the return is the \fBNULL\fR pointer, \fBgdbm_open\fR
 was not successful.  The errors can be found in \fIgdbm_errno\fR for gdbm
 errors and in \fIerrno\fR for system errors.  (For error codes, see
 gdbmerrno.h.)
@@ -218,8 +218,12 @@ To search for some data, use:
 \fIDbf\fR is the pointer returned by \fBgdbm_open\fR.  \fIKey\fR is
 the key data.
 
-If the \fIdptr\fR element of the return value is NULL, no data was
-found.  Otherwise the return value is a pointer to the found data.
+If the \fIdptr\fR element of the return value is \fBNULL\fR, the
+\fBgdbm_errno\fR variable should be examined.  The value of 
+\fBGDBM_ITEM_NOT_FOUND\fR means no data was found for that \fIkey\fR.
+Other value means an error occurred.
+
+Otherwise the return value is a pointer to the found data.
 The storage space for the \fIdptr\fR element is allocated using
 \fBmalloc(3)\fR.  \fBGdbm\fI does not automatically free this data.
 It is the programmer's responsibility to free this storage when it is
@@ -259,8 +263,11 @@ the database once.  (The order has to do with the hash values.)
 key data.
 
 The return values are both of type \fBdatum\fR.  If the \fIdptr\fR
-element of the return value is NULL, there is no first key or next key.
-Again notice that \fIdptr\fR points to data allocated by \fBmalloc(3)\fR
+element of the return value is \fBNULL\fR, inspect the
+\fBgdbm_errno\fR.  If it is \fBGDBM_ITEM_NOT_FOUND\fR, there is no
+first key or next key.  Otherwise, an error occurred.
+
+Again, notice that \fIdptr\fR points to data allocated by \fBmalloc(3)\fR
 and \fBgdbm\fR will not free it for you. 
 
 These functions were intended to visit the database in read-only algorithms,
@@ -426,7 +433,7 @@ Send bug reports to <bug\-gdbm@gnu.org>.
 .SH AUTHORS
 by Philip A. Nelson, Jason Downs and Sergey Poznyakoff.
 .SH COPYRIGHT
-Copyright \(co 1990 - 2011 Free Software Foundation, Inc.
+Copyright \(co 1990 - 2016 Free Software Foundation, Inc.
 
 GDBM is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

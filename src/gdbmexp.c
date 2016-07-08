@@ -1,7 +1,7 @@
 /* gdbmexp.c - Export a GDBM database. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 2007, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2011, 2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,7 +46,12 @@ gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)
   while (key.dptr != NULL)
     {
       data = gdbm_fetch (dbf, key);
-      if (data.dptr != NULL)
+      if (data.dptr == NULL)
+	{
+	  if (gdbm_errno != GDBM_NO_ERROR)
+	    return -1;
+	}
+      else
  	{
 	  /* Add the data to the new file. */
 	  size = htonl (key.dsize);
@@ -61,6 +66,7 @@ gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)
 	  if (fwrite (data.dptr, data.dsize, 1, fp) != 1)
 	    goto write_fail;
  	}
+      
       nextkey = gdbm_nextkey (dbf, key);
       free (key.dptr);
       free (data.dptr);
@@ -68,6 +74,8 @@ gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)
       
       count++;
     }
+  if (gdbm_errno != GDBM_ITEM_NOT_FOUND)
+    return -1;
   
   return count;
   

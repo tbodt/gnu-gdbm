@@ -1,8 +1,8 @@
 /* gdbmseq.c - Routines to visit all keys.  Not in sorted order. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,13 @@ extern char *_gdbm_read_entry (GDBM_FILE , int);
 
 /* Find and read the next entry in the hash structure for DBF starting
    at ELEM_LOC of the current bucket and using RETURN_VAL as the place to
-   put the data that is found. */
+   put the data that is found.
+
+   If no next key is found, gdbm_errno is set to GDBM_ITEM_NOT_FOUND
+   and RETURN_VAL remains unmodified.
+
+   On error, gdbm_errno is set.
+*/
 
 static void
 get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
@@ -57,8 +63,11 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
 	  if (dbf->bucket_dir < GDBM_DIR_COUNT (dbf))
 	    _gdbm_get_bucket (dbf, dbf->bucket_dir);	      
 	  else
-	    /* No next key, just return. */
-	    return ;
+	    {
+	      /* No next key, just return. */
+	      gdbm_errno = GDBM_ITEM_NOT_FOUND;
+	      return;
+	    }
 	}
       found = dbf->bucket->h_table[elem_loc].hash_value != -1;
     }
@@ -70,8 +79,13 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
     return_val->dptr = (char *) malloc (1);
   else
     return_val->dptr = (char *) malloc (return_val->dsize);
-  if (return_val->dptr == NULL) _gdbm_fatal (dbf, _("malloc error"));
-  memcpy (return_val->dptr, find_data, return_val->dsize);
+  if (return_val->dptr == NULL)
+    {
+      return_val->dsize = 0;
+      gdbm_errno = GDBM_MALLOC_ERROR;
+    }
+  else
+    memcpy (return_val->dptr, find_data, return_val->dsize);
 }
 
 
@@ -116,12 +130,16 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   return_val.dptr = NULL;
 
   /* Do we have a valid key? */
-  if (key.dptr == NULL) return return_val;
-
+  if (key.dptr == NULL)
+    {
+      gdbm_errno = GDBM_ITEM_NOT_FOUND; /* FIXME: special error code perhaps */
+      return return_val;
+    }
+  
   /* Find the key.  */
   elem_loc = _gdbm_findkey (dbf, key, &find_data, &hash_val);
   if (elem_loc == -1) return return_val;
-
+  
   /* Find the next key. */  
   get_next_key (dbf, elem_loc, &return_val);
 
