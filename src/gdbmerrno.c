@@ -25,38 +25,38 @@
 gdbm_error gdbm_errno = GDBM_NO_ERROR;
 
 /* this is not static so that applications may access the array if they
-   like. it must be in the same order as the error codes! */
+   like. */
 
 const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
-  N_("No error"),                /* GDBM_NO_ERROR               */
-  N_("Malloc error"),		 /* GDBM_MALLOC_ERROR       	*/
-  N_("Block size error"),	 /* GDBM_BLOCK_SIZE_ERROR   	*/
-  N_("File open error"),	 /* GDBM_FILE_OPEN_ERROR    	*/
-  N_("File write error"),	 /* GDBM_FILE_WRITE_ERROR   	*/
-  N_("File seek error"),	 /* GDBM_FILE_SEEK_ERROR    	*/
-  N_("File read error"),	 /* GDBM_FILE_READ_ERROR    	*/
-  N_("Bad magic number"),	 /* GDBM_BAD_MAGIC_NUMBER   	*/
-  N_("Empty database"),		 /* GDBM_EMPTY_DATABASE     	*/
-  N_("Can't be reader"),	 /* GDBM_CANT_BE_READER     	*/
-  N_("Can't be writer"),	 /* GDBM_CANT_BE_WRITER     	*/
-  N_("Reader can't delete"),	 /* GDBM_READER_CANT_DELETE 	*/
-  N_("Reader can't store"),	 /* GDBM_READER_CANT_STORE  	*/
-  N_("Reader can't reorganize"), /* GDBM_READER_CANT_REORGANIZE */
-  N_("Unknown update"),		 /* GDBM_UNKNOWN_UPDATE     	*/
-  N_("Item not found"),		 /* GDBM_ITEM_NOT_FOUND     	*/
-  N_("Reorganize failed"),	 /* GDBM_REORGANIZE_FAILED  	*/
-  N_("Cannot replace"),		 /* GDBM_CANNOT_REPLACE     	*/
-  N_("Illegal data"),		 /* GDBM_ILLEGAL_DATA       	*/
-  N_("Option already set"),	 /* GDBM_OPT_ALREADY_SET    	*/
-  N_("Illegal option"),		 /* GDBM_OPT_ILLEGAL        	*/
-  N_("Byte-swapped file"),	 /* GDBM_BYTE_SWAPPED       	*/
-  N_("Wrong file offset"),	 /* GDBM_BAD_FILE_OFFSET    	*/
-  N_("Bad file flags"),		 /* GDBM_BAD_OPEN_FLAGS     	*/
-  N_("Cannot stat file"),        /* GDBM_FILE_STAT_ERROR        */
-  N_("Unexpected end of file"),  /* GDBM_FILE_EOF               */
-  N_("Database name not given"), /* GDBM_NO_DBNAME              */
-  N_("Failed to restore file owner"), /* GDBM_ERR_FILE_OWNER    */
-  N_("Failed to restore file mode"),  /* GDBM_ERR_FILE_MODE     */
+  [GDBM_NO_ERROR]               = N_("No error"),
+  [GDBM_MALLOC_ERROR]           = N_("Malloc error"),
+  [GDBM_BLOCK_SIZE_ERROR]       = N_("Block size error"),
+  [GDBM_FILE_OPEN_ERROR]        = N_("File open error"),
+  [GDBM_FILE_WRITE_ERROR]       = N_("File write error"),
+  [GDBM_FILE_SEEK_ERROR]        = N_("File seek error"),
+  [GDBM_FILE_READ_ERROR]        = N_("File read error"),
+  [GDBM_BAD_MAGIC_NUMBER]       = N_("Bad magic number"),
+  [GDBM_EMPTY_DATABASE]         = N_("Empty database"),
+  [GDBM_CANT_BE_READER]         = N_("Can't be reader"),
+  [GDBM_CANT_BE_WRITER]         = N_("Can't be writer"),
+  [GDBM_READER_CANT_DELETE]     = N_("Reader can't delete"),
+  [GDBM_READER_CANT_STORE]      = N_("Reader can't store"),
+  [GDBM_READER_CANT_REORGANIZE] = N_("Reader can't reorganize"),
+  [GDBM_UNKNOWN_UPDATE]         = N_("Unknown update"),
+  [GDBM_ITEM_NOT_FOUND]         = N_("Item not found"),
+  [GDBM_REORGANIZE_FAILED]      = N_("Reorganize failed"),
+  [GDBM_CANNOT_REPLACE]         = N_("Cannot replace"),
+  [GDBM_ILLEGAL_DATA]           = N_("Illegal data"),
+  [GDBM_OPT_ALREADY_SET]        = N_("Option already set"),
+  [GDBM_OPT_ILLEGAL]            = N_("Illegal option"),
+  [GDBM_BYTE_SWAPPED]           = N_("Byte-swapped file"),
+  [GDBM_BAD_FILE_OFFSET]        = N_("Wrong file offset"),
+  [GDBM_BAD_OPEN_FLAGS]         = N_("Bad file flags"),
+  [GDBM_FILE_STAT_ERROR]        = N_("Cannot stat file"),
+  [GDBM_FILE_EOF]               = N_("Unexpected end of file"),
+  [GDBM_NO_DBNAME]              = N_("Database name not given"),
+  [GDBM_ERR_FILE_OWNER]         = N_("Failed to restore file owner"),
+  [GDBM_ERR_FILE_MODE]          = N_("Failed to restore file mode"),
 };
 
 const char *
