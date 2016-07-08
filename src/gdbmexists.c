@@ -27,8 +27,11 @@
 int
 gdbm_exists (GDBM_FILE dbf, datum key)
 {
-  char *find_data;		/* Dummy */
-  int hash_val;			/* Dummy */
-
-  return (_gdbm_findkey (dbf, key, &find_data, &hash_val) >= 0);
+  if (_gdbm_findkey (dbf, key, NULL, NULL) < 0)
+    {
+      if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
+	gdbm_errno = GDBM_NO_ERROR;
+      return 0;
+    }
+  return 1;
 }

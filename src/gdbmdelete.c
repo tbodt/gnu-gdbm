@@ -33,9 +33,7 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   int last_loc;		/* Last location emptied by the delete.  */
   int home;		/* Home position of an item. */
   bucket_element elem;  /* The element to be deleted. */
-  char *find_data;	/* Return pointer from findkey. */
-  int   hash_val;	/* Returned by findkey. */
-  off_t free_adr;       /* Temporary stroage for address and size. */
+  off_t free_adr;       /* Temporary storage for address and size. */
   int   free_size;
 
   /* First check to make sure this guy is a writer. */
@@ -49,7 +47,7 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   gdbm_errno = GDBM_NO_ERROR;
 
   /* Find the item. */
-  elem_loc = _gdbm_findkey (dbf, key, &find_data, &hash_val);
+  elem_loc = _gdbm_findkey (dbf, key, NULL, NULL);
   if (elem_loc == -1)
     return -1;
 

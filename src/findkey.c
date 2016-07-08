@@ -69,47 +69,52 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
   return data_ca->dptr;
 }
 
-
-
 /* Find the KEY in the file and get ready to read the associated data.  The
    return value is the location in the current hash bucket of the KEY's
-   entry.  If it is found, a pointer to the data and the key are returned
-   in DPTR.  If it is not found, the value -1 is returned and gdbm_errno is
-   set to GDBM_ITEM_NOT_FOUND.  Since find key computes the hash value of key,
-   that value is returned in NEW_HASH_VAL. */
+   entry.  If it is found, additional data are returned as follows:
+
+   If RET_DPTR is not NULL, a pointer to the actual data is stored in it.
+   If RET_HASH_VAL is not NULL, it is assigned the actual hash value.
+
+   If KEY is not found, the value -1 is returned and gdbm_errno is
+   set to GDBM_ITEM_NOT_FOUND.  */
 int
-_gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
+_gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
 {
   int    bucket_hash_val;	/* The hash value from the bucket. */
+  int    new_hash_val;          /* Computed hash value for the key */
   char  *file_key;		/* The complete key as stored in the file. */
   int    elem_loc;		/* The location in the bucket. */
   int    home_loc;		/* The home location in the bucket. */
   int    key_size;		/* Size of the key on the file.  */
 
   /* Compute hash value and load proper bucket.  */
-  *new_hash_val = _gdbm_hash (key);
-  _gdbm_get_bucket (dbf, *new_hash_val>> (31-dbf->header->dir_bits));
+  new_hash_val = _gdbm_hash (key);
+  if (ret_hash_val)
+    *ret_hash_val = new_hash_val;
+  _gdbm_get_bucket (dbf, new_hash_val>> (31-dbf->header->dir_bits));
 
   /* Is the element the last one found for this bucket? */
   if (dbf->cache_entry->ca_data.elem_loc != -1 
-      && *new_hash_val == dbf->cache_entry->ca_data.hash_val
+      && new_hash_val == dbf->cache_entry->ca_data.hash_val
       && dbf->cache_entry->ca_data.key_size == key.dsize
       && dbf->cache_entry->ca_data.dptr != NULL
       && memcmp (dbf->cache_entry->ca_data.dptr, key.dptr, key.dsize) == 0)
     {
       /* This is it. Return the cache pointer. */
-      *dptr = dbf->cache_entry->ca_data.dptr+key.dsize;
+      if (ret_dptr)
+	*ret_dptr = dbf->cache_entry->ca_data.dptr+key.dsize;
       return dbf->cache_entry->ca_data.elem_loc;
     }
       
   /* It is not the cached value, search for element in the bucket. */
-  elem_loc = *new_hash_val % dbf->header->bucket_elems;
+  elem_loc = new_hash_val % dbf->header->bucket_elems;
   home_loc = elem_loc;
   bucket_hash_val = dbf->bucket->h_table[elem_loc].hash_value;
   while (bucket_hash_val != -1)
     {
       key_size = dbf->bucket->h_table[elem_loc].key_size;
-      if (bucket_hash_val != *new_hash_val
+      if (bucket_hash_val != new_hash_val
 	 || key_size != key.dsize
 	 || memcmp (dbf->bucket->h_table[elem_loc].key_start, key.dptr,
 			(SMALL < key_size ? SMALL : key_size)) != 0) 
@@ -128,7 +133,8 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **dptr, int *new_hash_val)
 	  if (memcmp (file_key, key.dptr, key_size) == 0)
 	    {
 	      /* This is the item. */
-	      *dptr = file_key+key.dsize;
+	      if (ret_dptr)
+		*ret_dptr = file_key + key.dsize;
 	      return elem_loc;
 	    }
 	  else

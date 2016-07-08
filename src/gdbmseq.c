@@ -120,8 +120,6 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
 {
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */
-  char  *find_data;		/* Data pointer returned by _gdbm_findkey. */
-  int    hash_val;		/* Returned by _gdbm_findkey. */
 
   /* Initialize the gdbm_errno variable. */
   gdbm_errno = GDBM_NO_ERROR;
@@ -137,7 +135,7 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
     }
   
   /* Find the key.  */
-  elem_loc = _gdbm_findkey (dbf, key, &find_data, &hash_val);
+  elem_loc = _gdbm_findkey (dbf, key, NULL, NULL);
   if (elem_loc == -1) return return_val;
   
   /* Find the next key. */  

@@ -464,8 +464,14 @@ else
 You may also search for a particular key without retrieving it:
 
 @deftypefn {gdbm interface} int gdbm_exists (GDBM_FILE @var{dbf}, datum @var{key})
-Returns @samp{true} (@samp{1}) if the @var{key} exists in @var{dbf}
-and @samp{false} (@samp{0}) otherwise.
+Checks whether the @var{key} exists in the database @var{dbf}.
+
+If @var{key} is found, returns @samp{true} (@samp{1}).  If it is not
+found, returns @samp{false} (@samp{0}) and sets @code{gdbm_errno} to
+@samp{GDBM_NO_ERROR} (@samp{0}).
+
+On error, returns @samp{0} and sets @code{gdbm_errno} to a
+non-@samp{0} error code.
 
 The parameters are:
 

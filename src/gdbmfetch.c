@@ -32,7 +32,6 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */
   char  *find_data;		/* Returned from find_key. */
-  int    hash_val;		/* Returned from find_key. */
 
   /* Set the default return value. */
   return_val.dptr  = NULL;
@@ -42,7 +41,7 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
   gdbm_errno = GDBM_NO_ERROR;
 
   /* Find the key and return a pointer to the data. */
-  elem_loc = _gdbm_findkey (dbf, key, &find_data, &hash_val);
+  elem_loc = _gdbm_findkey (dbf, key, &find_data, NULL);
 
   /* Copy the data if the key was found.  */
   if (elem_loc >= 0)

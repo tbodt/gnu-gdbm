@@ -45,7 +45,6 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   off_t free_adr;		/* For keeping track of a freed section. */
   int  free_size;
   int   new_size;		/* Used in allocating space. */
-  char *temp;			/* Used in _gdbm_findkey call. */
   int rc;
 
   /* First check to make sure this guy is a writer. */
@@ -68,7 +67,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 
   /* Look for the key in the file.
      A side effect loads the correct bucket and calculates the hash value. */
-  elem_loc = _gdbm_findkey (dbf, key, &temp, &new_hash_val);
+  elem_loc = _gdbm_findkey (dbf, key, NULL, &new_hash_val);
 
   /* Initialize these. */
   file_adr = 0;
