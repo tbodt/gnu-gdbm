@@ -159,6 +159,12 @@ struct gdbm_file_info {
 
         /* Whether the database was open with GDBM_CLOEXEC flag */
         unsigned cloexec :1;
+
+        /* Last error was fatal */
+        unsigned fatal :1;
+  
+        /* Last error number */
+        int last_error;
   
 	/* Type of file locking in use. */
 	enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,

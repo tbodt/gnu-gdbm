@@ -50,7 +50,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_errno = GDBM_READER_CANT_STORE;
+      gdbm_set_errno (dbf, GDBM_READER_CANT_STORE, 0);
       return -1;
     }
 
@@ -58,12 +58,12 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
      NULL dptr returned by a lookup procedure indicates an error. */
   if ((key.dptr == NULL) || (content.dptr == NULL))
     {
-      gdbm_errno = GDBM_ILLEGAL_DATA;
+      gdbm_set_errno (dbf, GDBM_ILLEGAL_DATA, 0);
       return -1;
     }
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_errno = GDBM_NO_ERROR;
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Look for the key in the file.
      A side effect loads the correct bucket and calculates the hash value. */
@@ -94,11 +94,13 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	}
       else
 	{
-	  gdbm_errno = GDBM_CANNOT_REPLACE;
+	  gdbm_set_errno (dbf, GDBM_CANNOT_REPLACE, 0);
 	  return 1;
 	}
     }
-  else if (gdbm_errno != GDBM_ITEM_NOT_FOUND)
+  else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
+    gdbm_set_errno (dbf, GDBM_NO_ERROR, 0); //clear error state
+  else
     return -1;
 
   /* Get the file address for the new space.

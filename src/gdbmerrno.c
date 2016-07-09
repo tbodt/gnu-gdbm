@@ -1,7 +1,7 @@
 /* gdbmerrno.c - convert gdbm errors into english. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1993, 2007, 2011, 2013  Free Software Foundation, Inc.
+   Copyright (C) 1993, 2007, 2011, 2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,40 @@
 
 /* The dbm error number is placed in the variable GDBM_ERRNO. */
 gdbm_error gdbm_errno = GDBM_NO_ERROR;
+
+/* Store error code EC in the database structure DBF and in the
+   global variable gdbm_error. 
+*/
+void
+gdbm_set_errno (GDBM_FILE dbf, gdbm_error ec, int fatal)
+{
+  if (dbf)
+    {
+      dbf->last_error = ec;
+      dbf->fatal = fatal;
+    }
+  gdbm_errno = ec;
+}
+
+/* Retrieve last error code for the database DBF. */
+int
+gdbm_last_errno (GDBM_FILE dbf)
+{
+  if (!dbf)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  return dbf->last_error;
+}
+
+/* Clear error state for the database DBF. */
+void
+gdbm_clear_error (GDBM_FILE dbf)
+{
+  if (dbf) 
+    dbf->last_error = GDBM_NO_ERROR;
+}
 
 /* this is not static so that applications may access the array if they
    like. */

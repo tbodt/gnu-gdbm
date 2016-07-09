@@ -39,12 +39,12 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_errno = GDBM_READER_CANT_DELETE;
+      gdbm_set_errno (dbf, GDBM_READER_CANT_DELETE, 0);
       return -1;
     }
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_errno = GDBM_NO_ERROR;
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Find the item. */
   elem_loc = _gdbm_findkey (dbf, key, NULL, NULL);

@@ -1,5 +1,5 @@
 /* This file is part of GDBM.
-   Copyright (C) 2007, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2011, 2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ _gdbm_internal_remap (GDBM_FILE dbf, size_t size)
   if (p == MAP_FAILED)
     {
       dbf->mapped_region = NULL;
-      gdbm_errno = GDBM_MALLOC_ERROR;
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
       return -1;
     }
   
@@ -135,7 +135,7 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
   if (_gdbm_file_size (dbf, &file_size))
     {
       SAVE_ERRNO (_gdbm_mapped_unmap (dbf));
-      gdbm_errno = GDBM_FILE_STAT_ERROR;
+      gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, 0);
       return -1; 
     }
 
@@ -330,7 +330,7 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
  	    off_t file_size;
 	    if (_gdbm_file_size (dbf, &file_size))
 	      {
-		gdbm_errno = GDBM_FILE_STAT_ERROR;
+		gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, 0);
 		return -1;
 	      }
 	    needle = file_size - offset; 

@@ -65,7 +65,7 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
 	  else
 	    {
 	      /* No next key, just return. */
-	      gdbm_errno = GDBM_ITEM_NOT_FOUND;
+	      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, 0);
 	      return;
 	    }
 	}
@@ -82,7 +82,7 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
   if (return_val->dptr == NULL)
     {
       return_val->dsize = 0;
-      gdbm_errno = GDBM_MALLOC_ERROR;
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
     }
   else
     memcpy (return_val->dptr, find_data, return_val->dsize);
@@ -101,7 +101,7 @@ gdbm_firstkey (GDBM_FILE dbf)
   return_val.dptr = NULL;
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_errno = GDBM_NO_ERROR;
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Get the first bucket.  */
   _gdbm_get_bucket (dbf, 0);
@@ -122,7 +122,7 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   int    elem_loc;		/* The location in the bucket. */
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_errno = GDBM_NO_ERROR;
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Set the default return value for no next entry. */
   return_val.dptr = NULL;
@@ -130,7 +130,7 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   /* Do we have a valid key? */
   if (key.dptr == NULL)
     {
-      gdbm_errno = GDBM_ITEM_NOT_FOUND; /* FIXME: special error code perhaps */
+      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, 0); /* FIXME: special error code perhaps */
       return return_val;
     }
   

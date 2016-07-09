@@ -1,8 +1,8 @@
 /* bucket.c - The routines for playing with hash buckets. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -131,13 +131,13 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
   file_pos = __lseek (dbf, off, SEEK_SET);
   if (file_pos != off)
     {
-      gdbm_errno = GDBM_FILE_SEEK_ERROR;
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, 1);
       return -1;
     }
   rc = _gdbm_full_read (dbf, bucket, size);
   if (rc)
     {
-      gdbm_errno = rc;
+      gdbm_set_errno (dbf, rc, 1);
       return -1;
     }
   return 0;

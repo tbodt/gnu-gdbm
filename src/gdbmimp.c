@@ -1,7 +1,7 @@
 /* gdbmimp.c - Import a GDBM database. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 2007, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2011, 2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
     {
       if ((rret = fgetc (fp)) == -1)
 	{
-	  gdbm_errno = GDBM_FILE_READ_ERROR;
+	  gdbm_set_errno (NULL, GDBM_FILE_READ_ERROR, 0);
 	  return -1;
 	}
       
@@ -66,7 +66,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   kbuffer = malloc (kbufsize);
   if (kbuffer == NULL)
     {
-      gdbm_errno = GDBM_MALLOC_ERROR;
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
       return -1;
     }
   dbufsize = 512;
@@ -74,7 +74,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   if (dbuffer == NULL)
     {
       free (kbuffer);
-      gdbm_errno = GDBM_MALLOC_ERROR;
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
       return -1;
     }
 
@@ -160,7 +160,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   if (ec == GDBM_NO_ERROR)
     return count;
 
-  gdbm_errno = ec;
+  gdbm_set_errno (NULL, ec, 0);
   return -1;
 }
 
@@ -173,7 +173,7 @@ gdbm_import (GDBM_FILE dbf, const char *importfile, int flag)
   fp = fopen (importfile, "r");
   if (!fp)
     {
-      gdbm_errno = GDBM_FILE_OPEN_ERROR;
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 0);
       return -1;
     }
   rc = gdbm_import_from_file (dbf, fp, flag);

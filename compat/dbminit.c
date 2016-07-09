@@ -48,7 +48,7 @@ dbminit (char *file)
       /* Did we successfully open the file? */
       if (_gdbm_file == NULL)
 	{
-	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
+          gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1);
 	  return -1;
 	}
     }

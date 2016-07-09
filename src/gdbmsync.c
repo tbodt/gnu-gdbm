@@ -1,8 +1,8 @@
 /* gdbmsync.c - Sync the disk with the in memory state. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ gdbm_sync (GDBM_FILE dbf)
 {
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_errno = GDBM_NO_ERROR;
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Do the sync on the file. */
   __fsync (dbf);

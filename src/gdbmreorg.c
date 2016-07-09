@@ -1,8 +1,8 @@
 /* gdbmreorg.c - Reorganize the database file. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -69,26 +69,26 @@ gdbm_reorganize (GDBM_FILE dbf)
   /* Readers can not reorganize! */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_errno = GDBM_READER_CANT_REORGANIZE;
+      gdbm_set_errno (dbf, GDBM_READER_CANT_REORGANIZE, 0);
       return -1;
     }
   
   /* Get the mode for the old file */
   if (fstat (dbf->desc, &fileinfo))
     {
-      gdbm_errno = GDBM_FILE_STAT_ERROR;
+      gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, 0);
       return -1;
     }
   
   /* Initialize the gdbm_errno variable. */
-  gdbm_errno = GDBM_NO_ERROR;
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Construct new name for temporary file. */
   len = strlen (dbf->name);
   new_name = (char *) malloc (len + 3);
   if (new_name == NULL)
     {
-      gdbm_errno = GDBM_MALLOC_ERROR;
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
       return -1;
     }
   strcpy (&new_name[0], dbf->name);
@@ -109,7 +109,7 @@ gdbm_reorganize (GDBM_FILE dbf)
   if (new_dbf == NULL)
     {
       free (new_name);
-      gdbm_errno = GDBM_REORGANIZE_FAILED;
+      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
       return -1;
     }
 
@@ -126,7 +126,7 @@ gdbm_reorganize (GDBM_FILE dbf)
 	  if (gdbm_store (new_dbf, key, data, GDBM_INSERT) != 0)
 	    {
 	      gdbm_close (new_dbf);
-	      gdbm_errno = GDBM_REORGANIZE_FAILED;
+	      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
 	      unlink (new_name);
 	      free (new_name);
 	      return -1;
@@ -136,7 +136,7 @@ gdbm_reorganize (GDBM_FILE dbf)
  	{
 	  /* ERROR! Abort and don't finish reorganize. */
 	  gdbm_close (new_dbf);
-	  gdbm_errno = GDBM_REORGANIZE_FAILED;
+	  gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
 	  unlink (new_name);
 	  free (new_name);
 	  return -1;
@@ -159,7 +159,7 @@ gdbm_reorganize (GDBM_FILE dbf)
 
   if (rename (new_name, dbf->name) != 0)
     {
-      gdbm_errno = GDBM_REORGANIZE_FAILED;
+      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
       gdbm_close (new_dbf);
       free (new_name);
       return -1;

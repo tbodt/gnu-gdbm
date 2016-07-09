@@ -1,7 +1,7 @@
 /* gdbmexists.c - Check to see if a key exists */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1993, 2007, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2007, 2011, 2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ gdbm_exists (GDBM_FILE dbf, datum key)
   if (_gdbm_findkey (dbf, key, NULL, NULL) < 0)
     {
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-	gdbm_errno = GDBM_NO_ERROR;
+	gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
       return 0;
     }
   return 1;

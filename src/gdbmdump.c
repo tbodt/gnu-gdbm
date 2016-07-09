@@ -1,5 +1,5 @@
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2013, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ _gdbm_dump_ascii (GDBM_FILE dbf, FILE *fp)
 	    {
 	      free (key.dptr);
 	      free (data.dptr);
-	      gdbm_errno = rc;
+	      gdbm_set_errno (dbf, rc, 0);
 	      break;
 	    }
  	}
@@ -139,11 +139,15 @@ gdbm_dump_to_file (GDBM_FILE dbf, FILE *fp, int format)
       break;
 
     default:
+      gdbm_set_errno (NULL, GDBM_BAD_OPEN_FLAGS, 0);
       return EINVAL;
     }
   
   if (rc == 0 && ferror (fp))
-    rc = gdbm_errno = GDBM_FILE_WRITE_ERROR;
+    {
+      gdbm_set_errno (NULL, GDBM_FILE_WRITE_ERROR, 0);
+      rc = -1;
+    }
 
   return rc;
 }
@@ -162,7 +166,7 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
       nfd = open (filename, O_WRONLY | O_CREAT | O_EXCL, mode);
       if (nfd == -1)
 	{
-	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
+	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 0);
 	  return -1;
 	}
       break;
@@ -170,12 +174,12 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
       nfd = open (filename, O_WRONLY | O_CREAT | O_TRUNC, mode);
       if (nfd == -1)
 	{
-	  gdbm_errno = GDBM_FILE_OPEN_ERROR;
+	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 0);
 	  return -1;
 	}
       break;
     default:
-      gdbm_errno = GDBM_BAD_OPEN_FLAGS;
+      gdbm_set_errno (NULL, GDBM_BAD_OPEN_FLAGS, 0);
       return -1;
   }
 
@@ -183,7 +187,7 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
   if (!fp)
     {
       close (nfd);
-      gdbm_errno = GDBM_FILE_OPEN_ERROR;
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 0);
       return -1;
     }
   rc = gdbm_dump_to_file (dbf, fp, fmt);

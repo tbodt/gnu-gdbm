@@ -149,7 +149,7 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
     }
 
   /* If we get here, we never found the key. */
-  gdbm_errno = GDBM_ITEM_NOT_FOUND;
+  gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, 0);
   return -1;
 
 }

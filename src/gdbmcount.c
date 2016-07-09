@@ -1,7 +1,8 @@
 /* gdbmcount.c - get number of items in a gdbm file. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1993, 1994, 2007, 2011, 2013 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,7 +43,7 @@ gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount)
   sdir = malloc (dbf->header->dir_size);
   if (!sdir)
     {
-      gdbm_errno = GDBM_MALLOC_ERROR;
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
       return -1;
     }
   
