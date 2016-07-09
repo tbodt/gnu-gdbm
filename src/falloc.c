@@ -28,8 +28,8 @@
 
 static avail_elem get_elem (int, avail_elem [], int *);
 static avail_elem get_block (int, GDBM_FILE);
-static void push_avail_block (GDBM_FILE);
-static void pop_avail_block (GDBM_FILE);
+static int push_avail_block (GDBM_FILE);
+static int pop_avail_block (GDBM_FILE);
 static void adjust_bucket_avail (GDBM_FILE);
 
 /* Allocate space in the file DBF for a block NUM_BYTES in length.  Return
@@ -65,7 +65,8 @@ _gdbm_alloc (GDBM_FILE dbf, int num_bytes)
 	 something on the stack. */
       if ((dbf->header->avail.count <= (dbf->header->avail.size >> 1))
           && (dbf->header->avail.next_block != 0))
-        pop_avail_block (dbf);
+        if (pop_avail_block (dbf))
+	  return 0;
 
       /* check the header avail table next */
       av_el = get_elem (num_bytes, dbf->header->avail.av_table,
@@ -114,7 +115,7 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
     {
       if (dbf->header->avail.count == dbf->header->avail.size)
 	{
-	  push_avail_block (dbf);
+	  push_avail_block (dbf);//FIXME: return
 	}
       _gdbm_put_av_elem (temp, dbf->header->avail.av_table,
 			 &dbf->header->avail.count, dbf->coalesce_blocks);
@@ -130,7 +131,7 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 	{
 	  if (dbf->header->avail.count == dbf->header->avail.size)
 	    {
-	      push_avail_block (dbf);
+	      push_avail_block (dbf); //FIXME: return
 	    }
 	  _gdbm_put_av_elem (temp, dbf->header->avail.av_table,
 			     &dbf->header->avail.count, dbf->coalesce_blocks);
@@ -155,7 +156,7 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
    now called even when the avail block is not empty, so we must be
    smart about things. */
 
-static void
+static int
 pop_avail_block (GDBM_FILE dbf)
 {
   int rc;
@@ -168,7 +169,8 @@ pop_avail_block (GDBM_FILE dbf)
     {
       /* We're kind of stuck here, so we re-split the header in order to
          avoid crashing.  Sigh. */
-      push_avail_block(dbf);
+      if (push_avail_block (dbf))
+	return -1;
     }
 
   /* Set up variables. */
@@ -178,14 +180,29 @@ pop_avail_block (GDBM_FILE dbf)
 
   /* Allocate space for the block. */
   new_blk = (avail_block *) malloc (new_el.av_size);
-  if (new_blk == NULL) _gdbm_fatal(dbf, _("malloc failed"));
+  if (new_blk == NULL)
+    {
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+      _gdbm_fatal(dbf, _("malloc failed"));
+      return -1;
+    }
 
   /* Read the block. */
   file_pos = __lseek (dbf, new_el.av_adr, SEEK_SET);
-  if (file_pos != new_el.av_adr)  _gdbm_fatal (dbf, _("lseek error"));
+  if (file_pos != new_el.av_adr)
+    {
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      _gdbm_fatal (dbf, _("lseek error"));
+      return -1;
+    }
+
   rc = _gdbm_full_read (dbf, new_blk, new_el.av_size);
   if (rc)
-    _gdbm_fatal (dbf, gdbm_strerror (rc));
+    {
+      gdbm_set_errno (dbf, rc, TRUE);
+      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      return -1;
+    }
 
   /* Add the elements from the new block to the header. */
   index = 0;
@@ -195,16 +212,17 @@ pop_avail_block (GDBM_FILE dbf)
             && dbf->header->avail.count < dbf->header->avail.size)
 	{
 	   /* With luck, this will merge a lot of blocks! */
-	   _gdbm_put_av_elem(new_blk->av_table[index],
-			     dbf->header->avail.av_table,
-			     &dbf->header->avail.count, TRUE);
+	   _gdbm_put_av_elem (new_blk->av_table[index],
+			      dbf->header->avail.av_table,
+			      &dbf->header->avail.count, TRUE);
 	   index++;
 	}
       if (dbf->header->avail.count == dbf->header->avail.size)
         {
           /* We're kind of stuck here, so we re-split the header in order to
              avoid crashing.  Sigh. */
-          push_avail_block(dbf);
+          if (push_avail_block (dbf))
+	    return -1;
 	}
     }
 
@@ -220,18 +238,21 @@ pop_avail_block (GDBM_FILE dbf)
     {
       /* We're kind of stuck here, so we re-split the header in order to
          avoid crashing.  Sigh. */
-      push_avail_block(dbf);
+      if (push_avail_block (dbf))
+	return -1;
     }
 
   _gdbm_put_av_elem (new_el, dbf->header->avail.av_table,
 		     &dbf->header->avail.count, TRUE);
   free (new_blk);
+
+  return 0;
 }
 
 
 /* Splits the header avail block and pushes half onto the avail stack. */
 
-static void
+static int
 push_avail_block (GDBM_FILE dbf)
 {
   int  av_size;
@@ -253,10 +274,15 @@ push_avail_block (GDBM_FILE dbf)
     new_loc = get_block (av_size, dbf);
   av_adr = new_loc.av_adr;
 
-
   /* Split the header block. */
   temp = (avail_block *) malloc (av_size);
-  if (temp == NULL) _gdbm_fatal (dbf, _("malloc error"));
+  if (temp == NULL)
+    {
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+      _gdbm_fatal (dbf, _("malloc error"));
+      return -1;
+    }
+
   /* Set the size to be correct AFTER the pop_avail_block. */
   temp->size = dbf->header->avail.size;
   temp->count = 0;
@@ -279,14 +305,25 @@ push_avail_block (GDBM_FILE dbf)
 
   /* Update the disk. */
   file_pos = __lseek (dbf, av_adr, SEEK_SET);
-  if (file_pos != av_adr) _gdbm_fatal (dbf, _("lseek error"));
+  if (file_pos != av_adr)
+    {
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      _gdbm_fatal (dbf, _("lseek error"));
+      return -1;
+    }
+      
   rc = _gdbm_full_write (dbf, temp, av_size);
   if (rc)
-    _gdbm_fatal (dbf, gdbm_strerror (rc));
+    {
+      gdbm_set_errno (dbf, rc, TRUE);
+      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      return -1;
+    }
+
   free (temp);
+
+  return 0;
 }
-
-
 
 /* Get_elem returns an element in the AV_TABLE block which is
    larger than SIZE.  AV_COUNT is the number of elements in the

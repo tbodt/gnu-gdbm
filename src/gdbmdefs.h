@@ -241,7 +241,7 @@ struct gdbm_file_info
     {								\
       if (dbf->need_recovery)					\
 	{							\
-          gdbm_set_errno (dbf, GDBM_NEED_RECOVERY, 1);		\
+          gdbm_set_errno (dbf, GDBM_NEED_RECOVERY, TRUE);	\
 	  return onerr;						\
 	}							\
     }								\

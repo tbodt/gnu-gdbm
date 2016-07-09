@@ -46,7 +46,7 @@ gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount)
   sdir = malloc (dbf->header->dir_size);
   if (!sdir)
     {
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
   

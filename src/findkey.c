@@ -54,17 +54,30 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
     data_ca->dptr = (char *) malloc (1);
   else
     data_ca->dptr = (char *) malloc (key_size+data_size);
-  if (data_ca->dptr == NULL) _gdbm_fatal (dbf, _("malloc error"));
-
+  if (data_ca->dptr == NULL)
+    {
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
+      _gdbm_fatal (dbf, _("malloc error"));
+      return NULL;
+    }
 
   /* Read into the cache. */
   file_pos = __lseek (dbf, dbf->bucket->h_table[elem_loc].data_pointer, 
                       SEEK_SET);
   if (file_pos != dbf->bucket->h_table[elem_loc].data_pointer)
-    _gdbm_fatal (dbf, _("lseek error"));
+    {
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      _gdbm_fatal (dbf, _("lseek error"));
+      return NULL;
+    }
+  
   rc = _gdbm_full_read (dbf, data_ca->dptr, key_size+data_size);
   if (rc)
-    _gdbm_fatal (dbf, gdbm_strerror (rc));
+    {
+      gdbm_set_errno (dbf, rc, TRUE);
+      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      return NULL;
+    }
   
   return data_ca->dptr;
 }
@@ -92,8 +105,9 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
   new_hash_val = _gdbm_hash (key);
   if (ret_hash_val)
     *ret_hash_val = new_hash_val;
-  _gdbm_get_bucket (dbf, new_hash_val>> (31-dbf->header->dir_bits));
-
+  if (_gdbm_get_bucket (dbf, new_hash_val >> (31 - dbf->header->dir_bits)))
+    return -1;
+  
   /* Is the element the last one found for this bucket? */
   if (dbf->cache_entry->ca_data.elem_loc != -1 
       && new_hash_val == dbf->cache_entry->ca_data.hash_val
@@ -130,6 +144,8 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
 	  /* This may be the one we want.
 	     The only way to tell is to read it. */
 	  file_key = _gdbm_read_entry (dbf, elem_loc);
+	  if (!file_key)
+	    return -1;
 	  if (memcmp (file_key, key.dptr, key_size) == 0)
 	    {
 	      /* This is the item. */
@@ -149,7 +165,7 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
     }
 
   /* If we get here, we never found the key. */
-  gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, 0);
+  gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE);
   return -1;
 
 }

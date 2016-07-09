@@ -20,12 +20,12 @@
 
 /* From bucket.c */
 void _gdbm_new_bucket	(GDBM_FILE, hash_bucket *, int);
-void _gdbm_get_bucket	(GDBM_FILE, int);
+int _gdbm_get_bucket	(GDBM_FILE, int);
 int _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
 			  size_t size);
 
-void _gdbm_split_bucket (GDBM_FILE, int);
-void _gdbm_write_bucket (GDBM_FILE, cache_elem *);
+int _gdbm_split_bucket (GDBM_FILE, int);
+int _gdbm_write_bucket (GDBM_FILE, cache_elem *);
 
 /* From falloc.c */
 off_t _gdbm_alloc       (GDBM_FILE, int);
@@ -40,7 +40,7 @@ int _gdbm_findkey       (GDBM_FILE, datum, char **, int *);
 int _gdbm_hash (datum);
 
 /* From update.c */
-void _gdbm_end_update   (GDBM_FILE);
+int _gdbm_end_update   (GDBM_FILE);
 void _gdbm_fatal	(GDBM_FILE, const char *);
 
 /* From gdbmopen.c */

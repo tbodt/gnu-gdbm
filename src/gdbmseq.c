@@ -22,10 +22,6 @@
 
 #include "gdbmdefs.h"
 
-/* Special extern for this file. */
-extern char *_gdbm_read_entry (GDBM_FILE , int);
-
-
 /* Find and read the next entry in the hash structure for DBF starting
    at ELEM_LOC of the current bucket and using RETURN_VAL as the place to
    put the data that is found.
@@ -61,11 +57,14 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
 
 	  /* Check to see if there was a next bucket. */
 	  if (dbf->bucket_dir < GDBM_DIR_COUNT (dbf))
-	    _gdbm_get_bucket (dbf, dbf->bucket_dir);	      
+	    {
+	      if (_gdbm_get_bucket (dbf, dbf->bucket_dir))
+		return;
+	    }
 	  else
 	    {
 	      /* No next key, just return. */
-	      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, 0);
+	      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE);
 	      return;
 	    }
 	}
@@ -74,6 +73,8 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
   
   /* Found the next key, read it into return_val. */
   find_data = _gdbm_read_entry (dbf, elem_loc);
+  if (!find_data)
+    return;
   return_val->dsize = dbf->bucket->h_table[elem_loc].key_size;
   if (return_val->dsize == 0)
     return_val->dptr = (char *) malloc (1);
@@ -82,7 +83,7 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
   if (return_val->dptr == NULL)
     {
       return_val->dsize = 0;
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
     }
   else
     memcpy (return_val->dptr, find_data, return_val->dsize);
@@ -104,7 +105,7 @@ gdbm_firstkey (GDBM_FILE dbf)
   GDBM_ASSERT_CONSISTENCY (dbf, return_val);
   
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Get the first bucket.  */
   _gdbm_get_bucket (dbf, 0);
@@ -131,12 +132,12 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   GDBM_ASSERT_CONSISTENCY (dbf, return_val);
   
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Do we have a valid key? */
   if (key.dptr == NULL)
     {
-      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, 0); /* FIXME: special error code perhaps */
+      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE); /* FIXME: special error code perhaps */
       return return_val;
     }
   

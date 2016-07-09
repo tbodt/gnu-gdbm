@@ -71,7 +71,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
       
   if (fstat (pagfd, &pagst))
     {
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1); /* FIXME: special code? */
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, TRUE); /* FIXME: special code? */
       return -1;
     } 
       
@@ -89,14 +89,14 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 		    return pagfd;
 		  else
 		    {
-		      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1); 
+		      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, TRUE); 
 		      return -1;
 		    } 
 		}
 	    }
 	  else
 	    {
-	      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1);
+	      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	      return -1;
 	    }
 	}
@@ -104,7 +104,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 	/* ok */;
       else if (st.st_size != DEF_DIR_SIZE)
 	{
-	  gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, 1);
+	  gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, FALSE);
 	  return -1;
 	}
       else
@@ -112,13 +112,13 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 	  fd = open (file_name, flags);
 	  if (fd == -1)
 	    {
-	      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1);
+	      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	      return fd;
 	    }
 	  
 	  if (read (fd, dirbuf, sizeof (dirbuf)) != sizeof (dirbuf))
 	    {
-	      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1);
+	      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	      close (fd);
 	      return -1;
 	    } 
@@ -135,7 +135,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 		return fd;
 	    }
 	  close (fd);
-	  gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, 1);
+	  gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, FALSE);
 	  return -1;
 	}
     }
@@ -151,7 +151,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 
       if (write (fd, dirbuf, sizeof (dirbuf)) != sizeof (dirbuf))
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_WRITE_ERROR, 1);
+	  gdbm_set_errno (NULL, GDBM_FILE_WRITE_ERROR, FALSE);
 	  close (fd);
 	  fd = -1;
 	} 
@@ -168,7 +168,7 @@ ndbm_open_dir_file (const char *base, int pagfd, int mode)
   
   if (!file_name)
     {
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 1);
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
   fd = ndbm_open_dir_file0 (strcat (strcpy (file_name, base), DIRSUF),
@@ -212,7 +212,7 @@ dbm_open (char *file, int flags, int mode)
   pag_file = (char *) malloc (strlen (file) + 5);
   if (!pag_file)
     {
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 1); /* For the hell of it. */
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE); /* For the hell of it. */
       return NULL;
     }
 
@@ -250,7 +250,7 @@ dbm_open (char *file, int flags, int mode)
   if (!dbm)
     {
       free (pag_file);
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 1); /* For the hell of it. */
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE); /* For the hell of it. */
       return NULL;
     }
       
@@ -259,7 +259,7 @@ dbm_open (char *file, int flags, int mode)
   /* Did we successfully open the file? */
   if (dbm->file == NULL)
     {
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1);
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
       free (dbm);
       dbm = NULL;
     }

@@ -29,6 +29,8 @@ Instead it sets gdbm_errno to GDBM_MALLOC_ERROR and returns NULL datum.
 
 ** gdbm_clear_error
 
+** gdbm_needs_recovery
+
 
 Version 1.12, 2016-05-16
 

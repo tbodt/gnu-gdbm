@@ -49,7 +49,7 @@ _gdbm_new_bucket (GDBM_FILE dbf, hash_bucket *bucket, int bits)
    bucket.  In any case, the requested bucket becomes the "current" bucket
    and dbf->bucket points to the correct bucket. */
 
-void
+int
 _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 {
   int rc;
@@ -63,8 +63,11 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
   
   if (dbf->bucket_cache == NULL)
     {
-      if(_gdbm_init_cache(dbf, DEFAULT_CACHESIZE) == -1)
-        _gdbm_fatal(dbf, _("couldn't init cache"));
+      if (_gdbm_init_cache (dbf, DEFAULT_CACHESIZE) == -1)
+	{
+	  _gdbm_fatal (dbf, _("couldn't init cache"));
+	  return -1;
+	}
     }
 
   /* Is that one is not already current, we must find it. */
@@ -77,14 +80,17 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	    {
 	      dbf->bucket = dbf->bucket_cache[index].ca_bucket;
 	      dbf->cache_entry = &dbf->bucket_cache[index];
-	      return;
+	      return 0;
 	    }
         }
 
       /* It is not in the cache, read it from the disk. */
       dbf->last_read = (dbf->last_read + 1) % dbf->cache_size;
       if (dbf->bucket_cache[dbf->last_read].ca_changed)
-	_gdbm_write_bucket (dbf, &dbf->bucket_cache[dbf->last_read]);
+	{
+	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[dbf->last_read]))
+	    return -1;
+	}
       dbf->bucket_cache[dbf->last_read].ca_adr = bucket_adr;
       dbf->bucket = dbf->bucket_cache[dbf->last_read].ca_bucket;
       dbf->cache_entry = &dbf->bucket_cache[dbf->last_read];
@@ -94,14 +100,22 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       /* Read the bucket. */
       file_pos = __lseek (dbf, bucket_adr, SEEK_SET);
       if (file_pos != bucket_adr)
-	_gdbm_fatal (dbf, _("lseek error"));
+	{
+	  _gdbm_fatal (dbf, _("lseek error"));
+	  gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+	  return -1;
+	}
       
       rc = _gdbm_full_read (dbf, dbf->bucket, dbf->header->bucket_size);
       if (rc)
-	_gdbm_fatal (dbf, gdbm_strerror (rc));
+	{
+	  _gdbm_fatal (dbf, gdbm_strerror (rc));
+	  gdbm_set_errno (dbf, rc, TRUE);
+	  return -1;
+	}
     }
 
-  return;
+  return 0;
 }
 
 int
@@ -131,13 +145,13 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
   file_pos = __lseek (dbf, off, SEEK_SET);
   if (file_pos != off)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, 1);
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       return -1;
     }
   rc = _gdbm_full_read (dbf, bucket, size);
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, 1);
+      gdbm_set_errno (dbf, rc, TRUE);
       return -1;
     }
   return 0;
@@ -147,7 +161,7 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
    a new bucket.  This doesn't require any disk reads because all hash values
    are stored in the buckets.  Splitting the current bucket may require
    doubling the size of the hash directory.  */
-void
+int
 _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 {
   hash_bucket *bucket[2]; 	/* Pointers to the new buckets. */
@@ -176,14 +190,16 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
   bucket_element *old_el;	/* Pointer into the old bucket. */
   int	       select;		/* Used to index bucket during movement. */
 
-
   /* No directories are yet old. */
   old_count = 0;
 
   if (dbf->bucket_cache == NULL)
     {
-      if(_gdbm_init_cache(dbf, DEFAULT_CACHESIZE) == -1)
-        _gdbm_fatal(dbf, _("couldn't init cache"));
+      if (_gdbm_init_cache(dbf, DEFAULT_CACHESIZE) == -1)
+	{
+	  _gdbm_fatal (dbf, _("couldn't init cache"));
+	  return -1;
+	}
     }
 
   while (dbf->bucket->count == dbf->header->bucket_elems)
@@ -197,7 +213,10 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       while (dbf->bucket_cache[cache_0].ca_bucket == dbf->bucket);
       bucket[0] = dbf->bucket_cache[cache_0].ca_bucket;
       if (dbf->bucket_cache[cache_0].ca_changed)
-	_gdbm_write_bucket (dbf, &dbf->bucket_cache[cache_0]);
+	{
+	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[cache_0]))
+	    return -1;
+	}
       do
 	{
 	  dbf->last_read = (dbf->last_read + 1) % dbf->cache_size;
@@ -206,13 +225,20 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       while (dbf->bucket_cache[cache_1].ca_bucket == dbf->bucket);
       bucket[1] = dbf->bucket_cache[cache_1].ca_bucket;
       if (dbf->bucket_cache[cache_1].ca_changed)
-	_gdbm_write_bucket (dbf, &dbf->bucket_cache[cache_1]);
+	{
+	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[cache_1]))
+	    return -1;
+	}
       new_bits = dbf->bucket->bucket_bits+1;
       _gdbm_new_bucket (dbf, bucket[0], new_bits);
       _gdbm_new_bucket (dbf, bucket[1], new_bits);
-      adr_0 = _gdbm_alloc (dbf, dbf->header->bucket_size); 
+      adr_0 = _gdbm_alloc (dbf, dbf->header->bucket_size);
+      if (adr_0 == 0)
+	return -1;
       dbf->bucket_cache[cache_0].ca_adr = adr_0;
       adr_1 = _gdbm_alloc (dbf, dbf->header->bucket_size);
+      if (adr_1 == 0)
+	return -1;
       dbf->bucket_cache[cache_1].ca_adr = adr_1;
 
       /* Double the directory size if necessary. */
@@ -220,8 +246,16 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	{
 	  dir_size = dbf->header->dir_size * 2;
 	  dir_adr  = _gdbm_alloc (dbf, dir_size);
+	  if (dir_adr == 0)
+	    return -1;
 	  new_dir  = (off_t *) malloc (dir_size);
-	  if (new_dir == NULL) _gdbm_fatal (dbf, _("malloc error"));
+	  if (new_dir == NULL)
+	    {
+	      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+	      _gdbm_fatal (dbf, _("malloc error"));
+	      return -1;
+	    }
+
 	  for (index = 0; index < GDBM_DIR_COUNT (dbf); index++)
 	    {
 	      new_dir[2*index]   = dbf->dir[index];
@@ -258,6 +292,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       /* Allocate avail space for the bucket[1]. */
       bucket[1]->bucket_avail[0].av_adr
 	= _gdbm_alloc (dbf, dbf->header->block_size);
+      if (bucket[1]->bucket_avail[0].av_adr == 0)
+	return -1;
       bucket[1]->bucket_avail[0].av_size = dbf->header->block_size;
       bucket[1]->av_count = 1;
       
@@ -329,13 +365,15 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
   /* Get rid of old directories. */
   for (index = 0; index < old_count; index++)
     _gdbm_free (dbf, old_adr[index], old_size[index]);
+
+  return 0;
 }
 
 
 /* The only place where a bucket is written.  CA_ENTRY is the
    cache entry containing the bucket to be written. */
 
-void
+int
 _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
 {
   int rc;
@@ -343,12 +381,21 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
   
   file_pos = __lseek (dbf, ca_entry->ca_adr, SEEK_SET);
   if (file_pos != ca_entry->ca_adr)
-    _gdbm_fatal (dbf, _("lseek error"));
+    {
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      _gdbm_fatal (dbf, _("lseek error"));
+      return -1;
+    }
   rc = _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size);
   if (rc)
-    _gdbm_fatal (dbf, gdbm_strerror (rc));
+    {
+      gdbm_set_errno (dbf, rc, TRUE);
+      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      return -1;
+    }
 
   ca_entry->ca_changed = FALSE;
   ca_entry->ca_data.hash_val = -1;
   ca_entry->ca_data.elem_loc = -1;
+  return 0;
 }

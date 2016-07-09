@@ -183,6 +183,7 @@ extern const char * const gdbm_errlist[];
 extern int gdbm_last_errno (GDBM_FILE dbf);
 extern void gdbm_set_errno (GDBM_FILE dbf, gdbm_error ec, int fatal);
 extern void gdbm_clear_error (GDBM_FILE dbf);
+extern int gdbm_needs_recovery (GDBM_FILE dbf);
 
 /* extra prototypes */
 

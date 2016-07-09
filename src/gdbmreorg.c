@@ -71,26 +71,26 @@ gdbm_reorganize (GDBM_FILE dbf)
   /* Readers can not reorganize! */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_set_errno (dbf, GDBM_READER_CANT_REORGANIZE, 0);
+      gdbm_set_errno (dbf, GDBM_READER_CANT_REORGANIZE, FALSE);
       return -1;
     }
   
   /* Get the mode for the old file */
   if (fstat (dbf->desc, &fileinfo))
     {
-      gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, 0);
+      gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, FALSE);
       return -1;
     }
   
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Construct new name for temporary file. */
   len = strlen (dbf->name);
   new_name = (char *) malloc (len + 3);
   if (new_name == NULL)
     {
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
+      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
   strcpy (&new_name[0], dbf->name);
@@ -111,7 +111,7 @@ gdbm_reorganize (GDBM_FILE dbf)
   if (new_dbf == NULL)
     {
       free (new_name);
-      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
+      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
       return -1;
     }
 
@@ -128,7 +128,7 @@ gdbm_reorganize (GDBM_FILE dbf)
 	  if (gdbm_store (new_dbf, key, data, GDBM_INSERT) != 0)
 	    {
 	      gdbm_close (new_dbf);
-	      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
+	      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
 	      unlink (new_name);
 	      free (new_name);
 	      return -1;
@@ -138,7 +138,7 @@ gdbm_reorganize (GDBM_FILE dbf)
  	{
 	  /* ERROR! Abort and don't finish reorganize. */
 	  gdbm_close (new_dbf);
-	  gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
+	  gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
 	  unlink (new_name);
 	  free (new_name);
 	  return -1;
@@ -150,7 +150,11 @@ gdbm_reorganize (GDBM_FILE dbf)
     }
 
   /* Write everything. */
-  _gdbm_end_update (new_dbf);
+  if (_gdbm_end_update (new_dbf))
+    {
+      gdbm_close (new_dbf);
+      return -1;
+    }
   gdbm_sync (new_dbf);
 
 #if HAVE_MMAP
@@ -161,7 +165,7 @@ gdbm_reorganize (GDBM_FILE dbf)
 
   if (rename (new_name, dbf->name) != 0)
     {
-      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, 0);
+      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
       gdbm_close (new_dbf);
       free (new_name);
       return -1;
@@ -214,7 +218,5 @@ gdbm_reorganize (GDBM_FILE dbf)
 
   /* Force the right stuff for a correct bucket cache. */
   dbf->cache_entry    = &dbf->bucket_cache[0];
-  _gdbm_get_bucket (dbf, 0);
-
-  return 0;
+  return _gdbm_get_bucket (dbf, 0);
 }

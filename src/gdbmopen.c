@@ -67,13 +67,13 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   int         fbits = 0;        /* additional bits for open(2) flags */
   
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (NULL, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (NULL, GDBM_NO_ERROR, FALSE);
 
   /* Allocate new info structure. */
   dbf = (GDBM_FILE) malloc (sizeof (*dbf));
   if (dbf == NULL)
     {
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
       return NULL;
     }
 
@@ -98,7 +98,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   if (dbf->name == NULL)
     {
       free (dbf);
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
       return NULL;
     }
   strcpy (dbf->name, file);
@@ -158,7 +158,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     {
       SAVE_ERRNO (free (dbf->name);
                   free (dbf));
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 0);
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
       return NULL;
     }
 
@@ -168,7 +168,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       SAVE_ERRNO (close (dbf->desc);
 		  free (dbf->name);
 		  free (dbf));
-      gdbm_set_errno (NULL, GDBM_FILE_STAT_ERROR, 0);
+      gdbm_set_errno (NULL, GDBM_FILE_STAT_ERROR, FALSE);
       return NULL;
     }
   
@@ -178,7 +178,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       close (dbf->desc);
       free (dbf->name);
       free (dbf);
-      gdbm_set_errno (NULL, GDBM_EMPTY_DATABASE, 0);
+      gdbm_set_errno (NULL, GDBM_EMPTY_DATABASE, FALSE);
       return NULL;
     }
 
@@ -226,7 +226,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (dbf->header == NULL)
 	{
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
 	}
 
@@ -247,7 +247,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (dbf->header->dir_size != dbf->header->block_size)
 	{
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_BLOCK_SIZE_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_BLOCK_SIZE_ERROR, FALSE);
 	  return NULL;
 	}
 
@@ -256,7 +256,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (dbf->dir == NULL)
 	{
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
 	}
       dbf->header->dir = dbf->header->block_size;
@@ -270,7 +270,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (dbf->bucket == NULL)
 	{
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
 	}
       _gdbm_new_bucket (dbf, dbf->bucket, 0);
@@ -296,7 +296,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (rc)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, 0);
+	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -305,7 +305,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (rc)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, 0);
+	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -314,7 +314,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (rc)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, 0);
+	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -335,7 +335,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (rc)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, 0);
+	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -349,14 +349,14 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 	      case GDBM_OMAGIC_SWAP:
 	      case GDBM_MAGIC32_SWAP:
 	      case GDBM_MAGIC64_SWAP:
-		gdbm_set_errno (NULL, GDBM_BYTE_SWAPPED, 0);
+		gdbm_set_errno (NULL, GDBM_BYTE_SWAPPED, FALSE);
 		break;
 	      case GDBM_MAGIC32:
 	      case GDBM_MAGIC64:
-		gdbm_set_errno (NULL, GDBM_BAD_FILE_OFFSET, 0);
+		gdbm_set_errno (NULL, GDBM_BAD_FILE_OFFSET, FALSE);
 		break;
 	      default:
-		gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, 0);
+		gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, FALSE);
 	    }
 	  return NULL;
 	}
@@ -366,7 +366,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (dbf->header == NULL)
 	{
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
 	}
       memcpy (dbf->header, &partial_header, sizeof (gdbm_file_header));
@@ -375,7 +375,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (rc)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, 0);
+	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 	
@@ -384,7 +384,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (dbf->dir == NULL)
 	{
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
 	}
 
@@ -393,7 +393,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (file_pos != dbf->header->dir)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, GDBM_FILE_SEEK_ERROR, 0);
+	  gdbm_set_errno (NULL, GDBM_FILE_SEEK_ERROR, FALSE);
 	  return NULL;
 	}
 
@@ -401,7 +401,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (rc)
 	{
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, 0);
+	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -450,7 +450,7 @@ _gdbm_init_cache(GDBM_FILE dbf, size_t size)
       dbf->bucket_cache = (cache_elem *) malloc(sizeof(cache_elem) * size);
       if(dbf->bucket_cache == NULL)
         {
-          gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 1);
+          gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
           return -1;
         }
       dbf->cache_size = size;
@@ -461,7 +461,7 @@ _gdbm_init_cache(GDBM_FILE dbf, size_t size)
             = (hash_bucket *) malloc (dbf->header->bucket_size);
           if ((dbf->bucket_cache[index]).ca_bucket == NULL)
 	    {
-              gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 1);
+              gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
 	      return -1;
             }
           (dbf->bucket_cache[index]).ca_adr = 0;

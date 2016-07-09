@@ -373,13 +373,13 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param, int meta_mask)
 	    }
 	  if (fchown (fd, owner_uid, owner_gid))
 	    {
-	      gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, 0);
+	      gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, FALSE);
 	      rc = 1;
 	    }
 	}
       if ((meta_flags & META_MODE) && fchmod (fd, mode))
 	{
-	  gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, 0);
+	  gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, FALSE);
 	  rc = 1;
 	}
     }
@@ -581,7 +581,7 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
 	*line = 0;
       if (!*pdbf)
 	{
-	  gdbm_set_errno (NULL, GDBM_NO_DBNAME, 0);
+	  gdbm_set_errno (NULL, GDBM_NO_DBNAME, FALSE);
 	  return -1;
 	}
       if (gdbm_import_from_file (*pdbf, fp, replace) == -1)
@@ -596,7 +596,7 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
     {
       if (!*pdbf)
 	{
-	  gdbm_set_errno (NULL, GDBM_NO_DBNAME, 0);
+	  gdbm_set_errno (NULL, GDBM_NO_DBNAME, FALSE);
 	  return -1;
 	}
       rc = gdbm_load_bdb_dump (&df, *pdbf, replace);
@@ -608,7 +608,7 @@ gdbm_load_from_file (GDBM_FILE *pdbf, FILE *fp, int replace,
     {
       if (line)
 	*line = df.line;
-      gdbm_set_errno (NULL, rc, 0);
+      gdbm_set_errno (NULL, rc, FALSE);
       return -1;
     }
   return 0;
@@ -625,7 +625,7 @@ gdbm_load (GDBM_FILE *pdbf, const char *filename, int replace,
   fp = fopen (filename, "r");
   if (!fp)
     {
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 0);
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
       return -1;
     }
   rc = gdbm_load_from_file (pdbf, fp, replace, meta_mask, line);

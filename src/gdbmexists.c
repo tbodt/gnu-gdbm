@@ -33,7 +33,7 @@ gdbm_exists (GDBM_FILE dbf, datum key)
   if (_gdbm_findkey (dbf, key, NULL, NULL) < 0)
     {
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-	gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+	gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
       return 0;
     }
   return 1;

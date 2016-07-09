@@ -41,7 +41,7 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
   GDBM_ASSERT_CONSISTENCY (dbf, return_val);
   
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Find the key and return a pointer to the data. */
   elem_loc = _gdbm_findkey (dbf, key, &find_data, NULL);
@@ -57,7 +57,7 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
 	return_val.dptr = (char *) malloc (return_val.dsize);
       if (return_val.dptr == NULL)
 	{
-	  gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, 0);
+	  gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
 	  return return_val;
 	}
       memcpy (return_val.dptr, find_data, return_val.dsize);

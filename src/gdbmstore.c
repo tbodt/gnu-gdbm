@@ -53,7 +53,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_set_errno (dbf, GDBM_READER_CANT_STORE, 0);
+      gdbm_set_errno (dbf, GDBM_READER_CANT_STORE, FALSE);
       return -1;
     }
 
@@ -61,12 +61,12 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
      NULL dptr returned by a lookup procedure indicates an error. */
   if ((key.dptr == NULL) || (content.dptr == NULL))
     {
-      gdbm_set_errno (dbf, GDBM_ILLEGAL_DATA, 0);
+      gdbm_set_errno (dbf, GDBM_ILLEGAL_DATA, FALSE);
       return -1;
     }
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Look for the key in the file.
      A side effect loads the correct bucket and calculates the hash value. */
@@ -97,19 +97,23 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	}
       else
 	{
-	  gdbm_set_errno (dbf, GDBM_CANNOT_REPLACE, 0);
+	  gdbm_set_errno (dbf, GDBM_CANNOT_REPLACE, FALSE);
 	  return 1;
 	}
     }
   else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-    gdbm_set_errno (dbf, GDBM_NO_ERROR, 0); /* clear error state */
+    gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE); /* clear error state */
   else
     return -1;
 
   /* Get the file address for the new space.
      (Current bucket's free space is first place to look.) */
   if (file_adr == 0)
-    file_adr = _gdbm_alloc (dbf, new_size);
+    {
+      file_adr = _gdbm_alloc (dbf, new_size);
+      if (file_adr == 0)
+	return -1;
+    }
 
   /* If this is a new entry in the bucket, we need to do special things. */
   if (elem_loc == -1)
@@ -117,7 +121,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
       if (dbf->bucket->count == dbf->header->bucket_elems)
 	{
 	  /* Split the current bucket. */
-	  _gdbm_split_bucket (dbf, new_hash_val);
+	  if (_gdbm_split_bucket (dbf, new_hash_val))
+	    return -1;
 	}
       
       /* Find space to insert into bucket and set elem_loc to that place. */
@@ -141,20 +146,32 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* Write the data to the file. */
   file_pos = __lseek (dbf, file_adr, SEEK_SET);
   if (file_pos != file_adr)
-    _gdbm_fatal (dbf, _("lseek error"));
+    {
+      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      _gdbm_fatal (dbf, _("lseek error"));
+      return -1;
+    }
+
   rc = _gdbm_full_write (dbf, key.dptr, key.dsize);
   if (rc)
-    _gdbm_fatal (dbf, gdbm_strerror (rc));
+    {
+      gdbm_set_errno (dbf, rc, TRUE);
+      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      return -1;
+    }
+
   rc = _gdbm_full_write (dbf, content.dptr, content.dsize);
   if (rc)
-    _gdbm_fatal (dbf, gdbm_strerror (rc));
+    {
+      gdbm_set_errno (dbf, rc, TRUE);
+      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      return -1;
+    }
 
   /* Current bucket has changed. */
   dbf->cache_entry->ca_changed = TRUE;
   dbf->bucket_changed = TRUE;
 
   /* Write everything that is needed to the disk. */
-  _gdbm_end_update (dbf);
-  return 0;
-  
+  return _gdbm_end_update (dbf);
 }

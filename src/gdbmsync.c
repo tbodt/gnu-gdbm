@@ -31,7 +31,7 @@ gdbm_sync (GDBM_FILE dbf)
   GDBM_ASSERT_CONSISTENCY (dbf, );
 
   /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Do the sync on the file. */
   __fsync (dbf);

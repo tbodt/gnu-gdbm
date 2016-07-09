@@ -50,6 +50,14 @@ gdbm_last_errno (GDBM_FILE dbf)
   return dbf->last_error;
 }
 
+int
+gdbm_needs_recovery (GDBM_FILE dbf)
+{
+  if (!dbf)
+    return 0;
+  return dbf->need_recovery;
+}
+
 /* Clear error state for the database DBF. */
 void
 gdbm_clear_error (GDBM_FILE dbf)

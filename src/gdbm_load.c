@@ -53,13 +53,13 @@ set_meta_info (GDBM_FILE dbf)
 	{
 	  if (fchown (fd, owner_uid, owner_gid))
 	    {
-	      gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, 0);
+	      gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, FALSE);
 	      return 1;
 	    }
 	}
       if ((meta_mask & GDBM_META_MASK_MODE) && fchmod (fd, mode))
 	{
-	  gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, 0);
+	  gdbm_set_errno (dbf, GDBM_ERR_FILE_OWNER, FALSE);
 	  return 1;
 	}
     }
