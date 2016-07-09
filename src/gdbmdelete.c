@@ -36,13 +36,15 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   off_t free_adr;       /* Temporary storage for address and size. */
   int   free_size;
 
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
+
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
       gdbm_set_errno (dbf, GDBM_READER_CANT_DELETE, 0);
       return -1;
     }
-
+  
   /* Initialize the gdbm_errno variable. */
   gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 

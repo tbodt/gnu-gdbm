@@ -171,9 +171,10 @@ extern int gdbm_load_from_file (GDBM_FILE *, FILE *, int replace,
 # define GDBM_NO_DBNAME         26
 # define GDBM_ERR_FILE_OWNER    27
 # define GDBM_ERR_FILE_MODE     28
+# define GDBM_NEED_RECOVERY     29
   
 # define _GDBM_MIN_ERRNO		0
-# define _GDBM_MAX_ERRNO		GDBM_ERR_FILE_MODE
+# define _GDBM_MAX_ERRNO		GDBM_NEED_RECOVERY
 
 typedef int gdbm_error;		/* For compatibilities sake. */
 extern gdbm_error gdbm_errno;

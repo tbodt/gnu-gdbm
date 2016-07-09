@@ -128,6 +128,9 @@ gdbm_dump_to_file (GDBM_FILE dbf, FILE *fp, int format)
 {
   int rc;
   
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
+  
   switch (format)
     {
     case GDBM_DUMP_FMT_BINARY:
@@ -158,6 +161,9 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
 {
   int nfd, rc;
   FILE *fp;
+  
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
   
   /* Only support GDBM_WCREAT or GDBM_NEWDB */
   switch (open_flags)

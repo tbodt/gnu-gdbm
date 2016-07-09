@@ -65,6 +65,8 @@ gdbm_reorganize (GDBM_FILE dbf)
   struct stat fileinfo;			/* Information about the file. */
   int  index;				/* Use in moving the bucket cache. */
 
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
 
   /* Readers can not reorganize! */
   if (dbf->read_write == GDBM_READER)

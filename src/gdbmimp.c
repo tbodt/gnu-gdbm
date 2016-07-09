@@ -34,6 +34,9 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   datum key, data;
   int count = 0;
 
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
+  
   seenbang = 0;
   seennewline = 0;
   kbuffer = NULL;

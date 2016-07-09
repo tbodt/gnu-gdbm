@@ -32,6 +32,9 @@ gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)
   const char *header2 = "\r\n!\r\n";
   int count = 0;
 
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
+  
   /* Write out the text header. */
   if (fwrite (header1, strlen (header1), 1, fp) != 1)
     goto write_fail;

@@ -47,6 +47,9 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   int   new_size;		/* Used in allocating space. */
   int rc;
 
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
+  
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
@@ -99,7 +102,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	}
     }
   else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-    gdbm_set_errno (dbf, GDBM_NO_ERROR, 0); //clear error state
+    gdbm_set_errno (dbf, GDBM_NO_ERROR, 0); /* clear error state */
   else
     return -1;
 

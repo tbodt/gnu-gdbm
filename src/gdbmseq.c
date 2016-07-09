@@ -100,6 +100,9 @@ gdbm_firstkey (GDBM_FILE dbf)
   /* Set the default return value for not finding a first entry. */
   return_val.dptr = NULL;
 
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, return_val);
+  
   /* Initialize the gdbm_errno variable. */
   gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
@@ -121,11 +124,14 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   datum  return_val;		/* The return value. */
   int    elem_loc;		/* The location in the bucket. */
 
-  /* Initialize the gdbm_errno variable. */
-  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
-
   /* Set the default return value for no next entry. */
   return_val.dptr = NULL;
+
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, return_val);
+  
+  /* Initialize the gdbm_errno variable. */
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 
   /* Do we have a valid key? */
   if (key.dptr == NULL)

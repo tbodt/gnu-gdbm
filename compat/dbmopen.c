@@ -2,7 +2,7 @@
    NDBM interface for dbm use. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011 Free Software Foundation,
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2016 Free Software Foundation,
    Inc.
 
    GDBM is free software; you can redistribute it and/or modify
@@ -259,7 +259,7 @@ dbm_open (char *file, int flags, int mode)
   /* Did we successfully open the file? */
   if (dbm->file == NULL)
     {
-      gdbm_set_errno (dbm, GDBM_FILE_OPEN_ERROR, 1);
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, 1);
       free (dbm);
       dbm = NULL;
     }

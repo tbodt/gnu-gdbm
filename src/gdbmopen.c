@@ -110,6 +110,9 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->file_locking = TRUE;	/* Default to doing file locking. */
   dbf->central_free = FALSE;	/* Default to not using central_free. */
   dbf->coalesce_blocks = FALSE; /* Default to not coalescing blocks. */
+
+  dbf->need_recovery = FALSE;
+  dbf->last_error = GDBM_NO_ERROR;
   
   /* GDBM_FAST used to determine whether or not we set fast_write. */
   if (flags & GDBM_SYNC)

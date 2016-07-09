@@ -33,7 +33,7 @@ gdbm_set_errno (GDBM_FILE dbf, gdbm_error ec, int fatal)
   if (dbf)
     {
       dbf->last_error = ec;
-      dbf->fatal = fatal;
+      dbf->need_recovery = fatal;
     }
   gdbm_errno = ec;
 }
@@ -91,6 +91,7 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_NO_DBNAME]              = N_("Database name not given"),
   [GDBM_ERR_FILE_OWNER]         = N_("Failed to restore file owner"),
   [GDBM_ERR_FILE_MODE]          = N_("Failed to restore file mode"),
+  [GDBM_NEED_RECOVERY]          = N_("Database needs recovery")
 };
 
 const char *

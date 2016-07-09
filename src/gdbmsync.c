@@ -27,6 +27,8 @@
 void
 gdbm_sync (GDBM_FILE dbf)
 {
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, );
 
   /* Initialize the gdbm_errno variable. */
   gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);

@@ -37,6 +37,9 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
   return_val.dptr  = NULL;
   return_val.dsize = 0;
 
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, return_val);
+  
   /* Initialize the gdbm_errno variable. */
   gdbm_set_errno (dbf, GDBM_NO_ERROR, 0);
 

@@ -39,6 +39,9 @@ gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount)
   off_t *sdir;
   gdbm_count_t count = 0;
   int i, last;
+
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
   
   sdir = malloc (dbf->header->dir_size);
   if (!sdir)

@@ -57,6 +57,9 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
   int n;
   size_t sz;
   
+  /* Return immediately if the database needs recovery */	
+  GDBM_ASSERT_CONSISTENCY (dbf, -1);
+  
   switch (optflag)
     {
       /* Cache size: */
