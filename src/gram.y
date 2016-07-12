@@ -168,13 +168,12 @@ value     : string
 
 slist     : string
             {
-	      $$.head = $$.tail = slist_new ($1);
+	      $$.head = $$.tail = slist_new_s ($1);
 	    }
           | slist ',' string
 	    {
-	      struct slist *s = slist_new ($3);
-	      $1.tail->next = s;
-	      $1.tail = s;
+	      struct slist *s = slist_new_s ($3);
+	      slist_insert (&$1.tail, s);
 	      $$ = $1;
 	    }
           ;

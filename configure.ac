@@ -124,6 +124,55 @@ AC_SUBST(GDBM183_INCLUDEDIR)
 AM_CONDITIONAL([COMPAT_OPT], [test "$want_compat" = yes])
 AM_CONDITIONAL([ENABLE_EXPORT], [test "$want_export" = yes])
 
+# Check for Curses libs.
+for lib in ncurses curses termcap
+do
+  AC_CHECK_LIB($lib, tputs, [CURSES_LIBS="-l$lib"; break])
+done
+
+AC_SUBST(CURSES_LIBS)
+# Readline
+AC_ARG_WITH([readline],
+            AC_HELP_STRING([--without-readline],
+                           [do not use readline]),
+            [
+case "${withval}" in
+  yes) status_readline=yes ;;
+  no)  status_readline=no ;;
+  *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
+esac],[status_readline=probe])
+
+AC_SUBST(READLINE_LIBS)
+
+if test "$status_readline" != "no"; then
+  dnl FIXME This should only link in the curses libraries if it's
+  dnl really needed!
+  saved_LIBS=$LIBS
+  LIBS="$LIBS $CURSES_LIBS"
+  AC_CHECK_LIB(readline, readline,
+    [status_readline=yes],
+    [if test "$status_readline" = "yes"; then
+       AC_MSG_ERROR(readline requested but does not seem to be installed)
+     else
+       status_readline=no
+     fi])
+  LIBS=$saved_LIBS
+
+  if test "$status_readline" = "yes"; then
+    AC_CHECK_HEADERS(readline/readline.h,
+      AC_DEFINE(WITH_READLINE,1,[Enable use of readline]))
+      READLINE_LIBS="-lreadline $CURSES_LIBS"
+      saved_LIBS=$LIBS
+      LIBS="$LIBS $READLINE_LIBS"
+      AC_CHECK_FUNCS(rl_completion_matches)
+      LIBS=$saved_LIBS
+  fi
+else
+  status_readline=no
+fi
+
+AM_CONDITIONAL([GDBM_COND_READLINE], [test "$status_readline" = "yes"])
+
 # Initialize the test suite.
 AC_CONFIG_TESTDIR(tests)
 AC_CONFIG_FILES([tests/Makefile tests/atlocal po/Makefile.in])

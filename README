@@ -59,6 +59,11 @@ Build gdbmexport with the gdbm library from the specified directory.
 
 Build gdbmexport with gdbm.h from the specified directory.
 
+** --without-readline
+
+Don't compile GNU Readline support.  By default, configure enables
+line-editing support if GNU Readline is available on the system.
+
 * Installation 
 
   make install

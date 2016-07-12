@@ -1828,6 +1828,12 @@ non-interactive mode (e.g.@: when running a script), all arguments must
 be supplied with each command, otherwise @command{gdbmtool} will report an
 error and exit immediately.
 
+@cindex readline
+@cindex GNU Readline
+If the package is compiled with GNU Readline, the input line can be
+edited (@pxref{Command Line Editing, ,
+Command Line Editing, readline, GNU Readline Library}).
+
 @menu
 * variables::      shell variables.
 * commands::       shell commands.
@@ -2111,6 +2117,22 @@ Import data from a flat dump file @var{file-name}
 as an argument, any records with the same keys as the already
 existing ones will replace them.  The word @samp{nometa} turns off
 restoring meta-information from the dump file.
+@end deffn
+
+@deffn {command verb} history
+@deffnx {command verb} history @var{count}
+@deffnx {command verb} history @var{n} @var{count}
+Shows the command history list with line numbers.  When used without
+arguments, shows entire history.  When used with one argument,
+displays @var{count} last commands from the history.  With two
+arguments, displays @var{count} commands starting from @var{n}th
+command.  Command numbering starts with 1.
+
+This command is available only if GDBM was compiled with GNU Readline.
+The history is saved in file @file{.gdbmtool_history} in the user's
+home directory.  If this file exists upon startup, it is read to
+populate the history.  Thus, command history is preserved between
+@command{gdbmtool} invocations.
 @end deffn
 
 @deffn {command verb} list

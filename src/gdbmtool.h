@@ -24,6 +24,8 @@
 #include <stdarg.h>
 #include <ctype.h>
 
+#define ARG_UNUSED __attribute__ ((__unused__))
+
 /* Position in input file */
 struct point
 {
@@ -94,7 +96,7 @@ void lerror (struct locus *loc, const char *fmt, ...);
 
 void terror (const char *fmt, ...);
 
-void print_prompt (void);
+char *make_prompt (void);
 
 int setsource (const char *filename, int intr);
 
@@ -104,6 +106,17 @@ extern int open_mode;
 
 #define GDBMTOOLRC ".gdbmtoolrc"
 #define GDBMTOOL_DEFFILE "junk.gdbm"
+
+ssize_t input_read (FILE *fp, char *buf, size_t size);
+void input_init (void);
+void input_done (void);
+
+struct handler_param;
+void input_history_handler (struct handler_param *param);
+int input_history_begin (struct handler_param *param, size_t *exp_count);
+
+void print_prompt_at_bol (void);
+char *command_generator (const char *text, int state);
 
 
 struct slist
@@ -112,8 +125,11 @@ struct slist
   char *str;
 };
 
-struct slist *slist_new (char *s);
+struct slist *slist_new (char const *s);
+struct slist *slist_new_s (char *s);
+struct slist *slist_new_l (char const *s, size_t l);
 void slist_free (struct slist *);
+void slist_insert (struct slist **where, struct slist *what);
 
 #define KV_STRING 0
 #define KV_LIST   1
@@ -159,6 +175,14 @@ struct gdbmarg
 struct gdbmarglist
 {
   struct gdbmarg *head, *tail;
+};
+
+struct handler_param
+{
+  int argc;
+  struct gdbmarg **argv;
+  FILE *fp;
+  void *data;
 };
 
 void gdbmarglist_init (struct gdbmarglist *, struct gdbmarg *);
@@ -262,3 +286,6 @@ char *mkfilename (const char *dir, const char *file, const char *suf);
 char *tildexpand (char *s);
 int vgetyn (const char *prompt, va_list ap);
 int getyn (const char *prompt, ...);
+
+int getnum (int *pnum, char *arg, char **endp);
+int get_screen_lines (void);

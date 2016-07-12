@@ -46,7 +46,7 @@ advance_line ()
 #define YY_INPUT(buf,result,max_size)                                   \
   do									\
     {									\
-      result = read_input (buf, max_size);				\
+      result = input_read (yyin, buf, max_size);			\
     }									\
   while (0);
  
@@ -55,8 +55,6 @@ void string_add (const char *s, int l);
 void string_addc (int c);
 char *string_end (void);
 int unescape (int c);
-
-static ssize_t read_input (char *buf, size_t size);
 
 struct context                /* Input context */
 {
@@ -315,18 +313,16 @@ end_def (void)
   BEGIN (INITIAL);
 } 
 
-static ssize_t
-read_input (char *buf, size_t size)
+void
+print_prompt_at_bol (void)
 {
-  if (interactive)
+  if (YY_AT_BOL ())
     {
-      if (YY_AT_BOL ())
-	print_prompt ();
-      if (fgets (buf, size, yyin) == NULL)
-	return 0;
-      return strlen (buf);
+      char *s = make_prompt ();
+      fputs (s, stdout);
+      fflush (stdout);
+      free (s);
     }
-  return fread (buf, 1, size, yyin);
 }
   
 
@@ -453,44 +449,40 @@ lerror (struct locus *loc, const char *fmt, ...)
 }
 
 
-struct prompt_exp;
-
-void
-pe_file_name (struct prompt_exp *p)
+static struct slist *
+pe_file_name (void)
 {
-  if (file_name)
-    fwrite (file_name, strlen (file_name), 1, stdout);
+  return file_name ? slist_new (file_name) : NULL;
 }
 
-void
-pe_program_name (struct prompt_exp *p)
+static struct slist *
+pe_program_name (void)
 {
-  fwrite (progname, strlen (progname), 1, stdout);
+  return slist_new (progname);
 }
 
-void
-pe_package_name (struct prompt_exp *p)
+static struct slist *
+pe_package_name (void)
 {
-  fwrite (PACKAGE_NAME, sizeof (PACKAGE_NAME) - 1, 1, stdout);
+  return slist_new (PACKAGE_NAME);
 }
 
-void
-pe_program_version (struct prompt_exp *p)
+static struct slist *
+pe_program_version (void)
 {
-  fwrite (PACKAGE_VERSION, sizeof (PACKAGE_VERSION) - 1, 1, stdout);
+  return slist_new (PACKAGE_VERSION);
 }
 
-void
-pe_space (struct prompt_exp *p)
+static struct slist *
+pe_space (void)
 {
-  fwrite (" ", 1, 1, stdout);
+  return slist_new (" ");
 }
 
 struct prompt_exp
 {
   int ch;
-  void (*fun) (struct prompt_exp *);
-  char *cache;
+  struct slist *(*fun) (void);
 };
 
 struct prompt_exp prompt_exp[] = {
@@ -502,8 +494,8 @@ struct prompt_exp prompt_exp[] = {
   { 0 }
 };
 
-static void
-expand_char (int c)
+static int
+expand_char (int c, struct slist **tailp)
 {
   struct prompt_exp *p;
 
@@ -513,58 +505,92 @@ expand_char (int c)
 	{
 	  if (c == p->ch)
 	    {
-	      if (p->cache)
-		free (p->cache);
-	      p->fun (p);
-	      return;
+	      struct slist *s = p->fun ();
+	      if (s)
+		slist_insert (tailp, s);
+	      return 0;
 	    }
 	}
     }
-  putchar ('%');
-  putchar (c);
+  return 1;
 }
 
 char const *
-psname ()
+psname (void)
 {
   if (YYSTATE == DEF || YYSTATE == MLSTR)
     return "ps2";
   return "ps1";
 }
 
-void
-print_prompt ()
+char *
+make_prompt (void)
 {
   const char *s;
   const char *prompt;
-
+  struct slist *head = NULL, *tail = NULL, *p;
+  char *ret, *end;
+  size_t len;
+  
   switch (variable_get (psname (), VART_STRING, (void *) &prompt))
     {
     case VAR_OK:
       break;
 
     case VAR_ERR_NOTSET:
-      return;
+      return NULL;
       
     default:
       abort ();
     }
-  
-  for (s = prompt; *s; s++)
+
+  for (s = prompt; *s; )
     {
-      if (*s == '%')
+      if (*s == '%' && s[1])
 	{
-	  if (!*++s)
+	  if (s > prompt)
 	    {
-	      putchar ('%');
-	      break;
+	      slist_insert (&tail, slist_new_l (prompt, s - prompt));
+	      if (!head)
+		head = tail;
 	    }
-	  expand_char (*s);
+	  if (expand_char (s[1], &tail) == 0)
+	    {
+	      if (!head)
+		head = tail;
+	      prompt = s + 2;
+	    }
+	  else
+	    prompt = s;
+	  s += 2;
 	}
       else
-	putchar (*s);
+	++s;
     }
 
-  fflush (stdout);
+  if (s > prompt)
+    {
+      slist_insert (&tail, slist_new_l (prompt, s - prompt));
+      if (!head)
+	head = tail;
+    }
+
+  len = 0;
+  for (p = head; p; p = p->next)
+    len += strlen (p->str);
+
+  ret = emalloc (len + 1);
+  end = ret;
+  for (p = head; p; p = p->next)
+    {
+      s = p->str;
+      while (*s)
+	*end++ = *s++;
+    }
+  *end = 0;
+
+  slist_free (head);
+  
+  return ret;
 }
 

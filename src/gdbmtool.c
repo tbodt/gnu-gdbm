@@ -323,20 +323,6 @@ get_screen_lines ()
 #endif
   return -1;
 }
-
-
-#define ARG_UNUSED __attribute__ ((__unused__))
-
-#define NARGS 5
-
-struct handler_param
-{
-  int argc;
-  struct gdbmarg **argv;
-  FILE *fp;
-  void *data;
-};
-	     
 
 /* Open database */
 void
@@ -751,7 +737,7 @@ quit_handler (struct handler_param *param ARG_UNUSED)
 {
   if (gdbm_file != NULL)
     gdbm_close (gdbm_file);
-
+  input_done ();
   exit (EXIT_OK);
 }
 
@@ -891,6 +877,8 @@ struct argdef
   int ds;
 };
 
+#define NARGS 5
+
 struct command
 {
   char *name;           /* Command name */
@@ -902,7 +890,6 @@ struct command
   struct argdef args[NARGS];
   char *doc;
 };
-
 
 struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
@@ -1007,6 +994,13 @@ struct command command_tab[] = {
     NULL, open_handler, NULL,
     { { "FILE", GDBM_ARG_STRING }, { NULL } },
     N_("open new database") },
+#ifdef WITH_READLINE
+  { S(history), T_CMD,
+    input_history_begin, input_history_handler, NULL,
+    { { N_("[FROM]"), GDBM_ARG_STRING },
+      { N_("[COUNT]"), GDBM_ARG_STRING },
+      { NULL } }, N_("show input history") },
+#endif
 #undef S
   { 0 }
 };
@@ -1026,6 +1020,39 @@ sort_commands ()
 	 sizeof (command_tab[0]), cmdcmp);
 }
 
+/* Generator function for command completion.  STATE lets us know whether
+   to start from scratch; without any state (i.e. STATE == 0), then we
+   start at the top of the list. */
+char *
+command_generator (const char *text, int state)
+{
+  const char *name;
+  static int len;
+  static struct command *cmd;
+
+  /* If this is a new word to complete, initialize now.  This includes
+     saving the length of TEXT for efficiency, and initializing the index
+     variable to 0. */
+  if (!state)
+    {
+      cmd = command_tab;
+      len = strlen (text);
+    }
+
+  if (!cmd->name)
+    return NULL;
+
+  /* Return the next name which partially matches from the command list. */
+  while ((name = cmd->name))
+    {
+      cmd++;
+      if (strncmp (name, text, len) == 0)
+        return strdup (name);
+    }
+
+  /* If no names matched, then return NULL. */
+  return NULL;
+}
 
 /* ? - help handler */
 #define CMDCOLS 30
@@ -1174,12 +1201,27 @@ gdbmarg_kvpair (struct kvpair *kvp, struct locus *loc)
 }
 
 struct slist *
-slist_new (char *s)
+slist_new_s (char *s)
 {
   struct slist *lp = emalloc (sizeof (*lp));
   lp->next = NULL;
   lp->str = s;
   return lp;
+}
+
+struct slist *
+slist_new (char const *s)
+{
+  return slist_new_s (estrdup (s));
+}
+
+struct slist *
+slist_new_l (char const *s, size_t l)
+{
+  char *copy = emalloc (l + 1);
+  memcpy (copy, s, l);
+  copy[l] = 0;
+  return slist_new_s (copy);
 }
 
 void
@@ -1192,6 +1234,21 @@ slist_free (struct slist *lp)
       free (lp);
       lp = next;
     }
+}
+
+void
+slist_insert (struct slist **where, struct slist *what)
+{
+  if (*where)
+    {
+      while (what->next)
+	what = what->next;
+      what->next = (*where)->next;
+      (*where)->next = what;
+    }
+  else
+    what->next = NULL;
+  *where = what;
 }
 
 struct kvpair *
@@ -1215,7 +1272,6 @@ kvpair_list (struct locus *loc, struct slist *s)
   p->val.l = s;
   return p;
 }  
-
 
 static void
 kvlist_free (struct kvpair *kvp)
@@ -1534,6 +1590,7 @@ main (int argc, char *argv[])
   int opt;
   int bv;
   int norc = 0;
+  int res;
   char *source = "-";
   
   set_progname (argv[0]);
@@ -1545,14 +1602,17 @@ main (int argc, char *argv[])
   textdomain (PACKAGE);
 
   sort_commands ();
-
+  
   /* Initialize variables. */
   intr = isatty (0);
+  interactive = intr; /* Used early by input_init */
   dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
   dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
 
   variable_set ("open", VART_STRING, "wrcreat");
   variable_set ("pager", VART_STRING, getenv ("PAGER"));
+  
+  input_init ();
   
   for (opt = parseopt_first (argc, argv, optab);
        opt != EOF;
@@ -1640,5 +1700,7 @@ main (int argc, char *argv[])
 
   if (setsource (source, intr))
     exit (EXIT_FATAL);
-  return yyparse ();
+  res = yyparse ();
+  input_done ();
+  return res;
 }

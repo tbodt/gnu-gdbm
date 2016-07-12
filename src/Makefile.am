@@ -79,7 +79,11 @@ libgdbmapp_a_SOURCES =\
 # Programs
 bin_PROGRAMS = gdbmtool gdbm_load gdbm_dump
 
-gdbmtool_LDADD  = ./libgdbmapp.a ./libgdbm.la
+gdbmtool_LDADD  = \
+ ./libgdbmapp.a\
+ ./libgdbm.la\
+ @READLINE_LIBS@
+
 gdbmtool_SOURCES = \
  datconv.c\
  gram.y\
@@ -88,6 +92,12 @@ gdbmtool_SOURCES = \
  gdbmtool.c\
  var.c\
  util.c
+
+if GDBM_COND_READLINE
+  gdbmtool_SOURCES += input-rl.c
+else
+  gdbmtool_SOURCES += input-std.c
+endif
 
 AM_YFLAGS = -dtv
 #AM_LFLAGS = -d

@@ -13,7 +13,7 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBMTOOL 1 "May 18, 2016" "GDBM" "GDBM User Reference"
+.TH GDBMTOOL 1 "July 12, 2016" "GDBM" "GDBM User Reference"
 .SH NAME
 gdbmtool \- examine and modify a GDBM database
 .SH SYNOPSIS
@@ -158,7 +158,7 @@ Delete record with the given \fIKEY\fR.
 .BR dir
 Print hash directory.
 .TP
-\fBexport\fR, \fBe\fR \fIFILE\-NAME\fR [\fBtruncate\fR] [\fBbinary\fR|\fBascii\fR]
+\fBexport\fR \fIFILE\-NAME\fR [\fBtruncate\fR] [\fBbinary\fR|\fBascii\fR]
 Export the database to the flat file \fIFILE\-NAME\fR.  This is equivalent to
 .BR gdbm_dump (1).
 
@@ -186,6 +186,17 @@ Print file header.
 Print a concise command summary, showing each command letter and
 verb with its parameters and a short description of what it does.
 Optional arguments are enclosed in square brackets.
+.TP
+.B history
+Shows the command history list with line numbers.  This command is
+available only if the program was compiled with GNU Readline.
+.TP
+\fBhistory\fR \fICOUNT\fR.
+Shows \fICOUNT\fR latest commands from the command history.
+.TP
+\fBhistory\fR \fIN\fR \fICOUNT\fR.
+Shows \fICOUNT\fR commands from the command history starting with \fIN\fRth
+command.
 .TP
 \fBimport\fR \fIFILE\-NAME\fR [\fBreplace\fR] [\fBnometa\fR]
 Import data from a flat dump file \fIFILE\-NAME\fR.
