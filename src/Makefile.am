@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2011, 2016 Free Software Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ noinst_HEADERS = \
  proto.h\
  systems.h
 
-EXTRA_DIST = gdbm.h.in gram.h
+EXTRA_DIST = gdbm.h.in gram.h gdbm.magic
 
 # The libraries
 VI_CURRENT  = 4

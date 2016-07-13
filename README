@@ -1,5 +1,5 @@
 GNU dbm README
-Copyright (C) 2011 Free Software Foundation, Inc.
+Copyright (C) 2011, 2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 * Introduction
@@ -68,6 +68,17 @@ line-editing support if GNU Readline is available on the system.
 
   make install
 
+This package also contains the 'magic' file for the file(1) utility -
+src/gdbm.magic.  It is not installed by default, as its installation
+location differs considerably between various distributions.  The most
+straightforward (but not the best one) approach is appending its
+content to /etc/magic:
+
+  cat src/gdbm.magic >> /etc/magic
+
+See the documentation in your distribution for detailed instructions
+on how to install this file.
+  
 * Bug reporting
 
 Please report bugs to <bug-gdbm@gnu.org>
@@ -88,7 +99,7 @@ To track the development, visit
 
 * Copyright information:
 
-Copyright (C) 2011 Free Software Foundation, Inc.
+Copyright (C) 2011, 2016 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
