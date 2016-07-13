@@ -38,8 +38,8 @@
 0	long	0xcf9a5713	GNU DBM 64-bit, byte-swapped
 !:mime	application/octet-stream
 
-0	string	\!\r\n		GDBM flat dump file
->3	string	\!\040GDBM\040FLAT\040FILE\040DUMP\040--\040THIS\040IS\040NOT\040A\040TEXT\040FILE\r\n"	GDBM flat dump file
+0	string	\!\r\n
+>3	string	\!\040GDBM\040FLAT\040FILE\040DUMP\040--\040THIS\040IS\040NOT\040A\040TEXT\040FILE\r\n	GDBM flat dump file
 !:mime	application/octet-stream
 >53	string	!\040GDBM\040version\040
 >>&0	regex	([0-9]+\.){1,}	\b, created by GDBM version %s
