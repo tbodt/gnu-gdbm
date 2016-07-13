@@ -37,3 +37,18 @@
 
 0	long	0xcf9a5713	GNU DBM 64-bit, byte-swapped
 !:mime	application/octet-stream
+
+0	string	!\r\n
+>3	string	!\040GDBM\040FLAT\040FILE\040DUMP\040--\040THIS\040IS\040NOT\040A\040TEXT\040FILE\r\n"	GDBM flat dump file
+!:mime	application/octet-stream
+>53	string	!\040GDBM\040version\040
+>>68	regex	([0-9]+\.){1,}	\b, created by version %s
+
+0	string	#\040GDBM\040dump\040file	GDBM ASCII dump file
+!:mime	text/x-gdbm-dump
+>0	search	#:version=
+>>&0	string	>\0		\b, version %s
+>0	search	#:file=
+>>&0	string	>\0		\b, for file %s
+>0	string	#\040GDBM\040dump\040file\040created\040by\040GDBM\040version\040
+>>&0	regex	([0-9.]+)\.		\b, created by GDBM version %s
