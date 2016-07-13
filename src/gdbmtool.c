@@ -328,10 +328,10 @@ get_screen_lines ()
 void
 open_handler (struct handler_param *param)
 {
-  if (opendb (param->argv[0]->v.string) == 0)
+  if (opendb (PARAM_STRING (param, 0)) == 0)
     {
       free (file_name);
-      file_name = estrdup (param->argv[0]->v.string);
+      file_name = estrdup (PARAM_STRING (param, 0));
     }
 }
 
@@ -396,7 +396,7 @@ count_handler (struct handler_param *param)
 void
 delete_handler (struct handler_param *param)
 {
-  if (gdbm_delete (gdbm_file, param->argv[0]->v.dat) != 0)
+  if (gdbm_delete (gdbm_file, PARAM_DATUM (param, 0)) != 0)
     {
       if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
 	terror (_("Item not found"));
@@ -409,7 +409,7 @@ delete_handler (struct handler_param *param)
 void
 fetch_handler (struct handler_param *param)
 {
-  return_data = gdbm_fetch (gdbm_file, param->argv[0]->v.dat);
+  return_data = gdbm_fetch (gdbm_file, PARAM_DATUM (param, 0));
   if (return_data.dptr != NULL)
     {
       datum_format (param->fp, &return_data, dsdef[DS_CONTENT]);
@@ -427,7 +427,7 @@ void
 store_handler (struct handler_param *param)
 {
   if (gdbm_store (gdbm_file,
-		  param->argv[0]->v.dat, param->argv[1]->v.dat,
+		  PARAM_DATUM (param, 0), PARAM_DATUM (param, 1),
 		  GDBM_REPLACE) != 0)
     fprintf (stderr, _("Item not inserted.\n"));
 }
@@ -465,9 +465,9 @@ nextkey_handler (struct handler_param *param)
     {
       if (key_data.dptr != NULL)
 	free (key_data.dptr);
-      key_data.dptr = emalloc (param->argv[0]->v.dat.dsize);
-      key_data.dsize = param->argv[0]->v.dat.dsize;
-      memcpy (key_data.dptr, param->argv[0]->v.dat.dptr, key_data.dsize);
+      key_data.dptr = emalloc (PARAM_DATUM (param, 0).dsize);
+      key_data.dsize = PARAM_DATUM (param, 0).dsize;
+      memcpy (key_data.dptr, PARAM_DATUM (param, 0).dptr, key_data.dsize);
     }
   return_data = gdbm_nextkey (gdbm_file, key_data);
   if (return_data.dptr != NULL)
@@ -494,7 +494,7 @@ nextkey_handler (struct handler_param *param)
 
 /* reorganize */
 void
-reorganize_handler (struct handler_param *param ARG_UNUSED)
+reorganize_handler (struct handler_param *param GDBM_ARG_UNUSED)
 {
   if (gdbm_reorganize (gdbm_file))
     fprintf (stderr, _("Reorganization failed.\n"));
@@ -504,7 +504,7 @@ reorganize_handler (struct handler_param *param ARG_UNUSED)
 
 /* avail - print available list */
 int
-avail_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
+avail_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
 {
   if (checkdb ())
     return 1;
@@ -521,7 +521,7 @@ avail_handler (struct handler_param *param)
 
 /* C - print current bucket */
 int
-print_current_bucket_begin (struct handler_param *param ARG_UNUSED,
+print_current_bucket_begin (struct handler_param *param GDBM_ARG_UNUSED,
 			    size_t *exp_count)
 {
   if (checkdb ())
@@ -575,7 +575,7 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
   if (checkdb ())
     return 1;
   
-  if (getnum (&temp, param->argv[0]->v.string, NULL))
+  if (getnum (&temp, PARAM_STRING (param, 0), NULL))
     return 1;
 
   if (temp >= GDBM_DIR_COUNT (gdbm_file))
@@ -592,7 +592,7 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
 
 /* dir - print hash directory */
 int
-print_dir_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
+print_dir_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
 {
   if (checkdb ())
     return 1;
@@ -617,7 +617,7 @@ print_dir_handler (struct handler_param *param)
 
 /* header - print file handler */
 int
-print_header_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
+print_header_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
 {
   if (checkdb ())
     return 1;
@@ -653,12 +653,12 @@ void
 hash_handler (struct handler_param *param)
 {
   fprintf (param->fp, _("hash value = %x. \n"),
-	   _gdbm_hash (param->argv[0]->v.dat));
+	   _gdbm_hash (PARAM_DATUM (param, 0)));
 }
 
 /* cache - print the bucket cache */
 int
-print_cache_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
+print_cache_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
 {
   if (checkdb ())
     return 1;
@@ -682,7 +682,7 @@ print_version_handler (struct handler_param *param)
 
 /* list - List all entries */
 int
-list_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
+list_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
 {
   if (checkdb ())
     return 1;
@@ -733,7 +733,7 @@ list_handler (struct handler_param *param)
 
 /* quit - quit the program */
 void
-quit_handler (struct handler_param *param ARG_UNUSED)
+quit_handler (struct handler_param *param GDBM_ARG_UNUSED)
 {
   if (gdbm_file != NULL)
     gdbm_close (gdbm_file);
@@ -752,23 +752,22 @@ export_handler (struct handler_param *param)
   
   for (i = 1; i < param->argc; i++)
     {
-      if (strcmp (param->argv[i]->v.string, "truncate") == 0)
+      if (strcmp (PARAM_STRING (param, i), "truncate") == 0)
 	flags = GDBM_NEWDB;
-      else if (strcmp (param->argv[i]->v.string, "binary") == 0)
+      else if (strcmp (PARAM_STRING (param, i), "binary") == 0)
 	format = GDBM_DUMP_FMT_BINARY;
-      else if (strcmp (param->argv[i]->v.string, "ascii") == 0)
+      else if (strcmp (PARAM_STRING (param, i), "ascii") == 0)
 	format = GDBM_DUMP_FMT_ASCII;
       else
 	{
-	  terror (_("unrecognized argument: %s"),
-			param->argv[i]->v.string);
+	  terror (_("unrecognized argument: %s"), PARAM_STRING (param, i));
 	  return;
 	}
     }
 
   if (variable_get ("filemode", VART_INT, (void**) &filemode))
     abort ();
-  if (gdbm_dump (gdbm_file, param->argv[0]->v.string, format, flags, filemode))
+  if (gdbm_dump (gdbm_file, PARAM_STRING (param, 0), format, flags, filemode))
     {
       terror (_("error dumping database: %s"),
 		    gdbm_strerror (gdbm_errno));
@@ -787,19 +786,19 @@ import_handler (struct handler_param *param)
   
   for (i = 1; i < param->argc; i++)
     {
-      if (strcmp (param->argv[i]->v.string, "replace") == 0)
+      if (strcmp (PARAM_STRING (param, i), "replace") == 0)
 	flag = GDBM_REPLACE;
-      else if (strcmp (param->argv[i]->v.string, "nometa") == 0)
+      else if (strcmp (PARAM_STRING (param, i), "nometa") == 0)
 	meta_mask = GDBM_META_MASK_MODE | GDBM_META_MASK_OWNER;
       else
 	{
 	  terror (_("unrecognized argument: %s"),
-			param->argv[i]->v.string);
+		  PARAM_STRING (param, i));
 	  return;
 	}
     }
 
-  rc = gdbm_load (&gdbm_file, param->argv[0]->v.string, flag,
+  rc = gdbm_load (&gdbm_file, PARAM_STRING (param, 0), flag,
 		  meta_mask, &err_line);
   if (rc && gdbm_errno == GDBM_NO_DBNAME)
     {
@@ -812,7 +811,7 @@ import_handler (struct handler_param *param)
       if (rc)
 	return;
 
-      rc = gdbm_load (&gdbm_file, param->argv[0]->v.string, flag,
+      rc = gdbm_load (&gdbm_file, PARAM_STRING (param, 0), flag,
 		      meta_mask, &err_line);
     }
   if (rc)
@@ -827,11 +826,11 @@ import_handler (struct handler_param *param)
 	  
 	default:
 	  if (err_line)
-	    terror ("%s:%lu: %s", param->argv[0], err_line,
-			  gdbm_strerror (gdbm_errno));
+	    terror ("%s:%lu: %s", PARAM_STRING (param, 0), err_line,
+		    gdbm_strerror (gdbm_errno));
 	  else
-	    terror (_("cannot load from %s: %s"), param->argv[0],
-			  gdbm_strerror (gdbm_errno));
+	    terror (_("cannot load from %s: %s"), PARAM_STRING (param, 0),
+		    gdbm_strerror (gdbm_errno));
 	}
       return;
     }
@@ -860,7 +859,7 @@ status_handler (struct handler_param *param)
 void
 source_handler (struct handler_param *param)
 {
-  char *fname = tildexpand (param->argv[0]->v.string);
+  char *fname = tildexpand (PARAM_STRING (param, 0));
   if (setsource (fname, 0) == 0)
     yyparse ();
   free (fname);
@@ -1058,7 +1057,7 @@ command_generator (const char *text, int state)
 #define CMDCOLS 30
 
 int
-help_begin (struct handler_param *param ARG_UNUSED, size_t *exp_count)
+help_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
 {
   if (exp_count)
     *exp_count = sizeof (command_tab) / sizeof (command_tab[0]) + 1;

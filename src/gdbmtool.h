@@ -24,7 +24,14 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#define ARG_UNUSED __attribute__ ((__unused__))
+#ifndef GDBM_ARG_UNUSED
+# define GDBM_ARG_UNUSED __attribute__ ((__unused__))
+#endif
+
+#ifndef GDBM_PRINTFLIKE
+# define GDBM_PRINTFLIKE(fmt,narg) \
+  __attribute__ ((__format__ (__printf__, fmt, narg)))
+#endif
 
 /* Position in input file */
 struct point
@@ -92,9 +99,11 @@ typedef struct locus gdbm_yyltype_t;
   while (0)
 
 void vlerror (struct locus *loc, const char *fmt, va_list ap);
-void lerror (struct locus *loc, const char *fmt, ...);
+void lerror (struct locus *loc, const char *fmt, ...)
+	   GDBM_PRINTFLIKE (2, 3);
 
-void terror (const char *fmt, ...);
+void terror (const char *fmt, ...)
+	   GDBM_PRINTFLIKE (1, 2);
 
 char *make_prompt (void);
 
@@ -184,6 +193,10 @@ struct handler_param
   FILE *fp;
   void *data;
 };
+
+#define PARAM_STRING(p,n) ((p)->argv[n]->v.string)
+#define PARAM_DATUM(p,n)  ((p)->argv[n]->v.dat)
+#define PARAM_KVPAIR(p,n) ((p)->argv[n]->v.kvpair)
 
 void gdbmarglist_init (struct gdbmarglist *, struct gdbmarg *);
 void gdbmarglist_add (struct gdbmarglist *, struct gdbmarg *);
@@ -285,7 +298,7 @@ void dsprint (FILE *fp, int what, struct dsegm *ds);
 char *mkfilename (const char *dir, const char *file, const char *suf);
 char *tildexpand (char *s);
 int vgetyn (const char *prompt, va_list ap);
-int getyn (const char *prompt, ...);
+int getyn (const char *prompt, ...) GDBM_PRINTFLIKE (1, 2);
 
 int getnum (int *pnum, char *arg, char **endp);
 int get_screen_lines (void);
