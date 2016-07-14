@@ -131,25 +131,54 @@ bucket_print_lines (hash_bucket *bucket)
   return 6 + gdbm_file->header->bucket_elems + 3 + bucket->av_count;
 }
 
+static void
+format_key_start (FILE *fp, bucket_element *elt)
+{
+  int size = SMALL < elt->key_size ? SMALL : elt->key_size;
+  int i;
+
+  for (i = 0; i < size; i++)
+    {
+      if (isprint (elt->key_start[i]))
+	fprintf (fp, "   %c", elt->key_start[i]);
+      else
+	fprintf (fp, " %03o", elt->key_start[i]);
+    }
+}
+
 /* Debug procedure to print the contents of the current hash bucket. */
 void
-print_bucket (FILE *fp, hash_bucket *bucket, const char *mesg)
+print_bucket (FILE *fp, hash_bucket *bucket, const char *mesg, ...)
 {
-  int             index;
+  int index;
+  va_list ap;
 
+  fprintf (fp, "******* ");
+  va_start(ap, mesg);
+  vfprintf (fp, mesg, ap);
+  va_end (ap);
+  fprintf (fp, " **********\n\n");
   fprintf (fp,
-	   _("******* %s **********\n\nbits = %d\ncount= %d\nHash Table:\n"),
-	   mesg, bucket->bucket_bits, bucket->count);
+	   _("bits = %d\ncount= %d\nHash Table:\n"),
+	   bucket->bucket_bits, bucket->count);
   fprintf (fp,
-	   _("     #    hash value     key size    data size     data adr  home\n"));
+	   _("    #    hash value     key size    data size     data adr home  key start\n"));
   for (index = 0; index < gdbm_file->header->bucket_elems; index++)
-    fprintf (fp, "  %4d  %12x  %11d  %11d  %11lu %5d\n", index,
-	     bucket->h_table[index].hash_value,
-	     bucket->h_table[index].key_size,
-	     bucket->h_table[index].data_size,
-	     (unsigned long) bucket->h_table[index].data_pointer,
-	     bucket->h_table[index].hash_value %
-	     gdbm_file->header->bucket_elems);
+    {
+      fprintf (fp, " %4d  %12x  %11d  %11d  %11lu %4d", index,
+	       bucket->h_table[index].hash_value,
+	       bucket->h_table[index].key_size,
+	       bucket->h_table[index].data_size,
+	       (unsigned long) bucket->h_table[index].data_pointer,
+	       bucket->h_table[index].hash_value %
+	       gdbm_file->header->bucket_elems);
+      if (bucket->h_table[index].key_size)
+	{
+	  fprintf (fp, " ");
+	  format_key_start (fp, &bucket->h_table[index]);
+	}
+      fprintf (fp, "\n");
+    }
 
   fprintf (fp, _("\nAvail count = %1d\n"), bucket->av_count);
   fprintf (fp, _("Avail  adr     size\n"));
@@ -526,20 +555,32 @@ print_current_bucket_begin (struct handler_param *param GDBM_ARG_UNUSED,
 {
   if (checkdb ())
     return 1;
-  
+  if (!gdbm_file->bucket)
+    return 0;
   if (exp_count)
-    *exp_count = bucket_print_lines (gdbm_file->bucket) + 3;
+    *exp_count = gdbm_file->bucket
+                   ? bucket_print_lines (gdbm_file->bucket) + 3
+                   : 1;
   return 0;
 }
 
 void
 print_current_bucket_handler (struct handler_param *param)
 {
-  print_bucket (param->fp, gdbm_file->bucket, _("Current bucket"));
-  fprintf (param->fp, _("\n current directory entry = %d.\n"),
-	   gdbm_file->bucket_dir);
-  fprintf (param->fp, _(" current bucket address  = %lu.\n"),
-	   (unsigned long) gdbm_file->cache_entry->ca_adr);
+  if (!gdbm_file->bucket)
+    fprintf (param->fp, _("no current bucket\n"));
+  else
+    {
+      if (param->argc)
+	print_bucket (param->fp, gdbm_file->bucket, _("Bucket #%s"),
+		      PARAM_STRING (param, 0));
+      else
+	print_bucket (param->fp, gdbm_file->bucket, "%s", _("Current bucket"));
+      fprintf (param->fp, _("\n current directory entry = %d.\n"),
+	       gdbm_file->bucket_dir);
+      fprintf (param->fp, _(" current bucket address  = %lu.\n"),
+	       (unsigned long) gdbm_file->cache_entry->ca_adr);
+    }
 }
 
 int
@@ -652,8 +693,13 @@ print_header_handler (struct handler_param *param)
 void
 hash_handler (struct handler_param *param)
 {
-  fprintf (param->fp, _("hash value = %x. \n"),
-	   _gdbm_hash (PARAM_DATUM (param, 0)));
+  int hashval = _gdbm_hash (PARAM_DATUM (param, 0));
+  fprintf (param->fp, _("hash value = %x"), hashval);
+  if (gdbm_file)
+    fprintf (param->fp, _(", bucket #%u, slot %u"),
+	     hashval >> (31 - gdbm_file->header->dir_bits),
+	     hashval % gdbm_file->header->bucket_elems);
+  fprintf (param->fp, ".\n");
 }
 
 /* cache - print the bucket cache */
