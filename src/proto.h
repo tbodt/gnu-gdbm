@@ -38,6 +38,9 @@ int _gdbm_findkey       (GDBM_FILE, datum, char **, int *);
 
 /* From hash.c */
 int _gdbm_hash (datum);
+void _gdbm_hash_key (GDBM_FILE dbf, datum key, int *hash, int *bucket,
+		     int *offset);
+int _gdbm_bucket_dir (GDBM_FILE dbf, int hash);
 
 /* From update.c */
 int _gdbm_end_update   (GDBM_FILE);

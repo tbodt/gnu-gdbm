@@ -180,8 +180,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
   off_t       *new_dir;		/* Pointer to the new directory. */
   off_t        dir_adr; 	/* Address of the new directory. */
   int          dir_size;	/* Size of the new directory. */
-  off_t        old_adr[31]; 	/* Address of the old directories. */
-  int          old_size[31]; 	/* Size of the old directories. */
+  off_t        old_adr[GDBM_HASH_BITS];  /* Address of the old directories. */
+  int          old_size[GDBM_HASH_BITS]; /* Size of the old directories. */
   int	       old_count;	/* Number of old directories. */
 
   int          index;		/* Used in array indexing. */
@@ -281,7 +281,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       for (index = 0; index < dbf->header->bucket_elems; index++)
 	{
 	  old_el = & (dbf->bucket->h_table[index]);
-	  select = (old_el->hash_value >> (31-new_bits)) & 1;
+	  select = (old_el->hash_value >> (GDBM_HASH_BITS - new_bits)) & 1;
 	  elem_loc = old_el->hash_value % dbf->header->bucket_elems;
 	  while (bucket[select]->h_table[elem_loc].hash_value != -1)
 	    elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
@@ -334,7 +334,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       dbf->second_changed = TRUE;
       
       /* Update the cache! */
-      dbf->bucket_dir = next_insert >> (31-dbf->header->dir_bits);
+      dbf->bucket_dir = _gdbm_bucket_dir (dbf, next_insert);
       
       /* Invalidate old cache entry. */
       old_bucket.av_adr  = dbf->cache_entry->ca_adr;

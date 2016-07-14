@@ -216,7 +216,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
       /* Start with the blocksize. */
       if (block_size < 512)
-	file_block_size = STATBLKSIZE;
+	file_block_size = STATBLKSIZE(file_stat);
       else
 	file_block_size = block_size;
 

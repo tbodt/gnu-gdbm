@@ -1,8 +1,8 @@
 /* systems.h - Most of the system dependant code and defines are here. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,9 +46,9 @@
    stat record. This code uses the BSD blocksize from stat. */
 
 #if HAVE_STRUCT_STAT_ST_BLKSIZE
-# define STATBLKSIZE file_stat.st_blksize
+# define STATBLKSIZE(st) (st).st_blksize
 #else
-# define STATBLKSIZE 1024
+# define STATBLKSIZE(st) 1024
 #endif
 
 /* Do we have ftruncate? */

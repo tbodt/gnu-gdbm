@@ -1,8 +1,8 @@
 /* gdbmconst.h - The constants defined for use in gdbm. */
 
 /* This file is part of GDBM, the GNU data base manager.
-   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 1990, 1991, 1993, 2007, 2011, 2013,
+   2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@
 #define GDBM_OMAGIC_SWAP	0xce9a5713	/* OMAGIC swapped. */
 #define GDBM_MAGIC32_SWAP	0xcd9a5713	/* MAGIC32 swapped. */
 #define GDBM_MAGIC64_SWAP	0xcf9a5713	/* MAGIC64 swapped. */
+
+/* Size of a hash value, in bits */
+#define GDBM_HASH_BITS 31
 
 /* In freeing blocks, we will ignore any blocks smaller (and equal) to
    IGNORE_SIZE number of bytes. */

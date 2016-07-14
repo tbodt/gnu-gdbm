@@ -97,15 +97,16 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
   int    bucket_hash_val;	/* The hash value from the bucket. */
   int    new_hash_val;          /* Computed hash value for the key */
   char  *file_key;		/* The complete key as stored in the file. */
+  int    bucket_dir;            /* Number of the bucket in directory. */
   int    elem_loc;		/* The location in the bucket. */
   int    home_loc;		/* The home location in the bucket. */
   int    key_size;		/* Size of the key on the file.  */
 
   /* Compute hash value and load proper bucket.  */
-  new_hash_val = _gdbm_hash (key);
+  _gdbm_hash_key (dbf, key, &new_hash_val, &bucket_dir, &elem_loc);
   if (ret_hash_val)
     *ret_hash_val = new_hash_val;
-  if (_gdbm_get_bucket (dbf, new_hash_val >> (31 - dbf->header->dir_bits)))
+  if (_gdbm_get_bucket (dbf, bucket_dir))
     return -1;
   
   /* Is the element the last one found for this bucket? */
@@ -122,7 +123,6 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
     }
       
   /* It is not the cached value, search for element in the bucket. */
-  elem_loc = new_hash_val % dbf->header->bucket_elems;
   home_loc = elem_loc;
   bucket_hash_val = dbf->bucket->h_table[elem_loc].hash_value;
   while (bucket_hash_val != -1)
