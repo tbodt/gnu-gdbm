@@ -31,19 +31,38 @@
 # error "Unsupported off_t size, contact GDBM maintainer.  What crazy system is this?!?"
 #endif
 
+static void
+compute_directory_size (GDBM_FILE dbf, blksize_t block_size,
+			int *ret_dir_size, int *ret_dir_bits)
+{
+  /* Create the initial hash table directory.  */
+  int dir_size = 8 * sizeof (off_t);
+  int dir_bits = 3;
+
+  while (dir_size < block_size && dir_bits < GDBM_HASH_BITS - 3)
+    {
+      dir_size <<= 1;
+      dir_bits++;
+    }
+
+  *ret_dir_size = dir_size;
+  *ret_dir_bits = dir_bits;
+}
+
+  
 /* Initialize dbm system.  FILE is a pointer to the file name.  If the file
    has a size of zero bytes, a file initialization procedure is performed,
    setting up the initial structure in the file.  BLOCK_SIZE is used during
    initialization to determine the size of various constructs.  If the value
-   is less than 512, the file system blocksize is used, otherwise the value
-   of BLOCK_SIZE is used.  BLOCK_SIZE is ignored if the file has previously
-   initialized.  If FLAGS is set to GDBM_READ the user wants to just
-   read the database and any call to dbm_store or dbm_delete will fail. Many
-   readers can access the database at the same time.  If FLAGS is set to
-   GDBM_WRITE, the user wants both read and write access to the database and
-   requires exclusive access.  If FLAGS is GDBM_WRCREAT, the user wants
-   both read and write access to the database and if the database does not
-   exist, create a new one.  If FLAGS is GDBM_NEWDB, the user want a
+   is less than GDBM_MIN_BLOCK_SIZE, the file system blocksize is used,
+   otherwise the value of BLOCK_SIZE is used.  BLOCK_SIZE is ignored if the
+   file has previously initialized.  If FLAGS is set to GDBM_READ the user
+   wants to just read the database and any call to dbm_store or dbm_delete
+   will fail. Many readers can access the database at the same time.  If FLAGS
+   is set to GDBM_WRITE, the user wants both read and write access to the
+   database and requires exclusive access.  If FLAGS is GDBM_WRCREAT, the user
+   wants both read and write access to the database and if the database does
+   not exist, create a new one.  If FLAGS is GDBM_NEWDB, the user want a
    new database created, regardless of whether one existed, and wants read
    and write access to the new database.  Any error detected will cause a 
    return value of null and an approprate value will be in gdbm_errno.  If
@@ -59,7 +78,6 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   struct stat file_stat;	/* Space for the stat information. */
   int         len;		/* Length of the file name. */
   off_t       file_pos;		/* Used with seeks. */
-  int	      file_block_size;	/* Block size to use for a new file. */
   int 	      index;		/* Used as a loop index. */
   char        need_trunc;	/* Used with GDBM_NEWDB and locking to avoid
 				   truncating a file from under a reader. */
@@ -211,18 +229,32 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   /* Decide if this is a new file or an old file. */
   if (file_stat.st_size == 0)
     {
-
       /* This is a new file.  Create an empty database.  */
-
+      int dir_size, dir_bits;
+      
       /* Start with the blocksize. */
-      if (block_size < 512)
-	file_block_size = STATBLKSIZE(file_stat);
-      else
-	file_block_size = block_size;
-
+      if (block_size < GDBM_MIN_BLOCK_SIZE)
+	{
+	  block_size = STATBLKSIZE (file_stat);
+	  flags &= ~GDBM_BSEXACT;
+	}
+      compute_directory_size (dbf, block_size, &dir_size, &dir_bits);
+      /* Check for correct block_size. */
+      if (dir_size != block_size)
+	{
+	  if (flags & GDBM_BSEXACT)
+	    {
+	      gdbm_close (dbf);
+	      gdbm_set_errno (NULL, GDBM_BLOCK_SIZE_ERROR, FALSE);
+	      return NULL;
+	    }
+	  else
+	    block_size = dir_size;
+	}
+      
       /* Get space for the file header. It will be written to disk, so
          make sure there's no garbage in it. */
-      dbf->header = (gdbm_file_header *) calloc (1, file_block_size);
+      dbf->header = (gdbm_file_header *) calloc (1, block_size);
       if (dbf->header == NULL)
 	{
 	  gdbm_close (dbf);
@@ -232,24 +264,9 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
       /* Set the magic number and the block_size. */
       dbf->header->header_magic = GDBM_MAGIC;
-      dbf->header->block_size = file_block_size;
-     
-      /* Create the initial hash table directory.  */
-      dbf->header->dir_size = 8 * sizeof (off_t);
-      dbf->header->dir_bits = 3;
-      while (dbf->header->dir_size < dbf->header->block_size)
-	{
-	  dbf->header->dir_size <<= 1;
-	  dbf->header->dir_bits += 1;
-	}
-
-      /* Check for correct block_size. */
-      if (dbf->header->dir_size != dbf->header->block_size)
-	{
-	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_BLOCK_SIZE_ERROR, FALSE);
-	  return NULL;
-	}
+      dbf->header->block_size = block_size;
+      dbf->header->dir_size = dir_size;
+      dbf->header->dir_bits = dir_bits;
 
       /* Allocate the space for the directory. */
       dbf->dir = (off_t *) malloc (dbf->header->dir_size);

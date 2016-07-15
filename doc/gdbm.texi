@@ -258,9 +258,14 @@ characters to this name).
 It is used during initialization to determine the size of various
 constructs.  It is the size of a single transfer from disk to
 memory.  This parameter is ignored if the file has been previously
-initialized.  The minimum size is 512.  If the value is less than 512,
-the file system block size is used, otherwise the value of
-@var{block_size} is used.
+initialized.  If the value is less than 512, the file system block
+size is used instead.  The size is adjusted so that the block can hold
+exact number of directory entries, so that the effective block size
+can be slightly greater than requested.  However, if the 
+@samp{GDBM_BSEXACT} flag is set and the size needs to be adjusted, the
+function will return with error status, setting the @samp{gdbm_errno}
+variable to @samp{GDBM_BLOCK_SIZE_ERROR}.
+
 @item flags
 @kwindex GDBM_READER
 @kwindex GDBM_WRITER
@@ -286,6 +291,12 @@ synchronized to the disk, @samp{GDBM_NOLOCK}, which prevents the library
 from performing any locking on the database file, and @samp{GDBM_NOMMAP},
 which disables the memory mapping mechanism.  The option @samp{GDBM_FAST} is
 now obsolete, since @code{gdbm} defaults to no-sync mode.
+
+@kwindex GDBM_BSEXACT
+If this flag is set and the requested @var{block_size} cannot be used
+without adjustment, @code{gdbm_open} will refuse to create the
+databases.  In this case it will set the @samp{gdbm_errno}
+variable to @samp{GDBM_BLOCK_SIZE_ERROR} and return @samp{NULL}.
 
 @kwindex GDBM_CLOEXEC
 @cindex close-on-exec
@@ -1233,9 +1244,11 @@ No error occurred.
 Memory allocation failed.  Not enough memory.
 
 @kwindex GDBM_BLOCK_SIZE_ERROR
+@kwindex GDBM_BSEXACT
 @item GDBM_BLOCK_SIZE_ERROR
 This error is set by the @code{gdbm_open} function (@pxref{Open}), if
-the value of its @var{block_size} argument is incorrect.
+the value of its @var{block_size} argument is incorrect and the
+@samp{GDBM_BSEXACT} flag is set.
 
 @kwindex GDBM_FILE_OPEN_ERROR
 @item GDBM_FILE_OPEN_ERROR

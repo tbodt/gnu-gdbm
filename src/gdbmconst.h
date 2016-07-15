@@ -38,6 +38,9 @@
 /* Size of a hash value, in bits */
 #define GDBM_HASH_BITS 31
 
+/* Minimal acceptable block size */
+#define GDBM_MIN_BLOCK_SIZE 512
+
 /* In freeing blocks, we will ignore any blocks smaller (and equal) to
    IGNORE_SIZE number of bytes. */
 #define IGNORE_SIZE 4

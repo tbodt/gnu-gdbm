@@ -1,4 +1,4 @@
-GNU dbm NEWS -- history of user-visible changes. 2016-07-13
+GNU dbm NEWS -- history of user-visible changes. 2016-07-15
 Copyright (C) 1990-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -22,6 +22,16 @@ The gdbm_fetch function no longer aborts on memory allocation errors.
 Instead it sets gdbm_errno to GDBM_MALLOC_ERROR and returns NULL datum.
 
 * Per-database error codes
+
+* New gdbm_open flag: GDBM_BSEXACT
+
+When creating a new database, the gdbm_open function will adjust the
+requested block size so that the block can hold integer number of
+directory entries.  Thus, the resulting block size can be bigger than
+the requested one.  If the GDBM_BSEXACT flag is set, this behavior is
+suppressed and gdbm_open will try to force exactly the requested block
+size.  If unable to do so, it will set the gdbm_errno variable to
+GDBM_BLOCK_SIZE_ERROR and return NULL.
 
 * New functions
 

@@ -65,14 +65,14 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
     }
 
   /* Allocate buffers. */
-  kbufsize = 512;
+  kbufsize = GDBM_MIN_BLOCK_SIZE;
   kbuffer = malloc (kbufsize);
   if (kbuffer == NULL)
     {
       gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
-  dbufsize = 512;
+  dbufsize = GDBM_MIN_BLOCK_SIZE;
   dbuffer = malloc (dbufsize);
   if (dbuffer == NULL)
     {
@@ -95,7 +95,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
       
       if (size > kbufsize)
 	{
-	  kbufsize = (size + 512);
+	  kbufsize = (size + GDBM_MIN_BLOCK_SIZE);
 	  kbuffer = realloc (kbuffer, kbufsize);
 	  if (kbuffer == NULL)
 	    {
@@ -127,7 +127,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
 	}
       if (size > dbufsize)
 	{
-	  dbufsize = (size + 512);
+	  dbufsize = (size + GDBM_MIN_BLOCK_SIZE);
 	  dbuffer = realloc (dbuffer, dbufsize);
 	  if (dbuffer == NULL)
 	    {
