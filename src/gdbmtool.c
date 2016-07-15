@@ -694,9 +694,6 @@ void
 hash_handler (struct handler_param *param)
 {
   if (gdbm_file)
-    fprintf (param->fp, _("hash value = %x"),
-	     _gdbm_hash (PARAM_DATUM (param, 0)));
-  else
     {
       int hashval, bucket, off;
       _gdbm_hash_key (gdbm_file, PARAM_DATUM (param, 0),
@@ -706,6 +703,9 @@ hash_handler (struct handler_param *param)
 	       hashval >> (GDBM_HASH_BITS - gdbm_file->header->dir_bits),
 	       hashval % gdbm_file->header->bucket_elems);
     }
+  else
+    fprintf (param->fp, _("hash value = %x"),
+	     _gdbm_hash (PARAM_DATUM (param, 0)));
   fprintf (param->fp, ".\n");
 }
 
