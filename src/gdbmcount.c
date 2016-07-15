@@ -39,7 +39,8 @@ gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount)
   off_t *sdir;
   gdbm_count_t count = 0;
   int i, last;
-
+  int result;
+  
   /* Return immediately if the database needs recovery */	
   GDBM_ASSERT_CONSISTENCY (dbf, -1);
   
@@ -53,17 +54,21 @@ gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount)
   memcpy (sdir, dbf->dir, dbf->header->dir_size);
   qsort (sdir, nbuckets, sizeof (off_t), compoff);
 
+  result = 0;
   for (i = last = 0; i < nbuckets; i++)
     {
       if (i == 0 || sdir[i] != sdir[last])
 	{
 	  if (_gdbm_read_bucket_at (dbf, sdir[i], &bucket, sizeof bucket))
-	    return -1;
+	    {
+	      result = -1;
+	      break;
+	    }
 	  count += bucket.count;
 	  last = i;
 	}
     }
   free (sdir);
   *pcount = count;
-  return 0;
+  return result;
 }

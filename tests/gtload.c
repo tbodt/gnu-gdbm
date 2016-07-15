@@ -1,5 +1,5 @@
 /* This file is part of GDBM test suite.
-   Copyright (C) 2011 Free Software Foundation, Inc.
+   Copyright (C) 2011, 2016 Free Software Foundation, Inc.
 
    GDBM is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ main (int argc, char **argv)
   int delim = '\t';
   int data_z = 0;
   size_t mapped_size_max = 0;
+  int blksize;
+  int verbose = 0;
   
   while (--argc)
     {
@@ -46,7 +48,7 @@ main (int argc, char **argv)
 
       if (strcmp (arg, "-h") == 0)
 	{
-	  printf ("usage: %s [-replace] [-clear] [-blocksize=N] [-null] [-nolock] [-nommap] [-maxmap=N] [-sync] [-delim=CHR] DBFILE\n", progname);
+	  printf ("usage: %s [-replace] [-clear] [-blocksize=N] [-bsexact] [-verbose] [-null] [-nolock] [-nommap] [-maxmap=N] [-sync] [-delim=CHR] DBFILE\n", progname);
 	  exit (0);
 	}
       else if (strcmp (arg, "-replace") == 0)
@@ -61,6 +63,10 @@ main (int argc, char **argv)
 	flags |= GDBM_NOMMAP;
       else if (strcmp (arg, "-sync") == 0)
 	flags |= GDBM_SYNC;
+      else if (strcmp (arg, "-bsexact") == 0)
+	flags |= GDBM_BSEXACT;
+      else if (strcmp (arg, "-verbose") == 0)
+	verbose = 1;
       else if (strncmp (arg, "-blocksize=", 11) == 0)
 	block_size = atoi (arg + 11);
       else if (strncmp (arg, "-maxmap=", 8) == 0)
@@ -119,11 +125,22 @@ main (int argc, char **argv)
       if (gdbm_setopt (dbf, GDBM_SETMAXMAPSIZE, &mapped_size_max,
 		       sizeof (mapped_size_max)))
 	{
-	  fprintf (stderr, "gdbm_setopt failed: %s\n",
+	  fprintf (stderr, "GDBM_SETMAXMAPSIZE failed: %s\n",
 		   gdbm_strerror (gdbm_errno));
 	  exit (1);
 	}
     }  
+
+  if (verbose)
+    {
+      if (gdbm_setopt (dbf, GDBM_GETBLOCKSIZE, &blksize, sizeof blksize))
+	{
+	  fprintf (stderr, "GDBM_GETBLOCKSIZE failed: %s\n",
+		   gdbm_strerror (gdbm_errno));
+	  exit (1);
+	}
+      printf ("blocksize=%d\n", blksize);
+    }
   
   while (fgets (buf, sizeof buf, stdin))
     {

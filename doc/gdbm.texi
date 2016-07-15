@@ -1102,6 +1102,10 @@ else
   @}
 @end example
 
+@kwindex GDBM_GETBLOCKSIZE
+@item GDBM_GETBLOCKSIZE
+Return the block size in bytes.  The @var{value} should point to @code{int}.
+
 @end table
 
 The return value will be @samp{-1} upon failure, or @samp{0} upon

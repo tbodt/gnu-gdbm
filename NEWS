@@ -33,6 +33,15 @@ suppressed and gdbm_open will try to force exactly the requested block
 size.  If unable to do so, it will set the gdbm_errno variable to
 GDBM_BLOCK_SIZE_ERROR and return NULL.
 
+* New gdbm_setopt option: GDBM_GETBLOCKSIZE
+
+Returns the block size in bytes.  E.g.
+
+ int size;
+ if (gdbm_setopt (dbf, GDBM_GETBLOCKSIZE, &size, sizeof size))
+   abort ();
+ ...
+
 * New functions
 
 ** gdbm_last_errno

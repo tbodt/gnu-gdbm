@@ -48,6 +48,9 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac $(srcdir)/Makefile.am
 
 TESTSUITE_AT = \
  testsuite.at\
+ blocksize00.at\
+ blocksize01.at\
+ blocksize02.at\
  cloexec00.at\
  cloexec01.at\
  cloexec02.at\

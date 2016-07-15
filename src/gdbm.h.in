@@ -81,6 +81,7 @@ extern "C" {
 # define GDBM_GETCOALESCEBLKS 13 /* Get free block coalesce status */
 # define GDBM_GETMAXMAPSIZE   14 /* Get maximum mapped memory size */
 # define GDBM_GETDBNAME       15 /* Return database file name */
+# define GDBM_GETBLOCKSIZE    16 /* Return block size */
 
 typedef @GDBM_COUNT_T@ gdbm_count_t;
   

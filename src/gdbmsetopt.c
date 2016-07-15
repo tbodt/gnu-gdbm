@@ -22,8 +22,6 @@
 
 #include "gdbmdefs.h"
 
-/* operate on an already open descriptor. */
-
 static int
 getbool (void *optval, int optlen)
 {
@@ -50,225 +48,297 @@ get_size (void *optval, int optlen, size_t *ret)
     return -1;
   return 0;
 }
+
+static int
+setopt_gdbm_setcachesize (GDBM_FILE dbf, void *optval, int optlen)
+{
+  size_t sz;
 
+  /* Optval will point to the new size of the cache. */
+  if (dbf->bucket_cache != NULL)
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ALREADY_SET, FALSE);
+      return -1;
+    }
+  
+  if (get_size (optval, optlen, &sz))
+    {     
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }  
+  return _gdbm_init_cache (dbf, (sz > 9) ? sz : 10);
+}
+
+static int
+setopt_gdbm_getcachesize (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (size_t))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  *(size_t*) optval = dbf->cache_size;
+  return 0;
+}
+
+/* Obsolete form of GDBM_SETSYNCMODE. */
+static int
+setopt_gdbm_fastmode (GDBM_FILE dbf, void *optval, int optlen)
+{
+  int n;
+
+  if ((n = getbool (optval, optlen)) == -1)
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  dbf->fast_write = n;
+  return 0;
+}
+
+static int
+setopt_gdbm_setsyncmode (GDBM_FILE dbf, void *optval, int optlen)
+{
+  int n;
+
+  /* Optval will point to either true or false. */
+  if ((n = getbool (optval, optlen)) == -1)
+    { 
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  dbf->fast_write = !n;
+  return 0;
+}
+
+static int
+setopt_gdbm_getsyncmode (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (int))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  *(int*) optval = !dbf->fast_write;
+  return 0;
+}
+
+/* CENTFREE - set or get the stat of the central block repository */
+static int
+setopt_gdbm_setcentfree (GDBM_FILE dbf, void *optval, int optlen)
+{
+  int n;
+  
+  /* Optval will point to either true or false. */
+  if ((n = getbool (optval, optlen)) == -1)
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  dbf->central_free = n;
+  return 0;
+}
+
+static int
+setopt_gdbm_getcentfree (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (int))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  *(int*) optval = !dbf->central_free;
+  return 0;
+}
+
+/* Coalesce state: */
+static int
+setopt_gdbm_setcoalesceblks (GDBM_FILE dbf, void *optval, int optlen)
+{
+  int n;
+  
+  /* Optval will point to either true or false. */
+  if ((n = getbool (optval, optlen)) == -1)
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  dbf->coalesce_blocks = n;
+  return 0;
+}
+
+static int
+setopt_gdbm_getcoalesceblks (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (int))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  *(int*) optval = dbf->coalesce_blocks;
+  return 0;
+}
+
+#if HAVE_MMAP  
+static int
+setopt_gdbm_setmmap (GDBM_FILE dbf, void *optval, int optlen)
+{
+  int n;
+  
+  if ((n = getbool (optval, optlen)) == -1)
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  __fsync (dbf);
+  if (n == dbf->memory_mapping)
+    return 0;
+  if (n)
+    {
+      if (_gdbm_mapped_init (dbf) == 0)
+	dbf->memory_mapping = TRUE;
+      else
+	return -1;
+    }
+  else
+    {
+      _gdbm_mapped_unmap (dbf);
+      dbf->memory_mapping = FALSE;
+    }
+  return 0;
+}
+
+static int
+setopt_gdbm_getmmap (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (int))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  *(int*) optval = dbf->memory_mapping;
+  return 0;
+}
+
+/* Maximum size of a memory mapped region */
+static int
+setopt_gdbm_setmaxmapsize (GDBM_FILE dbf, void *optval, int optlen)
+{
+  size_t page_size = sysconf (_SC_PAGESIZE);
+  size_t sz;
+
+  if (get_size (optval, optlen, &sz))
+    { 
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  dbf->mapped_size_max = ((sz + page_size - 1) / page_size) * page_size;
+  _gdbm_mapped_init (dbf);
+  return 0;
+}
+
+static int
+setopt_gdbm_getmaxmapsize (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (size_t))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  *(size_t*) optval = dbf->mapped_size_max;
+  return 0;
+}
+
+static int
+setopt_gdbm_getflags (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (int))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  else
+    {
+      int flags = dbf->read_write;
+      if (!dbf->fast_write)
+	flags |= GDBM_SYNC;
+      if (!dbf->file_locking)
+	flags |= GDBM_NOLOCK;
+      if (!dbf->memory_mapping)
+	flags |= GDBM_NOMMAP;
+      *(int*) optval = flags;
+    }
+  return 0;
+}
+#endif
+
+static int
+setopt_gdbm_getdbname (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (!optval || optlen != sizeof (char*))
+    {
+      gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+      return -1;
+    }
+  else
+    {
+      char *p = strdup (dbf->name);
+      if (!p)
+	{
+	  gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
+	  return -1;
+	}
+      *(char**) optval = p;
+    }
+  return 0;
+}
+
+static int
+setopt_gdbm_getblocksize (GDBM_FILE dbf, void *optval, int optlen)
+{
+  if (optval && optlen == sizeof (int))
+    {
+      *(int*) optval = dbf->header->block_size;
+      return 0;
+    }
+  
+  gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+  return -1;
+}
+
+typedef int (*setopt_handler) (GDBM_FILE, void *, int);
+
+static setopt_handler setopt_handler_tab[] = {
+  [GDBM_SETCACHESIZE] = setopt_gdbm_setcachesize,
+  [GDBM_GETCACHESIZE] = setopt_gdbm_getcachesize,
+  [GDBM_FASTMODE]     = setopt_gdbm_fastmode,
+  [GDBM_SETSYNCMODE]  = setopt_gdbm_setsyncmode,
+  [GDBM_GETSYNCMODE]  = setopt_gdbm_getsyncmode,
+  [GDBM_SETCENTFREE]  = setopt_gdbm_setcentfree,
+  [GDBM_GETCENTFREE]  = setopt_gdbm_getcentfree,
+  [GDBM_SETCOALESCEBLKS] = setopt_gdbm_setcoalesceblks,
+  [GDBM_GETCOALESCEBLKS] = setopt_gdbm_getcoalesceblks,
+#if HAVE_MMAP  
+  [GDBM_SETMMAP]         = setopt_gdbm_setmmap,
+  [GDBM_GETMMAP]         = setopt_gdbm_getmmap,
+  [GDBM_SETMAXMAPSIZE]   = setopt_gdbm_setmaxmapsize,
+  [GDBM_GETMAXMAPSIZE]   = setopt_gdbm_getmaxmapsize,
+  [GDBM_GETFLAGS]        = setopt_gdbm_getflags,
+#endif
+  [GDBM_GETDBNAME]       = setopt_gdbm_getdbname,
+  [GDBM_GETBLOCKSIZE]    = setopt_gdbm_getblocksize,
+};
+  
 int
 gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
 {
-  int n;
-  size_t sz;
-  
   /* Return immediately if the database needs recovery */	
   GDBM_ASSERT_CONSISTENCY (dbf, -1);
+
+  if (optflag >= 0
+  && optflag < sizeof (setopt_handler_tab) / sizeof (setopt_handler_tab[0]))
+    return setopt_handler_tab[optflag] (dbf, optval, optlen);
   
-  switch (optflag)
-    {
-      /* Cache size: */
-      
-      case GDBM_SETCACHESIZE:
-        /* Optval will point to the new size of the cache. */
-        if (dbf->bucket_cache != NULL)
-          {
-            gdbm_set_errno (dbf, GDBM_OPT_ALREADY_SET, FALSE);
-            return -1;
-          }
-
-	if (get_size (optval, optlen, &sz))
-          {     
-            gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-          }  
-        return _gdbm_init_cache (dbf, (sz > 9) ? sz : 10);
-
-      case GDBM_GETCACHESIZE:
-	if (!optval || optlen != sizeof (size_t))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	*(size_t*) optval = dbf->cache_size;
-	break;
-	
-      	/* Obsolete form of GDBM_SETSYNCMODE. */
-      case GDBM_FASTMODE:
-	if ((n = getbool (optval, optlen)) == -1)
-          {
-            gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-          }
-	dbf->fast_write = n;
-	break;
-
-	/* SYNC mode: */
-	
-      case GDBM_SETSYNCMODE:
-      	/* Optval will point to either true or false. */
-	if ((n = getbool (optval, optlen)) == -1)
-          { 
-            gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-          }
-	dbf->fast_write = !n;
-	break;
-
-      case GDBM_GETSYNCMODE:
-	if (!optval || optlen != sizeof (int))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	*(int*) optval = !dbf->fast_write;
-	break;
-
-	/* CENTFREE - set or get the stat of the central block repository */
-      case GDBM_SETCENTFREE:
-      	/* Optval will point to either true or false. */
-	if ((n = getbool (optval, optlen)) == -1)
-          {
-            gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-  	    return -1;
-          }
-	dbf->central_free = n;
-	break;
-
-      case GDBM_GETCENTFREE:
-	if (!optval || optlen != sizeof (int))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	*(int*) optval = !dbf->central_free;
-	break;
-
-	/* Coalesce state: */
-      case GDBM_SETCOALESCEBLKS:
-      	/* Optval will point to either true or false. */
-	if ((n = getbool (optval, optlen)) == -1)
-          {
-            gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-          }
-	dbf->coalesce_blocks = n;
-	break;
-
-      case GDBM_GETCOALESCEBLKS:
-	if (!optval || optlen != sizeof (int))
-	  {
-	    gdbm_set_errno (NULL, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	*(int*) optval = dbf->coalesce_blocks;
-	break;
-
-	/* Mmap mode */
-      case GDBM_SETMMAP:
-#if HAVE_MMAP
-	if ((n = getbool (optval, optlen)) == -1)
-          {
-            gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-          }
-	__fsync (dbf);
-	if (n == dbf->memory_mapping)
-	  return 0;
-	if (n)
-	  {
-	    if (_gdbm_mapped_init (dbf) == 0)
-	      dbf->memory_mapping = TRUE;
-	    else
-	      return -1;
-	  }
-	else
-	  {
-	    _gdbm_mapped_unmap (dbf);
-	    dbf->memory_mapping = FALSE;
-	  }
-#else
-	gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	return -1;
-#endif
-	break;
-	
-      case GDBM_GETMMAP:
-	if (!optval || optlen != sizeof (int))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	*(int*) optval = dbf->memory_mapping;
-	break;
-
-	/* Maximum size of a memory mapped region */
-      case GDBM_SETMAXMAPSIZE:
-#if HAVE_MMAP
-	{
-	  size_t page_size = sysconf (_SC_PAGESIZE);
-
-	  if (get_size (optval, optlen, &sz))
-            { 
-              gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	      return -1;
-            }
-	  dbf->mapped_size_max = ((sz + page_size - 1) / page_size) *
-	                          page_size;
-	  _gdbm_mapped_init (dbf);
-	  break;
-	}
-#else
-	gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	return -1;
-#endif
-	
-      case GDBM_GETMAXMAPSIZE:
-	if (!optval || optlen != sizeof (size_t))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	*(size_t*) optval = dbf->mapped_size_max;
-	break;
-
-	/* Flags */
-      case GDBM_GETFLAGS:
-	if (!optval || optlen != sizeof (int))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	else
-	  {
-	    int flags = dbf->read_write;
-	    if (!dbf->fast_write)
-	      flags |= GDBM_SYNC;
-	    if (!dbf->file_locking)
-	      flags |= GDBM_NOLOCK;
-	    if (!dbf->memory_mapping)
-	      flags |= GDBM_NOMMAP;
-	    *(int*) optval = flags;
-	  }
-	break;
-
-      case GDBM_GETDBNAME:
-	if (!optval || optlen != sizeof (char*))
-	  {
-	    gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-	    return -1;
-	  }
-	else
-	  {
-	    char *p = strdup (dbf->name);
-	    if (!p)
-	      {
-		gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
-		return -1;
-	      }
-	    *(char**) optval = p;
-	  }
-	break;
-	
-      default:
-        gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
-        return -1;
-    }
-
-  return 0;
+  gdbm_set_errno (dbf, GDBM_OPT_ILLEGAL, FALSE);
+  return -1;
 }
