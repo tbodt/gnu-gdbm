@@ -113,6 +113,7 @@ check_PROGRAMS = \
  gtfetch\
  gtload\
  gtopt\
+ gtrecover\
  gtver\
  num2word\
  $(DBMPROGS)
@@ -125,6 +126,7 @@ gtdump_LDADD = ../src/libgdbm.la
 gtfetch_LDADD = ../src/libgdbm.la
 gtver_LDADD = ../src/libgdbm.la
 gtopt_LDADD = ../src/libgdbm.la
+gtrecover_LDADD = ../src/libgdbm.la
 
 g_open_ce_LDADD = ../src/libgdbm.la
 g_reorg_ce_LDADD = ../src/libgdbm.la

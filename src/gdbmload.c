@@ -220,7 +220,8 @@ get_parms (struct dump_file *file)
       file->lblevel = 0;
     }
 
-  file->buffer[file->buflevel] = 0;
+  if (file->buffer)
+    file->buffer[file->buflevel] = 0;
   
   return ferror (file->fp) ? GDBM_FILE_READ_ERROR : 0;
 }

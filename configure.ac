@@ -107,7 +107,7 @@ AC_CHECK_HEADERS([sys/file.h sys/termios.h string.h locale.h getopt.h])
 
 AC_CHECK_LIB(dbm, main)
 AC_CHECK_LIB(ndbm, main)
-AC_CHECK_FUNCS([rename ftruncate flock lockf fsync setlocale getopt_long])
+AC_CHECK_FUNCS([ftruncate flock lockf fsync setlocale getopt_long])
 
 if test x$mapped_io = xyes
 then

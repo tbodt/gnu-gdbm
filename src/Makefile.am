@@ -62,6 +62,7 @@ libgdbm_la_SOURCES = \
  hash.c\
  lock.c\
  mmap.c\
+ recover.c\
  update.c\
  version.c
 

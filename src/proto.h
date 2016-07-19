@@ -76,5 +76,7 @@ int _gdbm_base64_decode (const unsigned char *input, size_t input_len,
 int _gdbm_load (FILE *fp, GDBM_FILE *pdbf, unsigned long *line);
 int _gdbm_dump (GDBM_FILE dbf, FILE *fp);
 
+/* From recover.c */
+int _gdbm_next_bucket_dir (GDBM_FILE dbf, int bucket_dir);
 
 

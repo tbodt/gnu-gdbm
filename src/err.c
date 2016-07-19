@@ -22,19 +22,21 @@
 # include <string.h>
 
 static void
-prerror (const char *fmt, va_list ap, const char *diag)
+prerror (const char *fmt, va_list ap, const char *diag, const char *sysdiag)
 {
   fprintf (stderr, "%s: ", progname);
   vfprintf (stderr, fmt, ap);
   if (diag)
     fprintf (stderr, ": %s", diag);
+  if (sysdiag)
+    fprintf (stderr, ": %s", sysdiag);
   fputc ('\n', stderr);
 }
 
 void
 verror (const char *fmt, va_list ap)
 {
-  prerror (fmt, ap, NULL);
+  prerror (fmt, ap, NULL, NULL);
 }
 
 void
@@ -51,7 +53,7 @@ sys_perror (int code, const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
-  prerror (fmt, ap, strerror (code));
+  prerror (fmt, ap, strerror (code), NULL);
   va_end (ap);
 }
 
@@ -60,7 +62,8 @@ gdbm_perror (const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
-  prerror (fmt, ap, gdbm_strerror (gdbm_errno));
+  prerror (fmt, ap, gdbm_strerror (gdbm_errno),
+	   gdbm_syserr[gdbm_errno] ? strerror (errno) : NULL);
   va_end (ap);
 }
 

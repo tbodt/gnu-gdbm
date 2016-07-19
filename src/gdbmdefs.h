@@ -171,8 +171,12 @@ struct gdbm_file_info
   /* Last error was fatal, the database needs recovery */
   unsigned need_recovery :1;
   
-  /* Last error number */
+  /* Last GDBM error number */
   int last_error;
+  /* Last system error number */
+  int last_syserror;
+  /* Last formatted error */
+  char *last_errstr;
   
   /* Type of file locking in use. */
   enum { LOCKING_NONE = 0, LOCKING_FLOCK, LOCKING_LOCKF,

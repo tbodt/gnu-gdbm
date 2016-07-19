@@ -59,7 +59,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 
   /* Initial set up. */
   dbf->bucket_dir = dir_index;
-  bucket_adr = dbf->dir [dir_index];
+  bucket_adr = dbf->dir[dir_index];
   
   if (dbf->bucket_cache == NULL)
     {

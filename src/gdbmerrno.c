@@ -32,7 +32,14 @@ gdbm_set_errno (GDBM_FILE dbf, gdbm_error ec, int fatal)
 {
   if (dbf)
     {
+      free (dbf->last_errstr);
+      dbf->last_errstr = NULL;
+      
       dbf->last_error = ec;
+      if (gdbm_syserr[ec])
+	dbf->last_syserror = errno;
+      else
+	dbf->last_syserror = 0;
       dbf->need_recovery = fatal;
     }
   gdbm_errno = ec;
@@ -51,6 +58,17 @@ gdbm_last_errno (GDBM_FILE dbf)
 }
 
 int
+gdbm_last_syserr (GDBM_FILE dbf)
+{
+  if (!dbf)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  return dbf->last_syserror;
+}
+
+int
 gdbm_needs_recovery (GDBM_FILE dbf)
 {
   if (!dbf)
@@ -62,8 +80,13 @@ gdbm_needs_recovery (GDBM_FILE dbf)
 void
 gdbm_clear_error (GDBM_FILE dbf)
 {
-  if (dbf) 
-    dbf->last_error = GDBM_NO_ERROR;
+  if (dbf)
+    {
+      dbf->last_error = GDBM_NO_ERROR;
+      dbf->last_syserror = 0;
+      free (dbf->last_errstr);
+      dbf->last_errstr = NULL;
+    }
 }
 
 /* this is not static so that applications may access the array if they
@@ -99,7 +122,8 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_NO_DBNAME]              = N_("Database name not given"),
   [GDBM_ERR_FILE_OWNER]         = N_("Failed to restore file owner"),
   [GDBM_ERR_FILE_MODE]          = N_("Failed to restore file mode"),
-  [GDBM_NEED_RECOVERY]          = N_("Database needs recovery")
+  [GDBM_NEED_RECOVERY]          = N_("Database needs recovery"),
+  [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy")
 };
 
 const char *
@@ -114,3 +138,47 @@ gdbm_strerror (gdbm_error error)
       return gettext (gdbm_errlist[(int)error]);
     }
 }
+
+char const *
+gdbm_db_strerror (GDBM_FILE dbf)
+{
+  if (!dbf->last_errstr)
+    {
+      char const *errstr;
+
+      if (dbf->last_error == GDBM_MALLOC_ERROR)
+	return _("Out of memory");
+      
+      if ((dbf->last_error < _GDBM_MIN_ERRNO)
+	  || (dbf->last_error > _GDBM_MAX_ERRNO))
+	errstr = _("Unknown error");
+      else
+	errstr = gettext (gdbm_errlist[dbf->last_error]);
+
+      if (dbf->last_syserror)
+	{
+	  char const *syserrstr = strerror (dbf->last_syserror);
+	  size_t len = strlen (errstr) + strlen (syserrstr) + 2;
+	  dbf->last_errstr = malloc (len + 1);
+	  if (!dbf->last_errstr)
+	    return errstr;
+
+	  strcpy (dbf->last_errstr, errstr);
+	  strcat (dbf->last_errstr, ": ");
+	  strcat (dbf->last_errstr, syserrstr);
+	}
+      else
+	return errstr;
+    }
+  return dbf->last_errstr;
+}
+
+int const gdbm_syserr[_GDBM_MAX_ERRNO+1] = {
+  [GDBM_FILE_OPEN_ERROR]        = 1,
+  [GDBM_FILE_WRITE_ERROR]       = 1,
+  [GDBM_FILE_SEEK_ERROR]        = 1,
+  [GDBM_FILE_READ_ERROR]        = 1,
+  [GDBM_FILE_STAT_ERROR]        = 1,
+  [GDBM_BACKUP_FAILED]          = 1
+};
+

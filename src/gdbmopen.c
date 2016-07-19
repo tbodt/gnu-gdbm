@@ -49,52 +49,40 @@ compute_directory_size (GDBM_FILE dbf, blksize_t block_size,
   *ret_dir_bits = dir_bits;
 }
 
-  
-/* Initialize dbm system.  FILE is a pointer to the file name.  If the file
-   has a size of zero bytes, a file initialization procedure is performed,
-   setting up the initial structure in the file.  BLOCK_SIZE is used during
-   initialization to determine the size of various constructs.  If the value
-   is less than GDBM_MIN_BLOCK_SIZE, the file system blocksize is used,
-   otherwise the value of BLOCK_SIZE is used.  BLOCK_SIZE is ignored if the
-   file has previously initialized.  If FLAGS is set to GDBM_READ the user
-   wants to just read the database and any call to dbm_store or dbm_delete
-   will fail. Many readers can access the database at the same time.  If FLAGS
-   is set to GDBM_WRITE, the user wants both read and write access to the
-   database and requires exclusive access.  If FLAGS is GDBM_WRCREAT, the user
-   wants both read and write access to the database and if the database does
-   not exist, create a new one.  If FLAGS is GDBM_NEWDB, the user want a
-   new database created, regardless of whether one existed, and wants read
-   and write access to the new database.  Any error detected will cause a 
-   return value of null and an approprate value will be in gdbm_errno.  If
-   no errors occur, a pointer to the "gdbm file descriptor" will be
-   returned. */
-   
-
 GDBM_FILE 
-gdbm_open (const char *file, int block_size, int flags, int mode,
-     	   void (*fatal_func) (const char *))
+gdbm_fd_open (int fd, const char *file_name, int block_size,
+	      int flags, void (*fatal_func) (const char *))
 {
   GDBM_FILE dbf;		/* The record to return. */
   struct stat file_stat;	/* Space for the stat information. */
-  int         len;		/* Length of the file name. */
   off_t       file_pos;		/* Used with seeks. */
   int 	      index;		/* Used as a loop index. */
-  char        need_trunc;	/* Used with GDBM_NEWDB and locking to avoid
-				   truncating a file from under a reader. */
   int         rc;               /* temporary error code */ 
-  int         fbits = 0;        /* additional bits for open(2) flags */
   
   /* Initialize the gdbm_errno variable. */
   gdbm_set_errno (NULL, GDBM_NO_ERROR, FALSE);
 
+  /* Get the status of the file. */
+  if (fstat (fd, &file_stat))
+    {
+      if (flags & GDBM_CLOERROR)
+	SAVE_ERRNO (close (fd));
+      gdbm_set_errno (NULL, GDBM_FILE_STAT_ERROR, FALSE);
+      return NULL;
+    }
+  
   /* Allocate new info structure. */
   dbf = (GDBM_FILE) malloc (sizeof (*dbf));
   if (dbf == NULL)
     {
+      if (flags & GDBM_CLOERROR)
+	SAVE_ERRNO (close (fd));
       gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
       return NULL;
     }
 
+  dbf->desc = fd;
+  
   /* Initialize some fields for known values.  This is done so gdbm_close
      will work if called before allocating some structures. */
   dbf->dir  = NULL;
@@ -111,15 +99,15 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   dbf->mapped_off = 0;
   
   /* Save name of file. */
-  len = strlen (file);
-  dbf->name = (char *) malloc (len + 1);
+  dbf->name = strdup (file_name);
   if (dbf->name == NULL)
     {
+      if (flags & GDBM_CLOERROR)
+	close (fd);
       free (dbf);
       gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
       return NULL;
     }
-  strcpy (dbf->name, file);
 
   /* Initialize the fatal error routine. */
   dbf->fatal_err = fatal_func;
@@ -131,6 +119,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
   dbf->need_recovery = FALSE;
   dbf->last_error = GDBM_NO_ERROR;
+  dbf->last_syserror = 0;
+  dbf->last_errstr = NULL;
   
   /* GDBM_FAST used to determine whether or not we set fast_write. */
   if (flags & GDBM_SYNC)
@@ -142,58 +132,14 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     {
       dbf->file_locking = FALSE;
     }
-  if (flags & GDBM_CLOEXEC)
-    {
-      fbits = O_CLOEXEC;
-      dbf->cloexec = TRUE;
-    }
-  else
-    dbf->cloexec = FALSE;
-  
-  /* Open the file. */
-  need_trunc = FALSE;
-  switch (flags & GDBM_OPENMASK)
-    {
-      case GDBM_READER:
-	dbf->desc = open (dbf->name, O_RDONLY|fbits, 0);
-	break;
 
-      case GDBM_WRITER:
-	dbf->desc = open (dbf->name, O_RDWR|fbits, 0);
-	break;
-
-      case GDBM_NEWDB:
-	dbf->desc = open (dbf->name, O_RDWR|O_CREAT|fbits, mode);
-	need_trunc = TRUE;
-	break;
-
-      default:
-	dbf->desc = open (dbf->name, O_RDWR|O_CREAT|fbits, mode);
-	break;
-
-    }
-  if (dbf->desc < 0)
-    {
-      SAVE_ERRNO (free (dbf->name);
-                  free (dbf));
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
-      return NULL;
-    }
-
-  /* Get the status of the file. */
-  if (fstat (dbf->desc, &file_stat))
-    {
-      SAVE_ERRNO (close (dbf->desc);
-		  free (dbf->name);
-		  free (dbf));
-      gdbm_set_errno (NULL, GDBM_FILE_STAT_ERROR, FALSE);
-      return NULL;
-    }
+  dbf->cloexec = !!(flags & GDBM_CLOEXEC);
   
   /* Zero-length file can't be a reader... */
   if (((flags & GDBM_OPENMASK) == GDBM_READER) && (file_stat.st_size == 0))
     {
-      close (dbf->desc);
+      if (flags & GDBM_CLOERROR)
+	close (dbf->desc);
       free (dbf->name);
       free (dbf);
       gdbm_set_errno (NULL, GDBM_EMPTY_DATABASE, FALSE);
@@ -208,7 +154,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
     {
       if (_gdbm_lock_file (dbf) == -1)
 	{
-	  close (dbf->desc);
+	  if (flags & GDBM_CLOERROR)
+	    close (dbf->desc);
 	  free (dbf->name);
 	  free (dbf);
           gdbm_set_errno (NULL,
@@ -220,7 +167,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
   /* If we do have a write lock and it was a GDBM_NEWDB, it is 
      now time to truncate the file. */
-  if (need_trunc && file_stat.st_size != 0)
+  if ((flags & GDBM_OPENMASK) == GDBM_NEWDB && file_stat.st_size != 0)
     {
       TRUNCATE (dbf);
       fstat (dbf->desc, &file_stat);
@@ -244,6 +191,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 	{
 	  if (flags & GDBM_BSEXACT)
 	    {
+	      if (!(flags & GDBM_CLOERROR))
+		dbf->desc = -1;
 	      gdbm_close (dbf);
 	      gdbm_set_errno (NULL, GDBM_BLOCK_SIZE_ERROR, FALSE);
 	      return NULL;
@@ -257,6 +206,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       dbf->header = (gdbm_file_header *) calloc (1, block_size);
       if (dbf->header == NULL)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  gdbm_close (dbf);
 	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
@@ -272,6 +223,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       dbf->dir = (off_t *) malloc (dbf->header->dir_size);
       if (dbf->dir == NULL)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  gdbm_close (dbf);
 	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
@@ -286,6 +239,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       dbf->bucket = (hash_bucket *) malloc (dbf->header->bucket_size);
       if (dbf->bucket == NULL)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  gdbm_close (dbf);
 	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
@@ -312,6 +267,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       rc = _gdbm_full_write (dbf, dbf->header, dbf->header->block_size);
       if (rc)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
@@ -321,6 +278,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       rc = _gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size);
       if (rc)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
@@ -330,6 +289,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       rc = _gdbm_full_write (dbf, dbf->bucket, dbf->header->bucket_size);
       if (rc)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
@@ -351,6 +312,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       rc = _gdbm_full_read (dbf, &partial_header, sizeof (gdbm_file_header));
       if (rc)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
@@ -360,6 +323,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       if (partial_header.header_magic != GDBM_MAGIC
 	  && partial_header.header_magic != GDBM_OMAGIC)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  gdbm_close (dbf);
 	  switch (partial_header.header_magic)
 	    {
@@ -382,6 +347,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       dbf->header = (gdbm_file_header *) malloc (partial_header.block_size);
       if (dbf->header == NULL)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  gdbm_close (dbf);
 	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
@@ -391,6 +358,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 			    dbf->header->block_size-sizeof (gdbm_file_header));
       if (rc)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
@@ -400,6 +369,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       dbf->dir = (off_t *) malloc (dbf->header->dir_size);
       if (dbf->dir == NULL)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  gdbm_close (dbf);
 	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return NULL;
@@ -409,6 +380,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, GDBM_FILE_SEEK_ERROR, FALSE);
 	  return NULL;
@@ -417,6 +390,8 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       rc = _gdbm_full_read (dbf, dbf->dir, dbf->header->dir_size);
       if (rc)
 	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
@@ -432,9 +407,9 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
       else
 	{
 	  /* gdbm_errno should already be set. */
-	  SAVE_ERRNO (close (dbf->desc);
-	              free (dbf->name);
-	              free (dbf));
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
+	  SAVE_ERRNO (gdbm_close (dbf));
 	  return NULL;
 	}
     }
@@ -453,7 +428,64 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   /* Everything is fine, return the pointer to the file
      information structure.  */
   return dbf;
+}
+  
+/* Initialize dbm system.  FILE is a pointer to the file name.  If the file
+   has a size of zero bytes, a file initialization procedure is performed,
+   setting up the initial structure in the file.  BLOCK_SIZE is used during
+   initialization to determine the size of various constructs.  If the value
+   is less than GDBM_MIN_BLOCK_SIZE, the file system blocksize is used,
+   otherwise the value of BLOCK_SIZE is used.  BLOCK_SIZE is ignored if the
+   file has previously initialized.  If FLAGS is set to GDBM_READ the user
+   wants to just read the database and any call to dbm_store or dbm_delete
+   will fail. Many readers can access the database at the same time.  If FLAGS
+   is set to GDBM_WRITE, the user wants both read and write access to the
+   database and requires exclusive access.  If FLAGS is GDBM_WRCREAT, the user
+   wants both read and write access to the database and if the database does
+   not exist, create a new one.  If FLAGS is GDBM_NEWDB, the user want a
+   new database created, regardless of whether one existed, and wants read
+   and write access to the new database.  Any error detected will cause a 
+   return value of null and an approprate value will be in gdbm_errno.  If
+   no errors occur, a pointer to the "gdbm file descriptor" will be
+   returned. */
+   
 
+GDBM_FILE 
+gdbm_open (const char *file, int block_size, int flags, int mode,
+     	   void (*fatal_func) (const char *))
+{
+  int fd;
+  /* additional bits for open(2) flags */
+  int fbits = 0;
+  
+  switch (flags & GDBM_OPENMASK)
+    {
+      case GDBM_READER:
+	fbits = O_RDONLY;
+	break;
+
+      case GDBM_WRITER:
+	fbits = O_RDWR;
+	break;
+
+      case GDBM_NEWDB:
+	fbits = O_RDWR|O_CREAT;
+	break;
+
+      default:
+	fbits = O_RDWR|O_CREAT;
+    }
+  if (flags & GDBM_CLOEXEC)
+    fbits |= O_CLOEXEC;
+  
+  fd = open (file, fbits, mode);
+  if (fd < 0)
+    {
+      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+      return NULL;
+    }
+  return gdbm_fd_open (fd, file, block_size, flags | GDBM_CLOERROR,
+		       fatal_func);
 }
 
 /* Initialize the bucket cache. */

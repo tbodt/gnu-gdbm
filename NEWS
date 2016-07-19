@@ -1,4 +1,4 @@
-GNU dbm NEWS -- history of user-visible changes. 2016-07-15
+GNU dbm NEWS -- history of user-visible changes. 2016-07-19
 Copyright (C) 1990-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -49,6 +49,16 @@ Returns the block size in bytes.  E.g.
 ** gdbm_clear_error
 
 ** gdbm_needs_recovery
+
+** gdbm_recover
+
+** gdbm_last_syserr
+
+** gdbm_db_strerror
+
+** gdbm_fd_open
+
+** gdbm_copy_meta
 
 * Line editing in gdbmtool
 

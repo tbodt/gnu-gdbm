@@ -531,6 +531,100 @@ reorganize_handler (struct handler_param *param GDBM_ARG_UNUSED)
     fprintf (stderr, _("Reorganization succeeded.\n"));
 }
 
+static void
+err_printer (void *data GDBM_ARG_UNUSED, char const *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
+  fprintf (stderr, "\n");
+}
+
+/* recover verbose backup max-failed-keys=N max-failed-buckets=N max-failures=N */
+void
+recover_handler (struct handler_param *param)
+{
+  gdbm_recovery rcvr;
+  int flags = 0;
+  int rc;
+  int i;
+  char *p;
+  
+  for (i = 1; i < param->argc; i++)
+    {
+      char *arg = PARAM_STRING (param, i);
+      if (strcmp (arg, "verbose") == 0)
+	{
+	  rcvr.errfun = err_printer;
+	  flags |= GDBM_RCVR_ERRFUN;
+	}
+      else if (strcmp (arg, "backup") == 0)
+	{
+	  rcvr.errfun = err_printer;
+	  flags |= GDBM_RCVR_BACKUP;
+	}
+      else if (strncmp (arg, "max-failures=", 13) == 0)
+	{
+	  rcvr.max_failures = strtoul (arg + 13, &p, 10);
+	  if (*p)
+	    {
+	      printf (_("not a number (stopped near %s)\n"), p);
+	      return;
+	    }
+	  flags |= GDBM_RCVR_MAX_FAILURES;
+	}
+      else if (strncmp (arg, "max-failed-keys=", 16) == 0)
+	{
+	  rcvr.max_failed_keys = strtoul (arg + 16, &p, 10);
+	  if (*p)
+	    {
+	      printf (_("not a number (stopped near %s)\n"), p);
+	      return;
+	    }
+	  flags |= GDBM_RCVR_MAX_FAILED_KEYS;
+	}
+      else if (strncmp (arg, "max-failed-buckets=", 19) == 0)
+	{
+	  rcvr.max_failures = strtoul (arg + 19, &p, 10);
+	  if (*p)
+	    {
+	      printf (_("not a number (stopped near %s)\n"), p);
+	      return;
+	    }
+	  flags |= GDBM_RCVR_MAX_FAILED_BUCKETS;
+	}
+      else
+	{
+	  terror (_("unrecognized argument: %s"), arg);
+	  return;
+	}
+    }
+
+  rc = gdbm_recover (gdbm_file, &rcvr, flags);
+
+  if (rc == 0)
+    {
+      fprintf (param->fp, _("Recovery succeeded.\n"));
+      if (rcvr.backup_name)
+	{
+	  fprintf (param->fp,
+		   _("Original database preserved in file %s"),
+		   rcvr.backup_name);
+	  free (rcvr.backup_name);
+	}
+      fputc ('\n', param->fp);
+    }
+  else
+    {
+      fprintf (stderr, _("Recovery failed: %s"), gdbm_strerror (gdbm_errno));
+      if (gdbm_syserr[gdbm_errno])
+	fprintf (stderr, ": %s", strerror (errno));
+      fputc ('\n', stderr);
+    }
+}  
+
 /* avail - print available list */
 int
 avail_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
@@ -929,7 +1023,7 @@ struct argdef
   int ds;
 };
 
-#define NARGS 5
+#define NARGS 10
 
 struct command
 {
@@ -988,6 +1082,15 @@ struct command command_tab[] = {
   { S(reorganize), T_CMD,
     checkdb, reorganize_handler, NULL,
     { { NULL } }, N_("reorganize") },
+  { S(recover), T_CMD,
+    checkdb, recover_handler, NULL,
+    { { "[verbose]", GDBM_ARG_STRING },
+      { "[backup]",  GDBM_ARG_STRING },
+      { "[max-failed-keys=N]", GDBM_ARG_STRING },
+      { "[max-failed-buckets=N]", GDBM_ARG_STRING },
+      { "[max-failures=N]", GDBM_ARG_STRING },
+      { NULL } },
+    N_("recover the database") },
   { S(avail), T_CMD,
     avail_begin, avail_handler, NULL,
     { { NULL } }, N_("print avail list") }, 

@@ -18,6 +18,7 @@ gtdump
 gtfetch
 gtload
 gtopt
+gtrecover
 gtver
 num2word
 package.m4

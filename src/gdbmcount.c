@@ -21,54 +21,22 @@
 #include "autoconf.h"
 #include "gdbmdefs.h"
 
-static int
-compoff (const void *a, const void *b)
-{
-  if (*(off_t*)a < *(off_t*)b)
-    return -1;
-  if (*(off_t*)a > *(off_t*)b)
-    return 1;
-  return 0;
-}
-  
 int
 gdbm_count (GDBM_FILE dbf, gdbm_count_t *pcount)
 {
-  hash_bucket bucket;
   int nbuckets = GDBM_DIR_COUNT (dbf);
-  off_t *sdir;
   gdbm_count_t count = 0;
-  int i, last;
-  int result;
+  int i;
   
   /* Return immediately if the database needs recovery */	
   GDBM_ASSERT_CONSISTENCY (dbf, -1);
   
-  sdir = malloc (dbf->header->dir_size);
-  if (!sdir)
+  for (i = 0; i < nbuckets; i = _gdbm_next_bucket_dir (dbf, i))
     {
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
-      return -1;
+      if (_gdbm_get_bucket (dbf, i))
+	return -1;
+      count += dbf->bucket->count;
     }
-  
-  memcpy (sdir, dbf->dir, dbf->header->dir_size);
-  qsort (sdir, nbuckets, sizeof (off_t), compoff);
-
-  result = 0;
-  for (i = last = 0; i < nbuckets; i++)
-    {
-      if (i == 0 || sdir[i] != sdir[last])
-	{
-	  if (_gdbm_read_bucket_at (dbf, sdir[i], &bucket, sizeof bucket))
-	    {
-	      result = -1;
-	      break;
-	    }
-	  count += bucket.count;
-	  last = i;
-	}
-    }
-  free (sdir);
   *pcount = count;
-  return result;
+  return 0;
 }
