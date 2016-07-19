@@ -172,7 +172,7 @@ struct gdbm_file_info
   unsigned need_recovery :1;
   
   /* Last GDBM error number */
-  int last_error;
+  gdbm_error last_error;
   /* Last system error number */
   int last_syserror;
   /* Last formatted error */

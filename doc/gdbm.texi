@@ -109,7 +109,8 @@ Functions:
 * Reorganization::             Database reorganization.
 * Sync::                       Insure all writes to disk have competed.
 * Flat files::                 Export and import to Flat file format.
-* Errors::                     Convert internal error codes into English.
+* Errors::                     Error handling.
+* Recovery::                   Recovery from fatal errors.
 * Options::                    Setting internal options.
 * Locking::                    File locking.
 * Variables::                  Useful global variables.
@@ -341,6 +342,22 @@ error codes are discussed in @ref{Error codes}.
 
 In all of the following calls, the parameter @var{dbf} refers to the pointer
 returned from @code{gdbm_open}.
+@end deftypefn
+
+@deftypefn {gdbm interface} GDBM_FILE gdbm_fd_open (int @var{fd},@
+  const char *@var{name}, int @var{block_size}, @
+  int @var{flags}, int @var{mode}, void (*fatal_func)(const char *))
+
+Alternative function for opening a GDBM database.  The @var{fd}
+argument is the file descriptor of the database file obtained by a
+call to @code{open}(2), @code{creat}(2) or similar funcionss.  The
+descriptor is not dup'ed, and will be closed when the returned
+GDBM_FILE is closed.  Use @code{dup}(2) if that is not desirable.
+@end deftypefn
+
+@deftypefn {gdbm interface} int gdbm_copy_meta (GDBM_FILE @var{dst},@
+ GDBM_FILE @var{src})
+Copy file ownership and mode from @var{src} to @var{dst}.
 @end deftypefn
 
 @node Close
@@ -918,19 +935,204 @@ gdbm_load_from_file (@var{dbf}, @var{fp}, @var{flag}, 0, NULL);
 @end deftypefn
 
 @node Errors
-@chapter Error strings.
+@chapter Error handling.
+@cindex gdbm_errno
 @cindex error strings
+@cindex global error state
+The global variable @code{gdbm_errno} (@pxref{Variables, gdbm_errno})
+keeps the error code of the most recent error encountered by GDBM
+functions.
 
-To convert a @code{gdbm} error code into English text, use this
-routine:
+To convert this code to human-readable string, use the following function:
 
 @deftypefn {gdbm interface} {const char *} gdbm_strerror (gdbm_error @var{errno})
 Converts @var{errno} (which is an integer value) into a human-readable
 descriptive text.  Returns a pointer to a static string.  The caller
 must not alter or free the returned pointer.
+@end deftypefn
 
-The @var{errno} argument is usually the value of the global variable
-@code{gdbm_errno}.  @xref{Variables, gdbm_errno}.
+Detailed information about the most recent error that occurred while
+operating on a GDBM file is stored in the @code{GDBM_FILE} object
+itself.  To retrieve it, the following functions are provided:
+
+@cindex error code, most recent
+@cindex most recent error code
+@deftypefn {gdbm interface} {gdbm_error} gdbm_last_errno (GDBM_FILE @var{dbf})
+Returns the code of the most recent error encountered when operating
+on @var{dbf}.
+@end deftypefn
+
+@deftypefn {gdbm interface} {int} gdbm_last_syserr (GDBM_FILE @var{dbf})
+Returns the value of the system @code{errno} variable associated with
+the most recent error.
+
+Notice, that not all GDBM errors have an associated system error
+code.  The following are the ones that have:
+
+@itemize @bullet
+@item GDBM_FILE_OPEN_ERROR
+@item GDBM_FILE_WRITE_ERROR
+@item GDBM_FILE_SEEK_ERROR
+@item GDBM_FILE_READ_ERROR
+@item GDBM_FILE_STAT_ERROR
+@item GDBM_BACKUP_FAILED
+@end itemize
+
+For other errors, @code{gdbm_last_syserr} will return 0.
+@end deftypefn
+
+@anchor{gdbm_check_syserr}
+@deftypefn {gdbm interface} {int} gdbm_check_syserr (gdbm_errno @var{err})
+Returns @code{1}, if system errno value should be checked to get more
+info on the error described by GDBM code @var{err}.
+@end deftypefn
+
+To get a human-readable description of the recent error for a
+particular database file, use the @code{gdbm_db_strerror} function:
+
+@deftypefn {gdbm interface} {const char *} gdbm_db_strerror (GDBM_FILE @var{dbf})
+Returns textual description of the most recent error encountered when
+operating on the database @var{dbf}.  The resulting string is often
+more informative than what would be returned by
+@samp{gdbm_strerror(gdbm_last_errno(@var{dbf}))}.  In particular, if
+there is a system error associated with the recent failure, it will be
+described as well.
+@end deftypefn
+
+@deftypefn {gdbm interface} void gdbm_clear_error (GDBM_FILE @var{dbf})
+Clears the error state for the database @var{dbf}.  Normally, this
+function is called upon the entry to any GDBM function.
+@end deftypefn
+
+Certain errors (such as write error when saving stored key) can leave
+database file in inconistent state.  When such a critical error
+occurs, the database file is marked as needing recovery.  Subsequent
+calls to any GDBM functions for that database file (except
+@code{gdbm_recover}), will return immediately with GDBM error value
+@code{GDBM_NEED_RECOVERY}.  Additionally, the following 
+function can be used to check the state of the database file:
+
+@deftypefn {gdbm interface} int gdbm_needs_recovery (GDBM_FILE @var{dbf})
+Returns @code{1} if the database file @var{dbf} is in inconsistent
+state and needs recovery.
+@end deftypefn
+
+The only way to bring the database back to operational state is to
+call the @code{gdbm_recover} function (@pxref{Recovery}).
+
+@node Recovery
+@chapter Recovery
+
+Certain errors (such as write error when saving stored key) can leave
+database file in @dfn{inconistent state}.  When such a critical error
+occurs, the database file is marked as needing recovery.  Subsequent
+calls to any GDBM functions for that database file (except
+@code{gdbm_recover}), will return immediately with GDBM error value
+@code{GDBM_NEED_RECOVERY}.
+
+To escape from this state and bring the database back to operational
+state, use the following function:
+
+@deftypefn {gdbm interface} int gdbm_recover (GDBM_FILE @var{dbf},@
+ gdbm_recovery *@var{rcvr}, int @var{flags})
+Check the database file @var{dbf} and fix eventual errors.  The
+@var{rcvr} argument points to a structure that has @dfn{input
+members}, providing additional information to alter the behavior of
+@code{gdbm_recover}, and @dfn{output members}, used to return
+additional statistics about the recovery process (@var{rcvr} can be
+@code{NULL} if no such information is needed).
+
+Each input member has a corresponding flag bit, which must be set in
+the @var{flags} in order to instruct the function to use it.
+              
+The @code{gdbm_recover} type is defined as:
+
+@example
+typedef struct gdbm_recovery_s
+@{
+  /* Input members.
+     These are initialized before call to gdbm_recover.
+     The flags argument specifies which of them are initialized. */
+  void (*errfun) (void *data, char const *fmt, ...);
+  void *data;
+  size_t max_failed_keys;
+  size_t max_failed_buckets;
+  size_t max_failures;
+
+  /* Output members.
+     The gdbm_recover function fills these before returning. */
+  size_t recovered_keys;
+  size_t recovered_buckets;
+  size_t failed_keys;
+  size_t failed_buckets;
+  char *backup_name;
+@} gdbm_recovery;
+@end example
+
+The @dfn{input members} modify the behavior of @code{gdbm_recover}:
+
+@deftypeop {input member} gdbm_recovery void (*errfun) (void *@var{data},@
+  char const *@var{fmt}, ...)
+@kwindex GDBM_RCVR_ERRFUN
+If the @code{GDBM_RCVR_ERRFUN} flag bit is set, @code{errfun} points
+to a function that will be called upon each recoverable or non-fatal
+error that occurred during the recovery.
+@end deftypeop
+
+@deftypecv {input member} gdbm_recovery {void *} data
+Supplies first argument for the @code{errfun} invocations.
+@end deftypecv
+
+@deftypecv {input member} gdbm_recovery size_t max_failed_keys
+@kwindex GDBM_RCVR_MAX_FAILED_KEYS
+If @code{GDBM_RCVR_MAX_FAILED_KEYS} is set, this member sets the limit
+on the number of keys that cannot be retrieved.  If the number of
+failed keys grows bigger than @code{max_failed_keys}, recovery is
+aborted and error is returned.
+@end deftypecv
+
+@deftypecv {input member} gdbm_recovery size_t max_failed_buckets
+@kwindex GDBM_RCVR_MAX_FAILED_BUCKETS
+If @code{GDBM_RCVR_MAX_FAILED_BUCKETS} is set, this member sets the limit
+on the number of buckets that cannot be retrieved or that contain
+bogus information.  If the number of failed buckets grows bigger than
+@code{max_failed_buckets}, recovery is aborted and error is returned.
+@end deftypecv
+
+@deftypecv {output member} gdbm_recovery size_t max_failures
+@kwindex GDBM_RCVR_MAX_FAILURES
+If @code{GDBM_RCVR_MAX_FAILURES} is set, this member sets the limit
+of failures that are tolerated during recovery.  If the number of
+errors grows bigger than @code{max_failures}, recovery is aborted and
+error is returned. 
+@end deftypecv
+
+The following members are filled on output, upon successful return
+from the function:
+
+@deftypecv {output member} gdbm_recovery size_t recovered_keys
+Number of recovered keys.
+@end deftypecv
+
+@deftypecv {output member} gdbm_recovery size_t recovered_buckets
+Number of recovered buckets.
+@end deftypecv
+
+@deftypecv {output member} gdbm_recovery size_t failed_keys
+Number of key/data pairs that cannot be retrieved.
+@end deftypecv
+
+@deftypecv {output member} gdbm_recovery size_t failed_buckets
+Number of buckets that cannot be retrieved.
+@end deftypecv
+
+@deftypecv {output member} gdbm_recovery {char *} backup_name
+@kwindex GDBM_RCVR_BACKUP
+Name of the file keeping the copy of the original database, in the
+state prior to recovery.  It is filled if the @var{GDBM_RCVR_BACKUP}
+flag is set.  The string is allocated using the @code{malloc} call.
+The caller is responsible for freeing that memory when no longer needed.
+@end deftypecv
 @end deftypefn
 
 @node Options
@@ -1161,6 +1363,12 @@ This variable is an array of error descriptions, which is used by
 contains @code{_GDBM_MAX_ERRNO + 1} elements and can be directly
 indexed by the error code to obtain a corresponding descriptive
 text.
+@end deftypevar
+
+@deftypevar {int const} gdbm_syserr[]
+Array of boolean values indicating, for each GDBM error code, whether
+the value of @code{errno}(3) variable is meaningful for this error
+code.  @xref{gdbm_check_syserr}.
 @end deftypevar
 
 @defvr {Constant} _GDBM_MIN_ERRNO
@@ -1425,6 +1633,15 @@ have been restored successfully, only changing the target file owner
 failed.  Inspect the system @code{errno} variable to get a more
 detailed diagnostics.
 
+@kwindex GDBM_NEED_RECOVERY
+@item GDBM_NEED_RECOVERY
+Database is in inconsistent state and needs recovery.  Call
+@code{gdbm_recover} if you get this error.  @xref{Recovery}, for a
+detailed description of recovery functions.
+
+@kwindex GDBM_BACKUP_FAILED
+@item GDBM_BACKUP_FAILED
+The GDBM engine is unable to create backup copy of the file.
 @end table
 
 @node Compatibility

@@ -46,7 +46,7 @@ gdbm_set_errno (GDBM_FILE dbf, gdbm_error ec, int fatal)
 }
 
 /* Retrieve last error code for the database DBF. */
-int
+gdbm_error
 gdbm_last_errno (GDBM_FILE dbf)
 {
   if (!dbf)
@@ -182,3 +182,12 @@ int const gdbm_syserr[_GDBM_MAX_ERRNO+1] = {
   [GDBM_BACKUP_FAILED]          = 1
 };
 
+/* Returns true if system errno value is meaningful for GDBM error
+   code N. */
+int
+gdbm_check_syserr (gdbm_errno n)
+{
+  if (n >= _GDBM_MIN_ERRNO && n <= _GDBM_MAX_ERRNO)
+    return gdbm_syserr[n];
+  return 0;
+}

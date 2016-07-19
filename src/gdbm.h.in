@@ -224,11 +224,12 @@ extern gdbm_error gdbm_errno;
 extern const char * const gdbm_errlist[];
 extern int const gdbm_syserr[];
   
-extern int gdbm_last_errno (GDBM_FILE dbf);
+extern gdbm_error gdbm_last_errno (GDBM_FILE dbf);
 extern int gdbm_last_syserr (GDBM_FILE dbf);
 extern void gdbm_set_errno (GDBM_FILE dbf, gdbm_error ec, int fatal);
 extern void gdbm_clear_error (GDBM_FILE dbf);
 extern int gdbm_needs_recovery (GDBM_FILE dbf);
+extern int gdbm_check_syserr (gdbm_errno n);
 
 /* extra prototypes */
 

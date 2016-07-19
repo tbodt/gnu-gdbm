@@ -18,10 +18,58 @@ the error code.
 In any case gdbm_errno is guaranteed to have meaningful value upon
 return.
 
-The gdbm_fetch function no longer aborts on memory allocation errors.
-Instead it sets gdbm_errno to GDBM_MALLOC_ERROR and returns NULL datum.
+* Error handling
+
+In previous versions of GDBM, fatal errors (such as write error while
+storing the key/data pair or bucket) caused immediate termination of
+the program via call to exit(3).  This is no longer the case.
+
+Starting from this version, if a fatal error occurrs while modifying
+the database file, that database is marked as needing recovery and
+gdbm_errno is set to GDBM_NEED_RECOVERY.  Calls to any GDBM functions,
+except gdbm_recover, will then return immediately with the same error
+code.
+
+The function gdbm_recover examines the database file and fixes
+eventual inconsistencies.  Upon successful return it clears the error
+state and makes the database operational again.
+
+For backward compatibility, the fatal_func argument to gdbm_open is
+retained and its functionality is not changed.  If it is not NULL, the
+new error handling procedures are disabled, the function it points to
+will be called upon fatal errors.  When it returns, exit(1) will be
+called.
 
 * Per-database error codes
+
+In addition to gdbm_error global variable, the most recent error state
+is saved in the GDBM_FILE structure.  This facilitates error handling
+when operating multiple GDBM databases simultaneously.
+
+The following new functions are implemented for manipulating error
+states:
+
+** gdbm_error gdbm_last_errno (GDBM_FILE dbf)
+
+Returns the code of the most recent error that occurred in the given database.
+
+** int gdbm_last_syserr (GDBM_FILE dbf)
+
+Returns the value the system errno variable had when the most recent
+error occurred.  This provides additional information for such error
+codes as GDBM_FILE_SEEK_ERROR, GDBM_FILE_WRITE_ERROR and the like.
+
+** void gdbm_clear_error (GDBM_FILE dbf)
+
+Clears the error state associated with the database file.
+
+** char const *gdbm_db_strerror (GDBM_FILE dbf)
+
+Returns textual description of the error.
+
+** int gdbm_needs_recovery (GDBM_FILE dbf)
+
+Returns true if the database file needs recovery.
 
 * New gdbm_open flag: GDBM_BSEXACT
 
@@ -44,21 +92,18 @@ Returns the block size in bytes.  E.g.
 
 * New functions
 
-** gdbm_last_errno
+** GDBM_FILE gdbm_fd_open (int fd, const char *file_name, int block_size,
+		           int flags, void (*fatal_func) (const char *))
 
-** gdbm_clear_error
+Alternative function for opening a GDBM database.  The fd argument is
+the file descriptor of the database file obtained by a call to
+open(2), creat(2) or similar functions.  The descriptor is not dup'ed, and
+will be closed when the returned GDBM_FILE is closed.  Use dup(2) if
+that is not desirable.
+			   
+** int gdbm_copy_meta (GDBM_FILE dst, GDBM_FILE src)
 
-** gdbm_needs_recovery
-
-** gdbm_recover
-
-** gdbm_last_syserr
-
-** gdbm_db_strerror
-
-** gdbm_fd_open
-
-** gdbm_copy_meta
+Copy meta-information (ownership and file permissions) from src to dst.
 
 * Line editing in gdbmtool
 
