@@ -185,7 +185,7 @@ int const gdbm_syserr[_GDBM_MAX_ERRNO+1] = {
 /* Returns true if system errno value is meaningful for GDBM error
    code N. */
 int
-gdbm_check_syserr (gdbm_errno n)
+gdbm_check_syserr (gdbm_error n)
 {
   if (n >= _GDBM_MIN_ERRNO && n <= _GDBM_MAX_ERRNO)
     return gdbm_syserr[n];
