@@ -98,7 +98,8 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       dbf->cache_entry->ca_changed = FALSE;
 
       /* Read the bucket. */
-      file_pos = __lseek (dbf, bucket_adr, SEEK_SET);
+      file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:seek-failure",
+				      __lseek (dbf, bucket_adr, SEEK_SET));
       if (file_pos != bucket_adr)
 	{
 	  _gdbm_fatal (dbf, _("lseek error"));
@@ -106,7 +107,8 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	  return -1;
 	}
       
-      rc = _gdbm_full_read (dbf, dbf->bucket, dbf->header->bucket_size);
+      rc = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:read-failure",
+		_gdbm_full_read (dbf, dbf->bucket, dbf->header->bucket_size));
       if (rc)
 	{
 	  _gdbm_fatal (dbf, gdbm_strerror (rc));
@@ -248,7 +250,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  dir_adr  = _gdbm_alloc (dbf, dir_size);
 	  if (dir_adr == 0)
 	    return -1;
-	  new_dir  = (off_t *) malloc (dir_size);
+	  new_dir = GDBM_DEBUG_ALLOC ("_gdbm_split_bucket:malloc-failure",
+				      malloc (dir_size));
 	  if (new_dir == NULL)
 	    {
 	      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
@@ -286,7 +289,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  while (bucket[select]->h_table[elem_loc].hash_value != -1)
 	    elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
 	  bucket[select]->h_table[elem_loc] = *old_el;
-	  bucket[select]->count += 1;
+	  bucket[select]->count++;
 	}
       
       /* Allocate avail space for the bucket[1]. */
@@ -378,15 +381,17 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
 {
   int rc;
   off_t file_pos;	/* The return value for lseek. */
-  
-  file_pos = __lseek (dbf, ca_entry->ca_adr, SEEK_SET);
+
+  file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_write_bucket:seek-failure",
+				  __lseek (dbf, ca_entry->ca_adr, SEEK_SET));
   if (file_pos != ca_entry->ca_adr)
     {
       gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
-  rc = _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size);
+  rc = GDBM_DEBUG_OVERRIDE ("_gdbm_write_bucket:write-failure",
+        _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size));
   if (rc)
     {
       gdbm_set_errno (dbf, rc, TRUE);

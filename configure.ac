@@ -173,10 +173,40 @@ fi
 
 AM_CONDITIONAL([GDBM_COND_READLINE], [test "$status_readline" = "yes"])
 
+# Additional debugging
+AC_ARG_ENABLE([debug],
+              AC_HELP_STRING([--enable-debug],
+                             [provide additional debugging functions]),
+              [status_debug=$withval],
+	      [status_debug=no])
+
+AM_CONDITIONAL([GDBM_COND_DEBUG_ENABLE], [test "$status_debug" = "yes"])
+
 # Initialize the test suite.
 AC_CONFIG_TESTDIR(tests)
 AC_CONFIG_FILES([tests/Makefile tests/atlocal po/Makefile.in])
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
+
+AC_CONFIG_COMMANDS([status],[
+cat <<EOF
+
+*******************************************************************
+GDBM settings summary:
+
+Compatibility library ......................... $status_compat
+Compatibility export tool ..................... $status_export
+Memory mapped I/O ............................. $mapped_io
+GNU Readline .................................. $status_readline
+Debugging functions ........................... $status_debug
+*******************************************************************
+
+EOF
+],
+[status_compat=$want_compat
+status_export=$want_export
+mapped_io=$mapped_io
+status_readline=$status_readline
+status_debug=$status_debug])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
@@ -184,4 +214,5 @@ AC_CONFIG_FILES([Makefile
 		 doc/Makefile
 		 compat/Makefile
 		 export/Makefile])
+
 AC_OUTPUT

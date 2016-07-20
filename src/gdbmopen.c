@@ -490,24 +490,26 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
 
 /* Initialize the bucket cache. */
 int
-_gdbm_init_cache(GDBM_FILE dbf, size_t size)
+_gdbm_init_cache (GDBM_FILE dbf, size_t size)
 {
   int index;
 
   if (dbf->bucket_cache == NULL)
     {
-      dbf->bucket_cache = (cache_elem *) malloc(sizeof(cache_elem) * size);
-      if(dbf->bucket_cache == NULL)
+      dbf->bucket_cache = GDBM_DEBUG_ALLOC ("_gdbm_init_cache:malloc-failure",
+	                      malloc (sizeof(cache_elem) * size));
+      if (dbf->bucket_cache == NULL)
         {
           gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
           return -1;
         }
       dbf->cache_size = size;
 
-      for(index = 0; index < size; index++)
+      for (index = 0; index < size; index++)
         {
-          (dbf->bucket_cache[index]).ca_bucket
-            = (hash_bucket *) malloc (dbf->header->bucket_size);
+	  (dbf->bucket_cache[index]).ca_bucket = 
+	    GDBM_DEBUG_ALLOC ("_gdbm_init_cache:bucket-malloc-failure",
+	                      malloc (dbf->header->bucket_size));
           if ((dbf->bucket_cache[index]).ca_bucket == NULL)
 	    {
               gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);

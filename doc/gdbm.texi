@@ -1135,6 +1135,13 @@ The caller is responsible for freeing that memory when no longer needed.
 @end deftypecv
 @end deftypefn
 
+@kwindex GDBM_RCVR_FORCE
+By default, @code{gdbm_recovery} first checks the database fo
+inconsistencies and attempts recovery only if some were found.
+The special flag bit @code{GDBM_RCVR_FORCE} instructs
+@code{gdbm_recovery} to omit this check and to force recovery
+unconditionally.
+
 @node Options
 @chapter Setting options
 @cindex database options

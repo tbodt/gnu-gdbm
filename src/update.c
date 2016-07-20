@@ -29,8 +29,9 @@ write_header (GDBM_FILE dbf)
 {
   off_t file_pos;	/* Return value for lseek. */
   int rc;
-  
-  file_pos = __lseek (dbf, 0L, SEEK_SET);
+
+  file_pos = GDBM_DEBUG_OVERRIDE ("write_header:lseek-failure",
+				  __lseek (dbf, 0L, SEEK_SET));
   if (file_pos != 0)
     {
       gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -38,7 +39,9 @@ write_header (GDBM_FILE dbf)
       return -1;
     }
 
-  rc = _gdbm_full_write (dbf, dbf->header, dbf->header->block_size);
+  rc = GDBM_DEBUG_OVERRIDE ("write_header:write-failure",
+	    _gdbm_full_write (dbf, dbf->header, dbf->header->block_size));
+  
   if (rc)
     {
       gdbm_set_errno (dbf, rc, TRUE);
@@ -92,7 +95,8 @@ _gdbm_end_update (GDBM_FILE dbf)
   /* Write the directory. */
   if (dbf->directory_changed)
     {
-      file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
+      file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_end_update:lseek-failure",
+		           __lseek (dbf, dbf->header->dir, SEEK_SET));
       if (file_pos != dbf->header->dir)
 	{
 	  gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -100,7 +104,8 @@ _gdbm_end_update (GDBM_FILE dbf)
 	  return -1;
 	}
 
-      rc = _gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size);
+      rc = GDBM_DEBUG_OVERRIDE ("_gdbm_end_update:write-dir-failure",
+		_gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size));
       if (rc)
 	{
 	  gdbm_set_errno (dbf, rc, TRUE);

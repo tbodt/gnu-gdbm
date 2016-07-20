@@ -37,5 +37,5 @@ gdbm_reorganize (GDBM_FILE dbf)
   GDBM_ASSERT_CONSISTENCY (dbf, -1);
 
   rcvr.max_failures = 0;
-  return gdbm_recover (dbf, &rcvr, GDBM_RCVR_MAX_FAILURES);
+  return gdbm_recover (dbf, &rcvr, GDBM_RCVR_MAX_FAILURES|GDBM_RCVR_FORCE);
 }

@@ -1815,7 +1815,7 @@ main (int argc, char *argv[])
 	break;
 	
       case 'g':
-	file_name = optarg;
+	file_name = estrdup (optarg);
 	break;
 
       case 'q':
@@ -1839,7 +1839,7 @@ main (int argc, char *argv[])
     }
       
   if (argc == 1)
-    file_name = argv[0];
+    file_name = estrdup (argv[0]);
 
   signal (SIGPIPE, SIG_IGN);
 

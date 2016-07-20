@@ -144,7 +144,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   dbf->bucket->h_table[elem_loc].data_size = content.dsize;
 
   /* Write the data to the file. */
-  file_pos = __lseek (dbf, file_adr, SEEK_SET);
+  file_pos = GDBM_DEBUG_OVERRIDE ("gdbm_store:seek-failure",
+				  __lseek (dbf, file_adr, SEEK_SET));
   if (file_pos != file_adr)
     {
       gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -152,7 +153,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
       return -1;
     }
 
-  rc = _gdbm_full_write (dbf, key.dptr, key.dsize);
+  rc = GDBM_DEBUG_OVERRIDE ("gdbm_store:write-1-failure",
+			    _gdbm_full_write (dbf, key.dptr, key.dsize));
   if (rc)
     {
       gdbm_set_errno (dbf, rc, TRUE);
@@ -160,7 +162,9 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
       return -1;
     }
 
-  rc = _gdbm_full_write (dbf, content.dptr, content.dsize);
+  rc = GDBM_DEBUG_OVERRIDE ("gdbm_store:write-2-failure",
+			    _gdbm_full_write (dbf,
+					      content.dptr, content.dsize));
   if (rc)
     {
       gdbm_set_errno (dbf, rc, TRUE);

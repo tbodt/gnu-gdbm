@@ -161,7 +161,9 @@ typedef struct gdbm_recovery_s
 #define GDBM_RCVR_MAX_FAILURES         0x08  /* max_failures is initialized */
 #define GDBM_RCVR_BACKUP               0x10  /* Keep backup copy of the
 						original database on success */
-  
+#define GDBM_RCVR_FORCE                0x20  /* Force recovery by skipping the
+						check pass */
+					       
 extern int gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags);
   
   

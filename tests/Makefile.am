@@ -119,17 +119,14 @@ check_PROGRAMS = \
  $(DBMPROGS)
 
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src $(DBMINCLUDES)
-noinst_HEADERS=progname.h
-gtdel_LDADD = ../src/libgdbm.la
-gtload_LDADD = ../src/libgdbm.la
-gtdump_LDADD = ../src/libgdbm.la
-gtfetch_LDADD = ../src/libgdbm.la
-gtver_LDADD = ../src/libgdbm.la
-gtopt_LDADD = ../src/libgdbm.la
-gtrecover_LDADD = ../src/libgdbm.la
 
-g_open_ce_LDADD = ../src/libgdbm.la
-g_reorg_ce_LDADD = ../src/libgdbm.la
+if GDBM_COND_DEBUG_ENABLE
+  AM_CPPFLAGS += -DGDBM_DEBUG_ENABLE=1
+endif
+
+noinst_HEADERS=progname.h
+
+LDADD = ../src/libgdbm.la
 
 dtload_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la
 dtdump_LDADD = ../src/libgdbm.la ../compat/libgdbm_compat.la

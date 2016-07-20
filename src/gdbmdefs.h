@@ -250,6 +250,24 @@ struct gdbm_file_info
 	}							\
     }								\
   while (0)
-
+
+/* Debugging hooks */
+#ifdef GDBM_DEBUG_ENABLE
+typedef int (*gdbm_debug_hook) (char const *, int, char const *, void *);
+extern void _gdbm_debug_hook_install (char const *, gdbm_debug_hook, void *);
+extern void _gdbm_debug_hook_remove (char const *);
+extern int _gdbm_debug_hook_check (char const *, int, char const *);
+extern int _gdbm_debug_hook_val (char const *);
+# define GDBM_DEBUG_HOOK(id) _gdbm_debug_hook_check(__FILE__,__LINE__,id)
+# define GDBM_DEBUG_OVERRIDE(id, stmt)				\
+  (GDBM_DEBUG_HOOK(id) ? _gdbm_debug_hook_val(id) : (stmt))
+# define GDBM_DEBUG_ALLOC(id, stmt)		\
+  (GDBM_DEBUG_HOOK(id) ? NULL : (stmt))
+#else
+# define GDBM_DEBUG_HOOK(id) 0
+# define GDBM_DEBUG_OVERRIDE(id, stmt) (stmt)
+# define GDBM_DEBUG_ALLOC(id, stmt) (stmt)
+#endif
+
 /* Now define all the routines in use. */
 #include "proto.h"

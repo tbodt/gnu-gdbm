@@ -17,15 +17,115 @@
 #include "autoconf.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 #include "gdbm.h"
 #include "progname.h"
+
+const char *progname;
+int verbose;
+
+void
+err_printer (void *data, char const *fmt, ...)
+{
+  va_list ap;
+
+  fprintf (stderr, "%s: ", progname);
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
+  fprintf (stderr, "\n");
+}
+
+struct hook_closure
+{
+  unsigned skip;
+  unsigned hits;
+  int disabled;
+};
+
+static int
+hookfn (char const *file, int line, char const *id, void *data)
+{
+  struct hook_closure *clos = data;
+
+  if (clos->disabled)
+    return 0;
+  if (clos->skip)
+    {
+      --clos->skip;
+      return 0;
+    }
+  if (clos->hits)
+    {
+      if (--clos->hits == 0)
+	clos->disabled = 1;
+    }
+  
+  if (verbose)
+    fprintf (stderr, "%s:%d: hit debug hook %s\n", file, line, id);
+  return -1;
+}
+
+size_t
+read_size (char const *arg)
+{
+  char *p;
+  size_t ret;
+  
+  errno = 0;
+  ret = strtoul (arg, &p, 10);
+	  
+  if (errno)
+    {
+      fprintf (stderr, "%s: ", progname);
+      perror (arg);
+      exit (1);
+    }
+
+  if (*p)
+    {
+      fprintf (stderr, "%s: bad number: %s\n", progname, arg);
+      exit (1);
+    }
+
+  return ret;
+}
+
+void
+install_hook (char *id)
+{
+  char *p = strchr (id, ';');
+  struct hook_closure *clos = malloc (sizeof (*clos));
+  assert (clos != NULL);
+  memset (clos, 0, sizeof (*clos));
+  if (p)
+    {
+      char *q;
+      
+      *p++ = 0;
+      for (q = strtok (p, ";"); q; q = strtok (NULL, ";"))
+	{
+	  if (strncmp (q, "skip=", 5) == 0)
+	    clos->skip = strtoul (q + 5, NULL, 10);
+	  else if (strncmp (q, "hits=", 5) == 0)
+	    clos->hits = strtoul (q + 5, NULL, 10);
+	  else
+	    {
+	      fprintf (stderr, "%s: unknown parameter for hook %s: %s",
+		       progname, id, q);
+	      exit (1);
+	    }
+	}
+    }
+  _gdbm_debug_hook_install (id, hookfn, clos);
+}
 
 int
 main (int argc, char **argv)
 {
-  const char *progname = canonical_progname (argv[0]);
   const char *dbname;
   int line = 0;
   char buf[1024];
@@ -41,7 +141,11 @@ main (int argc, char **argv)
   size_t mapped_size_max = 0;
   int blksize;
   int verbose = 0;
+  int recover = 0;
+  gdbm_recovery rcvr;
+  int rcvr_flags = 0;
   
+  progname = canonical_progname (argv[0]);
   while (--argc)
     {
       char *arg = *++argv;
@@ -70,27 +174,41 @@ main (int argc, char **argv)
       else if (strncmp (arg, "-blocksize=", 11) == 0)
 	block_size = atoi (arg + 11);
       else if (strncmp (arg, "-maxmap=", 8) == 0)
-	{
-	  char *p;
-
-	  errno = 0;
-	  mapped_size_max = strtoul (arg + 8, &p, 10);
-	  
-	  if (errno)
-	    {
-	      fprintf (stderr, "%s: ", progname);
-	      perror ("maxmap");
-	      exit (1);
-	    }
-
-	  if (*p)
-	    {
-	      fprintf (stderr, "%s: bad maxmap\n", progname);
-	      exit (1);
-	    }
-	}
+	mapped_size_max = read_size (arg + 8);
       else if (strncmp (arg, "-delim=", 7) == 0)
 	delim = arg[7];
+#if GDBM_DEBUG_ENABLE
+      else if (strncmp (arg, "-hook=", 6) == 0)
+	{
+	  install_hook (arg + 6);
+	  recover = 1;
+	}
+#endif
+      else if (strcmp (arg, "-recover") == 0)
+	recover = 1;
+      else if (strcmp (arg, "-verbose") == 0)
+	{
+	  verbose = 1;
+	  rcvr.errfun = err_printer;
+	  rcvr_flags |= GDBM_RCVR_ERRFUN;
+	}
+      else if (strcmp (arg, "-backup") == 0)
+	rcvr_flags |= GDBM_RCVR_BACKUP;
+      else if (strncmp (arg, "-max-failures=", 14) == 0)
+	{
+	  rcvr.max_failures = read_size (arg + 14);
+	  rcvr_flags |= GDBM_RCVR_MAX_FAILURES;
+	}
+      else if (strncmp (arg, "-max-failed-keys=", 17) == 0)
+	{
+	  rcvr.max_failed_keys = read_size (arg + 17);
+	  rcvr_flags |= GDBM_RCVR_MAX_FAILED_KEYS;
+	}
+      else if (strncmp (arg, "-max-failed-buckets=", 20) == 0)
+	{
+	  rcvr.max_failures = read_size (arg + 20);
+	  rcvr_flags |= GDBM_RCVR_MAX_FAILED_BUCKETS;
+	}
       else if (strcmp (arg, "--") == 0)
 	{
 	  --argc;
@@ -184,7 +302,24 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "%s: %d: item not inserted\n",
 		   progname, line);
-	  exit (1);
+	  if (gdbm_needs_recovery (dbf) && recover)
+	    {
+	      int rc = gdbm_recover (dbf, &rcvr, rcvr_flags);
+	      if (rc)
+		{
+		  int ec = errno;
+		  fprintf (stderr, "%s: recovery failed: %s",
+			   progname, gdbm_strerror (gdbm_errno));
+		  if (gdbm_check_syserr (gdbm_errno))
+		    fprintf (stderr, ": %s", strerror (ec));
+		  fputc ('\n', stderr);
+		}
+	      --recover;
+	    }
+	  else
+	    {
+	      exit (1);
+	    }
 	}
     }
   gdbm_close (dbf);

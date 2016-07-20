@@ -199,6 +199,53 @@ _gdbm_next_bucket_dir (GDBM_FILE dbf, int bucket_dir)
   return bucket_dir;
 }
 
+static int
+check_db (GDBM_FILE dbf)
+{
+  int bucket_dir, i;
+  int nbuckets = GDBM_DIR_COUNT (dbf);
+
+  for (bucket_dir = 0; bucket_dir < nbuckets;
+       bucket_dir = _gdbm_next_bucket_dir (dbf, bucket_dir))
+    {      
+      if (_gdbm_get_bucket (dbf, bucket_dir))
+	return 1;
+      else
+	{
+	  if (dbf->bucket->count < 0
+	      || dbf->bucket->count > dbf->header->bucket_elems)
+	    return 1;
+	  for (i = 0; i < dbf->header->bucket_elems; i++)
+	    {
+	      char *dptr;
+	      datum key;
+	      int hashval, bucket, off;
+
+	      if (dbf->bucket->h_table[i].hash_value == -1)
+		continue;
+	      dptr = _gdbm_read_entry (dbf, i);
+	      if (!dptr)
+		return 1;
+	      
+	      key.dptr   = dptr;
+	      key.dsize  = dbf->bucket->h_table[i].key_size;
+
+	      if (memcmp (dbf->bucket->h_table[i].key_start, key.dptr,
+			  (SMALL < key.dsize ? SMALL : key.dsize)))
+		return 1;
+	      
+	      _gdbm_hash_key (dbf, key, &hashval, &bucket, &off);
+	      if (bucket >= nbuckets)
+		return 1;
+	      if (hashval != dbf->bucket->h_table[i].hash_value)
+		return 1;
+	      if (dbf->dir[bucket] != dbf->dir[bucket_dir])
+		return 1;
+	    }
+	}
+    }
+  return 0;
+}
 
 static int
 run_recovery (GDBM_FILE dbf, GDBM_FILE new_dbf, gdbm_recovery *rcvr, int flags)
@@ -310,50 +357,53 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
   rcvr->failed_keys = 0;
   rcvr->failed_buckets = 0;
   rcvr->backup_name = NULL;
-  
-  len = strlen (dbf->name);
-  new_name = malloc (len + sizeof (TMPSUF));
-  if (!new_name)
+
+  rc = 0;
+  if ((flags & GDBM_RCVR_FORCE) || check_db (dbf))
     {
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
-      return -1;
+      len = strlen (dbf->name);
+      new_name = malloc (len + sizeof (TMPSUF));
+      if (!new_name)
+	{
+	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  return -1;
+	}
+      strcat (strcpy (new_name, dbf->name), TMPSUF);
+  
+      fd = mkstemp (new_name);
+      if (fd == -1)
+	{
+	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+	  free (new_name);
+	  return -1;
+	}
+  
+      new_dbf = gdbm_fd_open (fd, new_name, dbf->header->block_size,
+			      GDBM_WRCREAT
+			      | (dbf->cloexec ? GDBM_CLOEXEC : 0)
+			      | GDBM_CLOERROR, dbf->fatal_err);
+  
+      SAVE_ERRNO (free (new_name));
+  
+      if (new_dbf == NULL)
+	{
+	  gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
+	  return -1;
+	}
+
+      rc = run_recovery (dbf, new_dbf, rcvr, flags);
+  
+      if (rc == 0)
+	rc = _gdbm_finish_transfer (dbf, new_dbf, rcvr, flags);
+      else
+	gdbm_close (new_dbf);
     }
-  strcat (strcpy (new_name, dbf->name), TMPSUF);
-  
-  fd = mkstemp (new_name);
-  if (fd == -1)
-    {
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
-      free (new_name);
-      return -1;
-    }
-  
-  new_dbf = gdbm_fd_open (fd, new_name, dbf->header->block_size,
-			  GDBM_WRCREAT
-			  | (dbf->cloexec ? GDBM_CLOEXEC : 0)
-			  | GDBM_CLOERROR, dbf->fatal_err);
-  
-  SAVE_ERRNO (free (new_name));
-  
-  if (new_dbf == NULL)
-    {
-      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
-      return -1;
-    }
-  
-  rc = run_recovery (dbf, new_dbf, rcvr, flags);
-  
+
   if (rc == 0)
     {
-      rc = _gdbm_finish_transfer (dbf, new_dbf, rcvr, flags);
-      if (rc == 0)
-	{
-	  gdbm_clear_error (dbf);
-	  dbf->need_recovery = FALSE;
-	}
+      gdbm_clear_error (dbf);
+      dbf->need_recovery = FALSE;
     }
-  else
-    gdbm_close (new_dbf);
 
   return rc;
 }
