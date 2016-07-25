@@ -84,7 +84,7 @@ gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)
   
  write_fail:
   
-  gdbm_set_errno (NULL, GDBM_FILE_WRITE_ERROR, FALSE);
+  GDBM_SET_ERRNO (NULL, GDBM_FILE_WRITE_ERROR, FALSE);
   return -1;
 }
 
@@ -101,7 +101,7 @@ gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
       nfd = open (exportfile, O_WRONLY | O_CREAT | O_EXCL, mode);
       if (nfd == -1)
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	  return -1;
 	}
       break;
@@ -109,15 +109,15 @@ gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
       nfd = open (exportfile, O_WRONLY | O_CREAT | O_TRUNC, mode);
       if (nfd == -1)
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	  return -1;
 	}
       break;
     default:
 #ifdef GDBM_BAD_OPEN_FLAGS
-      gdbm_set_errno (NULL, GDBM_BAD_OPEN_FLAGS, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_BAD_OPEN_FLAGS, FALSE);
 #else
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 #endif
       return -1;
   }
@@ -126,7 +126,7 @@ gdbm_export (GDBM_FILE dbf, const char *exportfile, int flags, int mode)
   if (!fp)
     {
       close (nfd);
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
       return -1;
     }
 	

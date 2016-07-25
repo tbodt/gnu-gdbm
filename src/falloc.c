@@ -183,7 +183,7 @@ pop_avail_block (GDBM_FILE dbf)
 				 malloc (new_el.av_size));
   if (new_blk == NULL)
     {
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+      GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
       _gdbm_fatal(dbf, _("malloc failed"));
       return -1;
     }
@@ -193,7 +193,7 @@ pop_avail_block (GDBM_FILE dbf)
 				  __lseek (dbf, new_el.av_adr, SEEK_SET));
   if (file_pos != new_el.av_adr)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
@@ -202,7 +202,7 @@ pop_avail_block (GDBM_FILE dbf)
 			    _gdbm_full_read (dbf, new_blk, new_el.av_size));
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, TRUE);
+      GDBM_SET_ERRNO (dbf, rc, TRUE);
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return -1;
     }
@@ -282,7 +282,7 @@ push_avail_block (GDBM_FILE dbf)
 			      malloc (av_size));
   if (temp == NULL)
     {
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+      GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
       _gdbm_fatal (dbf, _("malloc error"));
       return -1;
     }
@@ -312,7 +312,7 @@ push_avail_block (GDBM_FILE dbf)
 				  __lseek (dbf, av_adr, SEEK_SET));
   if (file_pos != av_adr)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
@@ -321,7 +321,7 @@ push_avail_block (GDBM_FILE dbf)
 			    _gdbm_full_write (dbf, temp, av_size));
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, TRUE);
+      GDBM_SET_ERRNO (dbf, rc, TRUE);
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return -1;
     }

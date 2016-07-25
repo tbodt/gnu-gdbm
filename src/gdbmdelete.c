@@ -41,7 +41,7 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_set_errno (dbf, GDBM_READER_CANT_DELETE, FALSE);
+      GDBM_SET_ERRNO (dbf, GDBM_READER_CANT_DELETE, FALSE);
       return -1;
     }
   

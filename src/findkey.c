@@ -59,7 +59,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
     data_ca->dptr = (char *) malloc (key_size + data_size);
   if (data_ca->dptr == NULL)
     {
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_LOOKUP);
       _gdbm_fatal (dbf, _("malloc error"));
       return NULL;
     }
@@ -70,7 +70,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 		       SEEK_SET));
   if (file_pos != dbf->bucket->h_table[elem_loc].data_pointer)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_LOOKUP);
       _gdbm_fatal (dbf, _("lseek error"));
       return NULL;
     }
@@ -79,7 +79,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 	    _gdbm_full_read (dbf, data_ca->dptr, key_size+data_size));
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, TRUE);
+      GDBM_SET_ERRNO2 (dbf, rc, TRUE, GDBM_DEBUG_LOOKUP);
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return NULL;
     }
@@ -184,8 +184,7 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
     }
 
   /* If we get here, we never found the key. */
-  GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: not found", dbf->name);
-  gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE);
+  GDBM_SET_ERRNO2 (dbf, GDBM_ITEM_NOT_FOUND, FALSE, GDBM_DEBUG_LOOKUP);
   return -1;
 
 }

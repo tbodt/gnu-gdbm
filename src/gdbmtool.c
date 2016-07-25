@@ -1031,7 +1031,7 @@ status_handler (struct handler_param *param)
   dsprint (param->fp, DS_CONTENT, dsdef[DS_CONTENT]);
 }
 
-#ifdef GDBM_DEBUG_ENABLE
+#if GDBM_DEBUG_ENABLE
 static int
 debug_flag_printer (void *data, int flag, char const *tok)
 {
@@ -1044,7 +1044,7 @@ debug_flag_printer (void *data, int flag, char const *tok)
 void
 debug_handler (struct handler_param *param)
 {
-#ifdef GDBM_DEBUG_ENABLE
+#if GDBM_DEBUG_ENABLE
   if (param->vararg)
     {
       struct gdbmarg *arg;
@@ -1969,7 +1969,7 @@ source_rcfile ()
     }
 }
 
-#ifdef GDBM_DEBUG_ENABLE
+#if GDBM_DEBUG_ENABLE
 void
 debug_printer (char const *fmt, ...)
 {
@@ -1992,7 +1992,7 @@ main (int argc, char *argv[])
   char *source = "-";
   
   set_progname (argv[0]);
-#ifdef GDBM_DEBUG_ENABLE
+#if GDBM_DEBUG_ENABLE
   gdbm_debug_printer = debug_printer;
 #endif
 

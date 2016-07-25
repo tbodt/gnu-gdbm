@@ -103,7 +103,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       if (file_pos != bucket_adr)
 	{
 	  _gdbm_fatal (dbf, _("lseek error"));
-	  gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
 	  return -1;
 	}
       
@@ -112,7 +112,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       if (rc)
 	{
 	  _gdbm_fatal (dbf, gdbm_strerror (rc));
-	  gdbm_set_errno (dbf, rc, TRUE);
+	  GDBM_SET_ERRNO (dbf, rc, TRUE);
 	  return -1;
 	}
     }
@@ -147,13 +147,13 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
   file_pos = __lseek (dbf, off, SEEK_SET);
   if (file_pos != off)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       return -1;
     }
   rc = _gdbm_full_read (dbf, bucket, size);
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, TRUE);
+      GDBM_SET_ERRNO (dbf, rc, TRUE);
       return -1;
     }
   return 0;
@@ -254,7 +254,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 				      malloc (dir_size));
 	  if (new_dir == NULL)
 	    {
-	      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+	      GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
 	      _gdbm_fatal (dbf, _("malloc error"));
 	      return -1;
 	    }
@@ -386,7 +386,7 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
 				  __lseek (dbf, ca_entry->ca_adr, SEEK_SET));
   if (file_pos != ca_entry->ca_adr)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
@@ -394,7 +394,7 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
         _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size));
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, TRUE);
+      GDBM_SET_ERRNO (dbf, rc, TRUE);
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return -1;
     }

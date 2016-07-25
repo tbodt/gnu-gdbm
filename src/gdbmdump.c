@@ -99,7 +99,7 @@ _gdbm_dump_ascii (GDBM_FILE dbf, FILE *fp)
 	    {
 	      free (key.dptr);
 	      free (data.dptr);
-	      gdbm_set_errno (dbf, rc, FALSE);
+	      GDBM_SET_ERRNO (dbf, rc, FALSE);
 	      break;
 	    }
  	}
@@ -142,13 +142,13 @@ gdbm_dump_to_file (GDBM_FILE dbf, FILE *fp, int format)
       break;
 
     default:
-      gdbm_set_errno (NULL, GDBM_BAD_OPEN_FLAGS, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_BAD_OPEN_FLAGS, FALSE);
       return EINVAL;
     }
   
   if (rc == 0 && ferror (fp))
     {
-      gdbm_set_errno (NULL, GDBM_FILE_WRITE_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_FILE_WRITE_ERROR, FALSE);
       rc = -1;
     }
 
@@ -172,7 +172,7 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
       nfd = open (filename, O_WRONLY | O_CREAT | O_EXCL, mode);
       if (nfd == -1)
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	  return -1;
 	}
       break;
@@ -180,12 +180,12 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
       nfd = open (filename, O_WRONLY | O_CREAT | O_TRUNC, mode);
       if (nfd == -1)
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	  return -1;
 	}
       break;
     default:
-      gdbm_set_errno (NULL, GDBM_BAD_OPEN_FLAGS, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_BAD_OPEN_FLAGS, FALSE);
       return -1;
   }
 
@@ -193,7 +193,7 @@ gdbm_dump (GDBM_FILE dbf, const char *filename, int fmt, int open_flags,
   if (!fp)
     {
       close (nfd);
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
       return -1;
     }
   rc = gdbm_dump_to_file (dbf, fp, fmt);

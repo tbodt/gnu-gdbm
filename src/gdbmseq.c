@@ -64,7 +64,8 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
 	  else
 	    {
 	      /* No next key, just return. */
-	      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE);
+	      GDBM_SET_ERRNO2 (dbf, GDBM_ITEM_NOT_FOUND, FALSE,
+			       GDBM_DEBUG_LOOKUP);
 	      return;
 	    }
 	}
@@ -83,7 +84,7 @@ get_next_key (GDBM_FILE dbf, int elem_loc, datum *return_val)
   if (return_val->dptr == NULL)
     {
       return_val->dsize = 0;
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_LOOKUP);
     }
   else
     memcpy (return_val->dptr, find_data, return_val->dsize);
@@ -147,7 +148,9 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   if (key.dptr == NULL)
     {
       GDBM_DEBUG (GDBM_DEBUG_READ, "%s: key not found", dbf->name);
-      gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE); /* FIXME: special error code perhaps */
+      GDBM_SET_ERRNO2 (dbf, GDBM_ITEM_NOT_FOUND, /* FIXME: special error code perhaps */
+		       FALSE,
+		       GDBM_DEBUG_LOOKUP);
       return return_val;
     }
   

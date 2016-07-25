@@ -67,7 +67,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
     {
       if (flags & GDBM_CLOERROR)
 	SAVE_ERRNO (close (fd));
-      gdbm_set_errno (NULL, GDBM_FILE_STAT_ERROR, FALSE);
+      GDBM_SET_ERRNO2 (NULL, GDBM_FILE_STAT_ERROR, FALSE, GDBM_DEBUG_OPEN);
       return NULL;
     }
   
@@ -77,7 +77,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
     {
       if (flags & GDBM_CLOERROR)
 	SAVE_ERRNO (close (fd));
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
       return NULL;
     }
 
@@ -105,7 +105,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       if (flags & GDBM_CLOERROR)
 	close (fd);
       free (dbf);
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
       return NULL;
     }
 
@@ -142,7 +142,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	close (dbf->desc);
       free (dbf->name);
       free (dbf);
-      gdbm_set_errno (NULL, GDBM_EMPTY_DATABASE, FALSE);
+      GDBM_SET_ERRNO2 (NULL, GDBM_EMPTY_DATABASE, FALSE, GDBM_DEBUG_OPEN);
       return NULL;
     }
 
@@ -158,9 +158,11 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	    close (dbf->desc);
 	  free (dbf->name);
 	  free (dbf);
-          gdbm_set_errno (NULL,
-                          (flags & GDBM_OPENMASK) == GDBM_READER
-                            ? GDBM_CANT_BE_READER : GDBM_CANT_BE_WRITER, 0);
+          GDBM_SET_ERRNO2 (NULL,
+			   (flags & GDBM_OPENMASK) == GDBM_READER
+			     ? GDBM_CANT_BE_READER : GDBM_CANT_BE_WRITER,
+			   FALSE,
+			   GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
     }
@@ -196,7 +198,8 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	      if (!(flags & GDBM_CLOERROR))
 		dbf->desc = -1;
 	      gdbm_close (dbf);
-	      gdbm_set_errno (NULL, GDBM_BLOCK_SIZE_ERROR, FALSE);
+	      GDBM_SET_ERRNO2 (NULL, GDBM_BLOCK_SIZE_ERROR, FALSE,
+			       GDBM_DEBUG_OPEN);
 	      return NULL;
 	    }
 	  else
@@ -212,7 +215,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
 
@@ -229,7 +232,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
       dbf->header->dir = dbf->header->block_size;
@@ -245,7 +248,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
       _gdbm_new_bucket (dbf, dbf->bucket, 0);
@@ -341,14 +344,17 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	      case GDBM_OMAGIC_SWAP:
 	      case GDBM_MAGIC32_SWAP:
 	      case GDBM_MAGIC64_SWAP:
-		gdbm_set_errno (NULL, GDBM_BYTE_SWAPPED, FALSE);
+		GDBM_SET_ERRNO2 (NULL, GDBM_BYTE_SWAPPED, FALSE,
+				 GDBM_DEBUG_OPEN);
 		break;
 	      case GDBM_MAGIC32:
 	      case GDBM_MAGIC64:
-		gdbm_set_errno (NULL, GDBM_BAD_FILE_OFFSET, FALSE);
+		GDBM_SET_ERRNO2 (NULL, GDBM_BAD_FILE_OFFSET, FALSE,
+				 GDBM_DEBUG_OPEN);
 		break;
 	      default:
-		gdbm_set_errno (NULL, GDBM_BAD_MAGIC_NUMBER, FALSE);
+		GDBM_SET_ERRNO2 (NULL, GDBM_BAD_MAGIC_NUMBER, FALSE,
+				 GDBM_DEBUG_OPEN);
 	    }
 	  return NULL;
 	}
@@ -357,13 +363,10 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       dbf->header = (gdbm_file_header *) malloc (partial_header.block_size);
       if (dbf->header == NULL)
 	{
-	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
-		      "%s: can't allocate header",
-		      dbf->name);
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
-	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
       memcpy (dbf->header, &partial_header, sizeof (gdbm_file_header));
@@ -385,13 +388,10 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       dbf->dir = (off_t *) malloc (dbf->header->dir_size);
       if (dbf->dir == NULL)
 	{
-	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
-		      "%s: can't allocate directory",
-		      dbf->name);
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
 
@@ -399,13 +399,10 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
-	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
-		      "%s: __lseek: %s",
-		      dbf->name, strerror (errno));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, GDBM_FILE_SEEK_ERROR, FALSE);
+	  GDBM_SET_ERRNO2 (NULL, GDBM_FILE_SEEK_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
 
@@ -512,7 +509,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   fd = open (file, fbits, mode);
   if (fd < 0)
     {
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+      GDBM_SET_ERRNO2 (NULL, GDBM_FILE_OPEN_ERROR, FALSE, GDBM_DEBUG_OPEN);
       return NULL;
     }
   return gdbm_fd_open (fd, file, block_size, flags | GDBM_CLOERROR,
@@ -531,7 +528,7 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
 	                      malloc (sizeof(cache_elem) * size));
       if (dbf->bucket_cache == NULL)
         {
-          gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+          GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
           return -1;
         }
       dbf->cache_size = size;
@@ -543,7 +540,7 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
 	                      malloc (dbf->header->bucket_size));
           if ((dbf->bucket_cache[index]).ca_bucket == NULL)
 	    {
-              gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, TRUE);
+              GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
 	      return -1;
             }
           (dbf->bucket_cache[index]).ca_adr = 0;

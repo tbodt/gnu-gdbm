@@ -47,7 +47,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
     {
       if ((rret = fgetc (fp)) == -1)
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_READ_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_FILE_READ_ERROR, FALSE);
 	  return -1;
 	}
       
@@ -69,7 +69,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   kbuffer = malloc (kbufsize);
   if (kbuffer == NULL)
     {
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
   dbufsize = GDBM_MIN_BLOCK_SIZE;
@@ -77,7 +77,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   if (dbuffer == NULL)
     {
       free (kbuffer);
-      gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
 
@@ -163,7 +163,7 @@ gdbm_import_from_file (GDBM_FILE dbf, FILE *fp, int flag)
   if (ec == GDBM_NO_ERROR)
     return count;
 
-  gdbm_set_errno (NULL, ec, FALSE);
+  GDBM_SET_ERRNO (NULL, ec, FALSE);
   return -1;
 }
 
@@ -176,7 +176,7 @@ gdbm_import (GDBM_FILE dbf, const char *importfile, int flag)
   fp = fopen (importfile, "r");
   if (!fp)
     {
-      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
       return -1;
     }
   rc = gdbm_import_from_file (dbf, fp, flag);

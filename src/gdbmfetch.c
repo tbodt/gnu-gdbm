@@ -59,7 +59,7 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
 	return_val.dptr = (char *) malloc (return_val.dsize);
       if (return_val.dptr == NULL)
 	{
-	  gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
+	  GDBM_SET_ERRNO2 (dbf, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_READ);
 	  return return_val;
 	}
       memcpy (return_val.dptr, find_data, return_val.dsize);

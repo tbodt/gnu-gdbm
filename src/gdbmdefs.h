@@ -288,6 +288,16 @@ struct gdbm_file_info
     }									\
   while (0)
 
+# define GDBM_SET_ERRNO2(dbf, ec, fatal, m)				\
+  do									\
+    {									\
+      GDBM_DEBUG((m) | GDBM_DEBUG_ERR, "%s: error " #ec "%s",           \
+		 ((dbf) ? ((GDBM_FILE)dbf)->name : "<nodbf>"),		\
+		 ((fatal) ? " (needs recovery)" : ""));		        \
+      gdbm_set_errno(dbf, ec, fatal);                                   \
+    }                                                                   \
+  while (0)
+
 typedef int (*gdbm_debug_hook) (char const *, int, char const *, void *);
 extern void _gdbm_debug_hook_install (char const *, gdbm_debug_hook, void *);
 extern void _gdbm_debug_hook_remove (char const *);
@@ -304,7 +314,11 @@ extern int _gdbm_debug_hook_val (char const *);
 # define GDBM_DEBUG_HOOK(id) 0
 # define GDBM_DEBUG_OVERRIDE(id, stmt) (stmt)
 # define GDBM_DEBUG_ALLOC(id, stmt) (stmt)
+# define GDBM_SET_ERRNO2(dbf, ec, fatal, m) gdbm_set_errno (dbf, ec, fatal)
 #endif
+
+# define GDBM_SET_ERRNO(dbf, ec, fatal) GDBM_SET_ERRNO2 (dbf, ec, fatal, 0)
+
 
 /* Now define all the routines in use. */
 #include "proto.h"

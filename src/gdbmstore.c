@@ -55,9 +55,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
-      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
-		  "%s: can't store: not a writer", dbf->name);
-      gdbm_set_errno (dbf, GDBM_READER_CANT_STORE, FALSE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_READER_CANT_STORE, FALSE,
+		       GDBM_DEBUG_STORE);
       return -1;
     }
 
@@ -65,9 +64,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
      NULL dptr returned by a lookup procedure indicates an error. */
   if ((key.dptr == NULL) || (content.dptr == NULL))
     {
-      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
-		  "%s: can't store: invalid key or content", dbf->name);      
-      gdbm_set_errno (dbf, GDBM_ILLEGAL_DATA, FALSE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_ILLEGAL_DATA, FALSE,
+		       GDBM_DEBUG_STORE);
       return -1;
     }
 
@@ -103,9 +101,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	}
       else
 	{
- 	  GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
-		      "%s: cannot replace", dbf->name);      
-	  gdbm_set_errno (dbf, GDBM_CANNOT_REPLACE, FALSE);
+	  GDBM_SET_ERRNO2 (dbf, GDBM_CANNOT_REPLACE, FALSE,
+			   GDBM_DEBUG_STORE);
 	  return 1;
 	}
     }
@@ -158,7 +155,7 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
     {
       GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
 		  "%s: lseek: %s", dbf->name, strerror (errno));      
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_STORE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
