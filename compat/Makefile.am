@@ -15,7 +15,7 @@
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
 # Flags
-AM_CPPFLAGS=-I$(srcdir)/../src
+AM_CPPFLAGS=-I$(srcdir)/../src -I../src
 
 # The libraries
 VI_CURRENT  = 4

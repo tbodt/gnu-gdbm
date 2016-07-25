@@ -18,7 +18,7 @@
 AM_CPPFLAGS=-DIN_GDBM -DLOCALEDIR=\"$(localedir)\"
 
 # Headers
-include_HEADERS = gdbm.h
+nodist_include_HEADERS = gdbm.h
 noinst_HEADERS = \
  gdbmconst.h\
  gdbmdefs.h\
@@ -27,7 +27,7 @@ noinst_HEADERS = \
  systems.h
 
 EXTRA_DIST = gdbm.h.in gram.h gdbm.magic
-
+BUILT_SOURCES = gdbm.h
 # The libraries
 VI_CURRENT  = 4
 VI_REVISION = 0
