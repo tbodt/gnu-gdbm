@@ -120,10 +120,6 @@ check_PROGRAMS = \
 
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)/src $(DBMINCLUDES)
 
-if GDBM_COND_DEBUG_ENABLE
-  AM_CPPFLAGS += -DGDBM_DEBUG_ENABLE=1
-endif
-
 noinst_HEADERS=progname.h
 
 LDADD = ../src/libgdbm.la

@@ -72,11 +72,13 @@ stmtlist  : stmt
           ;
 
 stmt      : /* empty */ '\n'
+            {
+	      run_last_command ();
+	    }
           | T_CMD arglist '\n'
             {
 	      if (run_command ($1, &$2) && !interactive)
 		exit (EXIT_USAGE);
-	      gdbmarglist_free (&$2);
 	    }
           | set '\n'
           | defn '\n'

@@ -190,6 +190,7 @@ struct handler_param
 {
   int argc;
   struct gdbmarg **argv;
+  struct gdbmarg *vararg;
   FILE *fp;
   void *data;
 };
@@ -213,6 +214,7 @@ struct command;
 int command_lookup (const char *str, struct locus *loc, struct command **pcmd);
 
 int run_command (struct command *cmd, struct gdbmarglist *arglist);
+void run_last_command (void);
 
 struct xdatum;
 void xd_expand (struct xdatum *xd, size_t size);

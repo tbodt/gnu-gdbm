@@ -101,6 +101,8 @@ gdbm_firstkey (GDBM_FILE dbf)
   /* Set the default return value for not finding a first entry. */
   return_val.dptr = NULL;
 
+  GDBM_DEBUG (GDBM_DEBUG_READ, "%s: getting first key", dbf->name);
+  
   /* Return immediately if the database needs recovery */	
   GDBM_ASSERT_CONSISTENCY (dbf, return_val);
   
@@ -113,6 +115,11 @@ gdbm_firstkey (GDBM_FILE dbf)
   /* Look for first entry. */
   get_next_key (dbf, -1, &return_val);
 
+  if (return_val.dptr) 
+    GDBM_DEBUG_DATUM (GDBM_DEBUG_READ, return_val, "%s: found", dbf->name);
+  else
+    GDBM_DEBUG (GDBM_DEBUG_READ, "%s: key not found", dbf->name);
+  
   return return_val;
 }
 
@@ -128,6 +135,8 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   /* Set the default return value for no next entry. */
   return_val.dptr = NULL;
 
+  GDBM_DEBUG_DATUM (GDBM_DEBUG_READ, key, "%s: getting next key", dbf->name);
+  
   /* Return immediately if the database needs recovery */	
   GDBM_ASSERT_CONSISTENCY (dbf, return_val);
   
@@ -137,6 +146,7 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   /* Do we have a valid key? */
   if (key.dptr == NULL)
     {
+      GDBM_DEBUG (GDBM_DEBUG_READ, "%s: key not found", dbf->name);
       gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE); /* FIXME: special error code perhaps */
       return return_val;
     }
@@ -147,6 +157,11 @@ gdbm_nextkey (GDBM_FILE dbf, datum key)
   
   /* Find the next key. */  
   get_next_key (dbf, elem_loc, &return_val);
+
+  if (return_val.dptr) 
+    GDBM_DEBUG_DATUM (GDBM_DEBUG_READ, return_val, "%s: found", dbf->name);
+  else
+    GDBM_DEBUG (GDBM_DEBUG_READ, "%s: key not found", dbf->name);
 
   return return_val;
 }

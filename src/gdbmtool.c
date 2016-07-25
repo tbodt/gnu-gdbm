@@ -181,9 +181,9 @@ print_bucket (FILE *fp, hash_bucket *bucket, const char *mesg, ...)
     }
 
   fprintf (fp, _("\nAvail count = %1d\n"), bucket->av_count);
-  fprintf (fp, _("Avail  adr     size\n"));
+  fprintf (fp, _("Address           size\n"));
   for (index = 0; index < bucket->av_count; index++)
-    fprintf (fp, "%9lu%9d\n",
+    fprintf (fp, "%11lu%9d\n",
 	     (unsigned long) bucket->bucket_avail[index].av_adr,
 	     bucket->bucket_avail[index].av_size);
 }
@@ -357,11 +357,14 @@ get_screen_lines ()
 void
 open_handler (struct handler_param *param)
 {
-  if (opendb (PARAM_STRING (param, 0)) == 0)
+  char *name = tildexpand (PARAM_STRING (param, 0));
+  if (opendb (name) == 0)
     {
       free (file_name);
-      file_name = estrdup (PARAM_STRING (param, 0));
+      file_name = name;
     }
+  else
+    free (name);
 }
 
 /* Close database */
@@ -446,7 +449,7 @@ fetch_handler (struct handler_param *param)
       free (return_data.dptr);
     }
   else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
-    fprintf (stderr, _("No such item found.\n"));
+    terror ("%s", _("No such item found."));
   else
     terror (_("Can't fetch data: %s"), gdbm_strerror (gdbm_errno));
 }
@@ -458,7 +461,7 @@ store_handler (struct handler_param *param)
   if (gdbm_store (gdbm_file,
 		  PARAM_DATUM (param, 0), PARAM_DATUM (param, 1),
 		  GDBM_REPLACE) != 0)
-    fprintf (stderr, _("Item not inserted.\n"));
+    terror ("%s", _("Item not inserted."));
 }
 
 /* first - begin iteration */
@@ -513,7 +516,7 @@ nextkey_handler (struct handler_param *param)
     }
   else if (gdbm_errno == GDBM_ITEM_NOT_FOUND)
     {
-      fprintf (stderr, _("No such item found.\n"));
+      terror ("%s", _("No such item found."));
       free (key_data.dptr);
       key_data.dptr = NULL;
     }
@@ -526,9 +529,9 @@ void
 reorganize_handler (struct handler_param *param GDBM_ARG_UNUSED)
 {
   if (gdbm_reorganize (gdbm_file))
-    fprintf (stderr, _("Reorganization failed.\n"));
+    terror ("%s", _("Reorganization failed."));
   else
-    fprintf (stderr, _("Reorganization succeeded.\n"));
+    fprintf (param->fp, _("Reorganization succeeded."));
 }
 
 static void
@@ -715,7 +718,7 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
 
   if (temp >= GDBM_DIR_COUNT (gdbm_file))
     {
-      fprintf (stderr, _("Not a bucket.\n"));
+      terror (_("Not a bucket."));
       return 1;
     }
   _gdbm_get_bucket (gdbm_file, temp);
@@ -723,7 +726,6 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
     *exp_count = bucket_print_lines (gdbm_file->bucket) + 3;
   return 0;
 }
-
 
 /* dir - print hash directory */
 int
@@ -740,7 +742,7 @@ void
 print_dir_handler (struct handler_param *param)
 {
   int i;
-
+  
   fprintf (param->fp, _("Hash table directory.\n"));
   fprintf (param->fp, _("  Size =  %d.  Bits = %d. \n\n"),
 	   gdbm_file->header->dir_size, gdbm_file->header->dir_bits);
@@ -791,15 +793,15 @@ hash_handler (struct handler_param *param)
     {
       int hashval, bucket, off;
       _gdbm_hash_key (gdbm_file, PARAM_DATUM (param, 0),
-		      &hashval, &bucket, &off);
+		       &hashval, &bucket, &off);
       fprintf (param->fp, _("hash value = %x, bucket #%u, slot %u"),
-	       hashval,
-	       hashval >> (GDBM_HASH_BITS - gdbm_file->header->dir_bits),
-	       hashval % gdbm_file->header->bucket_elems);
+		hashval,
+		hashval >> (GDBM_HASH_BITS - gdbm_file->header->dir_bits),
+		hashval % gdbm_file->header->bucket_elems);
     }
   else
     fprintf (param->fp, _("hash value = %x"),
-	     _gdbm_hash (PARAM_DATUM (param, 0)));
+	      _gdbm_hash (PARAM_DATUM (param, 0)));
   fprintf (param->fp, ".\n");
 }
 
@@ -813,7 +815,7 @@ print_cache_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_coun
     *exp_count = gdbm_file->bucket_cache ? gdbm_file->cache_size + 1 : 1;
   return 0;
 }
-    
+
 void
 print_cache_handler (struct handler_param *param)
 {
@@ -836,13 +838,13 @@ list_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
   if (exp_count)
     {
       gdbm_count_t count;
-      
+
       if (gdbm_count (gdbm_file, &count))
-	*exp_count = 0;
+	 *exp_count = 0;
       else if (count > SIZE_T_MAX)
-	*exp_count = SIZE_T_MAX;
+	 *exp_count = SIZE_T_MAX;
       else
-	*exp_count = count;
+	 *exp_count = count;
     }
 
   return 0;
@@ -861,18 +863,18 @@ list_handler (struct handler_param *param)
 
       data = gdbm_fetch (gdbm_file, key);
       if (!data.dptr)
-	{
-	  terror (_("cannot fetch data; the key was:"));
-	  datum_format (stderr, &key, dsdef[DS_KEY]);
-	}
+	 {
+	   terror (_("cannot fetch data; the key was:"));
+	   datum_format (stderr, &key, dsdef[DS_KEY]);
+	 }
       else
-	{
-	  datum_format (param->fp, &key, dsdef[DS_KEY]);
-	  fputc (' ', param->fp);
-	  datum_format (param->fp, &data, dsdef[DS_CONTENT]);
-	  fputc ('\n', param->fp);
-	  free (data.dptr);
-	}
+	 {
+	   datum_format (param->fp, &key, dsdef[DS_KEY]);
+	   fputc (' ', param->fp);
+	   datum_format (param->fp, &data, dsdef[DS_CONTENT]);
+	   fputc ('\n', param->fp);
+	   free (data.dptr);
+	 }
       free (key.dptr);
       key = nextkey;
     }
@@ -896,20 +898,20 @@ export_handler (struct handler_param *param)
   int flags = GDBM_WRCREAT;
   int i;
   int filemode;
-  
+
   for (i = 1; i < param->argc; i++)
     {
       if (strcmp (PARAM_STRING (param, i), "truncate") == 0)
-	flags = GDBM_NEWDB;
+	 flags = GDBM_NEWDB;
       else if (strcmp (PARAM_STRING (param, i), "binary") == 0)
-	format = GDBM_DUMP_FMT_BINARY;
+	 format = GDBM_DUMP_FMT_BINARY;
       else if (strcmp (PARAM_STRING (param, i), "ascii") == 0)
-	format = GDBM_DUMP_FMT_ASCII;
+	 format = GDBM_DUMP_FMT_ASCII;
       else
-	{
-	  terror (_("unrecognized argument: %s"), PARAM_STRING (param, i));
-	  return;
-	}
+	 {
+	   terror (_("unrecognized argument: %s"), PARAM_STRING (param, i));
+	   return;
+	 }
     }
 
   if (variable_get ("filemode", VART_INT, (void**) &filemode))
@@ -917,7 +919,7 @@ export_handler (struct handler_param *param)
   if (gdbm_dump (gdbm_file, PARAM_STRING (param, 0), format, flags, filemode))
     {
       terror (_("error dumping database: %s"),
-		    gdbm_strerror (gdbm_errno));
+		     gdbm_strerror (gdbm_errno));
     }
 }
 
@@ -930,23 +932,23 @@ import_handler (struct handler_param *param)
   int meta_mask = 0;
   int i;
   int rc;
-  
+
   for (i = 1; i < param->argc; i++)
     {
       if (strcmp (PARAM_STRING (param, i), "replace") == 0)
-	flag = GDBM_REPLACE;
+	 flag = GDBM_REPLACE;
       else if (strcmp (PARAM_STRING (param, i), "nometa") == 0)
-	meta_mask = GDBM_META_MASK_MODE | GDBM_META_MASK_OWNER;
+	 meta_mask = GDBM_META_MASK_MODE | GDBM_META_MASK_OWNER;
       else
-	{
-	  terror (_("unrecognized argument: %s"),
-		  PARAM_STRING (param, i));
-	  return;
-	}
+	 {
+	   terror (_("unrecognized argument: %s"),
+		   PARAM_STRING (param, i));
+	   return;
+	 }
     }
 
   rc = gdbm_load (&gdbm_file, PARAM_STRING (param, 0), flag,
-		  meta_mask, &err_line);
+		   meta_mask, &err_line);
   if (rc && gdbm_errno == GDBM_NO_DBNAME)
     {
       int t = open_mode;
@@ -956,29 +958,29 @@ import_handler (struct handler_param *param)
       open_mode = t;
 
       if (rc)
-	return;
+	 return;
 
       rc = gdbm_load (&gdbm_file, PARAM_STRING (param, 0), flag,
-		      meta_mask, &err_line);
+		       meta_mask, &err_line);
     }
   if (rc)
     {
       switch (gdbm_errno)
-	{
-	case GDBM_ERR_FILE_OWNER:
-	case GDBM_ERR_FILE_MODE:
-	  terror (_("error restoring metadata: %s (%s)"),
-			gdbm_strerror (gdbm_errno), strerror (errno));
-	  break;
-	  
-	default:
-	  if (err_line)
-	    terror ("%s:%lu: %s", PARAM_STRING (param, 0), err_line,
-		    gdbm_strerror (gdbm_errno));
-	  else
-	    terror (_("cannot load from %s: %s"), PARAM_STRING (param, 0),
-		    gdbm_strerror (gdbm_errno));
-	}
+	 {
+	 case GDBM_ERR_FILE_OWNER:
+	 case GDBM_ERR_FILE_MODE:
+	   terror (_("error restoring metadata: %s (%s)"),
+			 gdbm_strerror (gdbm_errno), strerror (errno));
+	   break;
+
+	 default:
+	   if (err_line)
+	     terror ("%s:%lu: %s", PARAM_STRING (param, 0), err_line,
+		     gdbm_strerror (gdbm_errno));
+	   else
+	     terror (_("cannot load from %s: %s"), PARAM_STRING (param, 0),
+		     gdbm_strerror (gdbm_errno));
+	 }
       return;
     }
 
@@ -1001,6 +1003,77 @@ status_handler (struct handler_param *param)
     fprintf (param->fp, "%s\n", _("Database is not open"));
   dsprint (param->fp, DS_KEY, dsdef[DS_KEY]);
   dsprint (param->fp, DS_CONTENT, dsdef[DS_CONTENT]);
+}
+
+#ifdef GDBM_DEBUG_ENABLE
+static int
+debug_flag_printer (void *data, int flag, char const *tok)
+{
+  FILE *fp = data;
+  fprintf (fp, " %s", tok);
+  return 0;
+}
+#endif
+
+void
+debug_handler (struct handler_param *param)
+{
+#ifdef GDBM_DEBUG_ENABLE
+  if (param->vararg)
+    {
+      struct gdbmarg *arg;
+      int i;
+      
+      for (arg = param->vararg, i = 0; arg; arg = arg->next, i++)
+	{
+	  if (arg->type == GDBM_ARG_STRING)
+	    {
+	      int flag;
+	      int negate;
+	      char const *tok = arg->v.string;
+	      
+	      if (tok[0] == '-')
+		{
+		  ++tok;
+		  negate = 1;
+		}
+	      else if (tok[0] == '+')
+		{
+		  ++tok;
+		  negate = 0;
+		}
+	      else
+		negate = 0;
+	      
+              flag = gdbm_debug_token (tok);
+	      if (flag)
+		{
+		  if (negate)
+		    gdbm_debug_flags &= ~flag;
+		  else
+		    gdbm_debug_flags |= flag;
+		}
+	      else
+		terror (_("unknown debug flag: %s"), tok);
+	    }
+	  else
+	    terror (_("invalid type of argument %d"), i);
+	}
+    }
+  else
+    {
+      fprintf (param->fp, _("Debug flags:"));
+      if (gdbm_debug_flags)
+	{
+	  gdbm_debug_parse_state (debug_flag_printer, param->fp);
+	}
+      else
+	fprintf (param->fp, " %s", _("none"));
+      fputc ('\n', param->fp);
+    }
+#else
+  terror ("%s", _("compiled without debug support"));
+#endif
 }
 
 void
@@ -1034,6 +1107,8 @@ struct command
   void (*handler) (struct handler_param *param);
   void (*end) (void *data);
   struct argdef args[NARGS];
+  int variadic;
+  int repeat;
   char *doc;
 };
 
@@ -1041,47 +1116,73 @@ struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
   { S(count), T_CMD,
     checkdb, count_handler, NULL,
-    { { NULL } }, N_("count (number of entries)") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("count (number of entries)") },
   { S(delete), T_CMD,
     checkdb, delete_handler, NULL,
-    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } }, N_("delete a record") },
+    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },
+    FALSE,
+    FALSE,
+    N_("delete a record") },
   { S(export), T_CMD,
     checkdb, export_handler, NULL,
     { { N_("FILE"), GDBM_ARG_STRING },
       { "[truncate]", GDBM_ARG_STRING },
       { "[binary|ascii]", GDBM_ARG_STRING },
       { NULL } },
+    FALSE,
+    FALSE,
     N_("export") },
   { S(fetch), T_CMD,
     checkdb, fetch_handler, NULL,
-    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },  N_("fetch record") },
+    { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },
+    FALSE,
+    FALSE,
+    N_("fetch record") },
   { S(import), T_CMD,
     NULL, import_handler, NULL,
     { { N_("FILE"), GDBM_ARG_STRING },
       { "[replace]", GDBM_ARG_STRING },
       { "[nometa]" , GDBM_ARG_STRING },
       { NULL } },
+    FALSE,
+    FALSE,
     N_("import") },
   { S(list), T_CMD,
     list_begin, list_handler, NULL,
-    { { NULL } }, N_("list") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("list") },
   { S(next), T_CMD,
     checkdb, nextkey_handler, NULL,
     { { N_("[KEY]"), GDBM_ARG_STRING },
       { NULL } },
+    FALSE,
+    TRUE,
     N_("nextkey") },
   { S(store), T_CMD,
     checkdb, store_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY },
       { N_("DATA"), GDBM_ARG_DATUM, DS_CONTENT },
       { NULL } },
+    FALSE,
+    FALSE,
     N_("store") },
   { S(first), T_CMD,
     checkdb, firstkey_handler, NULL,
-    { { NULL } }, N_("firstkey") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("firstkey") },
   { S(reorganize), T_CMD,
     checkdb, reorganize_handler, NULL,
-    { { NULL } }, N_("reorganize") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("reorganize") },
   { S(recover), T_CMD,
     checkdb, recover_handler, NULL,
     { { "[verbose]", GDBM_ARG_STRING },
@@ -1090,72 +1191,132 @@ struct command command_tab[] = {
       { "[max-failed-buckets=N]", GDBM_ARG_STRING },
       { "[max-failures=N]", GDBM_ARG_STRING },
       { NULL } },
+    FALSE,
+    FALSE,
     N_("recover the database") },
   { S(avail), T_CMD,
     avail_begin, avail_handler, NULL,
-    { { NULL } }, N_("print avail list") }, 
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print avail list") }, 
   { S(bucket), T_CMD,
     print_bucket_begin, print_current_bucket_handler, NULL,
     { { N_("NUMBER"), GDBM_ARG_STRING },
-      { NULL } }, N_("print a bucket") },
+      { NULL } },
+    FALSE,
+    FALSE,
+    N_("print a bucket") },
   { S(current), T_CMD,
     print_current_bucket_begin, print_current_bucket_handler, NULL,
     { { NULL } },
+    FALSE,
+    FALSE,
     N_("print current bucket") },
   { S(dir), T_CMD,
     print_dir_begin, print_dir_handler, NULL,
-    { { NULL } }, N_("print hash directory") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print hash directory") },
   { S(header), T_CMD,
     print_header_begin , print_header_handler, NULL,
-    { { NULL } }, N_("print database file header") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print database file header") },
   { S(hash), T_CMD,
     NULL, hash_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY },
-      { NULL } }, N_("hash value of key") },
+      { NULL } },
+    FALSE,
+    FALSE,
+    N_("hash value of key") },
   { S(cache), T_CMD,
     print_cache_begin, print_cache_handler, NULL,
-    { { NULL } }, N_("print the bucket cache") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print the bucket cache") },
   { S(status), T_CMD,
     NULL, status_handler, NULL,
-    { { NULL } }, N_("print current program status") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print current program status") },
   { S(version), T_CMD,
     NULL, print_version_handler, NULL,
-    { { NULL } }, N_("print version of gdbm") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print version of gdbm") },
   { S(help), T_CMD,
     help_begin, help_handler, NULL,
-    { { NULL } }, N_("print this help list") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("print this help list") },
   { S(quit), T_CMD,
     NULL, quit_handler, NULL,
-    { { NULL } }, N_("quit the program") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("quit the program") },
   { S(set), T_SET,
     NULL, NULL, NULL,
-    { { "[VAR=VALUE...]" }, { NULL } }, N_("set or list variables") },
+    { { "[VAR=VALUE...]" }, { NULL } },
+    FALSE,
+    FALSE,
+    N_("set or list variables") },
   { S(unset), T_UNSET,
     NULL, NULL, NULL,
-    { { "VAR..." }, { NULL } }, N_("unset variables") },
+    { { "VAR..." }, { NULL } },
+    FALSE,
+    FALSE,
+    N_("unset variables") },
   { S(define), T_DEF,
     NULL, NULL, NULL,
     { { "key|content", GDBM_ARG_STRING },
       { "{ FIELD-LIST }", GDBM_ARG_STRING },
-      { NULL } }, N_("define datum structure") },
+      { NULL } },
+    FALSE,
+    FALSE,
+    N_("define datum structure") },
   { S(source), T_CMD,
     NULL, source_handler, NULL,
     { { "FILE", GDBM_ARG_STRING },
-      { NULL } }, N_("source command script") },
+      { NULL } },
+    FALSE,
+    FALSE,
+    N_("source command script") },
   { S(close), T_CMD,
     NULL, close_handler, NULL,
-    { { NULL } }, N_("close the database") },
+    { { NULL } },
+    FALSE,
+    FALSE,
+    N_("close the database") },
   { S(open), T_CMD,
     NULL, open_handler, NULL,
     { { "FILE", GDBM_ARG_STRING }, { NULL } },
+    FALSE,
+    FALSE,
     N_("open new database") },
 #ifdef WITH_READLINE
   { S(history), T_CMD,
     input_history_begin, input_history_handler, NULL,
     { { N_("[FROM]"), GDBM_ARG_STRING },
       { N_("[COUNT]"), GDBM_ARG_STRING },
-      { NULL } }, N_("show input history") },
+      { NULL } },
+    FALSE,
+    FALSE,
+    N_("show input history") },
 #endif
+  { S(debug), T_CMD,
+    NULL, debug_handler, NULL,
+    { { NULL } },
+    TRUE,
+    FALSE,
+    N_("query/set debug level") },
 #undef S
   { 0 }
 };
@@ -1512,6 +1673,7 @@ gdbmarglist_free (struct gdbmarglist *lst)
       gdbmarg_free (arg);
       arg = next;
     }
+  lst->head = lst->tail = NULL;
 }
 
 struct handler_param param;
@@ -1585,6 +1747,22 @@ coerce (struct gdbmarg *arg, struct argdef *def)
   return coerce_tab[def->type][arg->type] (arg, def);
 }
 
+static struct command *last_cmd;
+static struct gdbmarglist last_args;
+
+void
+run_last_command (void)
+{
+  if (interactive)
+    {
+      if (last_cmd && last_cmd->repeat)
+	{
+	  if (run_command (last_cmd, &last_args))
+	    exit (EXIT_USAGE);
+	}
+    }
+}
+
 int
 run_command (struct command *cmd, struct gdbmarglist *arglist)
 {
@@ -1653,7 +1831,7 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 	}
     }
 
-  if (arg)
+  if (arg && !cmd->variadic)
     {
       terror (_("%s: too many arguments"), cmd->name);
       return 1;
@@ -1667,6 +1845,7 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
       param.argv = ecalloc (argmax, sizeof (param.argv[0]));
     }
   param.argv[i] = NULL;
+  param.vararg = arg;
   param.fp = NULL;
   param.data = NULL;
   pagfp = NULL;
@@ -1702,6 +1881,13 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
     }
 
   param_free_argv (&param, param.argc);
+
+  last_cmd = cmd;
+  if (arglist->head != last_args.head)
+    {
+      gdbmarglist_free (&last_args);
+      last_args = *arglist;
+    }
   
   return 0;
 }
@@ -1738,6 +1924,18 @@ source_rcfile ()
     }
 }
 
+#ifdef GDBM_DEBUG_ENABLE
+void
+debug_printer (char const *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
+}
+#endif
+
 int
 main (int argc, char *argv[])
 {
@@ -1749,6 +1947,9 @@ main (int argc, char *argv[])
   char *source = "-";
   
   set_progname (argv[0]);
+#ifdef GDBM_DEBUG_ENABLE
+  gdbm_debug_printer = debug_printer;
+#endif
 
 #ifdef HAVE_SETLOCALE
   setlocale (LC_ALL, "");

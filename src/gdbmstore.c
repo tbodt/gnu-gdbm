@@ -47,12 +47,16 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   int   new_size;		/* Used in allocating space. */
   int rc;
 
+  GDBM_DEBUG_DATUM (GDBM_DEBUG_STORE, key, "%s: storing key:", dbf->name);
+
   /* Return immediately if the database needs recovery */	
   GDBM_ASSERT_CONSISTENCY (dbf, -1);
   
   /* First check to make sure this guy is a writer. */
   if (dbf->read_write == GDBM_READER)
     {
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: can't store: not a writer", dbf->name);
       gdbm_set_errno (dbf, GDBM_READER_CANT_STORE, FALSE);
       return -1;
     }
@@ -61,6 +65,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
      NULL dptr returned by a lookup procedure indicates an error. */
   if ((key.dptr == NULL) || (content.dptr == NULL))
     {
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: can't store: invalid key or content", dbf->name);      
       gdbm_set_errno (dbf, GDBM_ILLEGAL_DATA, FALSE);
       return -1;
     }
@@ -97,6 +103,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	}
       else
 	{
+ 	  GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		      "%s: cannot replace", dbf->name);      
 	  gdbm_set_errno (dbf, GDBM_CANNOT_REPLACE, FALSE);
 	  return 1;
 	}
@@ -148,6 +156,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 				  __lseek (dbf, file_adr, SEEK_SET));
   if (file_pos != file_adr)
     {
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: lseek: %s", dbf->name, strerror (errno));      
       gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
@@ -157,6 +167,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 			    _gdbm_full_write (dbf, key.dptr, key.dsize));
   if (rc)
     {
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: writing key: %s", dbf->name, strerror (errno));      
       gdbm_set_errno (dbf, rc, TRUE);
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return -1;
@@ -167,6 +179,9 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 					      content.dptr, content.dsize));
   if (rc)
     {
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: writing content: %s",
+		  dbf->name, strerror (errno));      
       gdbm_set_errno (dbf, rc, TRUE);
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return -1;

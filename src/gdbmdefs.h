@@ -253,6 +253,41 @@ struct gdbm_file_info
 
 /* Debugging hooks */
 #ifdef GDBM_DEBUG_ENABLE
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __FUNCTION__
+# else
+#  define __func__ "<unknown>"
+# endif
+#endif
+
+#define _gdbm_str_(s) #s
+#define _gdbm_cat_(a,b) a ":" _gdbm_str_(b)
+#define __gdbm_locus__ _gdbm_cat_(__FILE__,__LINE__)
+
+# define GDBM_DEBUG(flags, fmt, ...)					 \
+  do									 \
+    {									 \
+      if (gdbm_debug_printer && gdbm_debug_flags & (flags))	 	 \
+	SAVE_ERRNO (gdbm_debug_printer (__gdbm_locus__ ":%s: " fmt "\n", \
+					__func__, __VA_ARGS__));	 \
+    }						                         \
+  while (0)
+
+# define GDBM_DEBUG_DATUM(flags, dat, fmt, ...)				\
+  do									\
+    {									\
+      if (gdbm_debug_printer && gdbm_debug_flags & (flags))		\
+	{								\
+	  SAVE_ERRNO(							\
+	    gdbm_debug_printer (__gdbm_locus__ ":%s: " fmt "\n",        \
+				__func__, __VA_ARGS__);			\
+	    gdbm_debug_datum (dat, __gdbm_locus__": ");			\
+	  );                                                            \
+        }								\
+    }									\
+  while (0)
+
 typedef int (*gdbm_debug_hook) (char const *, int, char const *, void *);
 extern void _gdbm_debug_hook_install (char const *, gdbm_debug_hook, void *);
 extern void _gdbm_debug_hook_remove (char const *);
@@ -264,6 +299,8 @@ extern int _gdbm_debug_hook_val (char const *);
 # define GDBM_DEBUG_ALLOC(id, stmt)		\
   (GDBM_DEBUG_HOOK(id) ? NULL : (stmt))
 #else
+# define GDBM_DEBUG(flags, fmt, ...)
+# define GDBM_DEBUG_DATUM(flags, dat, fmt, ...)
 # define GDBM_DEBUG_HOOK(id) 0
 # define GDBM_DEBUG_OVERRIDE(id, stmt) (stmt)
 # define GDBM_DEBUG_ALLOC(id, stmt) (stmt)

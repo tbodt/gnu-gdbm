@@ -68,7 +68,6 @@ libgdbm_la_SOURCES = \
 
 if GDBM_COND_DEBUG_ENABLE
   libgdbm_la_SOURCES += debug.c
-  AM_CPPFLAGS += -DGDBM_DEBUG_ENABLE=1
 endif
 
 libgdbm_la_LDFLAGS = -version-info $(VI_CURRENT):$(VI_REVISION):$(VI_AGE)

@@ -240,6 +240,29 @@ extern const char *gdbm_db_strerror (GDBM_FILE dbf);
   
 extern int gdbm_version_cmp (int const a[], int const b[]);
 
+#if @GDBM_DEBUG_ENABLE@
+# define GDBM_DEBUG_ENABLE 1
+
+typedef void (*gdbm_debug_printer_t) (char const *, ...);
+extern gdbm_debug_printer_t gdbm_debug_printer;
+extern int gdbm_debug_flags;
+
+# define GDBM_DEBUG_ERR    0x00000001
+# define GDBM_DEBUG_OPEN   0x00000002
+# define GDBM_DEBUG_READ   0x00000004
+# define GDBM_DEBUG_STORE  0x00000008
+# define GDBM_DEBUG_LOOKUP 0x00000010
+  
+# define GDBM_DEBUG_ALL    0xffffffff
+
+extern int gdbm_debug_token (char const *tok);
+extern void gdbm_debug_parse_state (int (*f) (void *, int, char const *),
+				    void *d);
+  
+extern void gdbm_debug_datum (datum dat, char const *pfx);
+  
+#endif
+  
 # if defined(__cplusplus) || defined(c_plusplus)
 }
 # endif

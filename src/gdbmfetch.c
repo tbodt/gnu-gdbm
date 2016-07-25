@@ -33,6 +33,8 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
   int    elem_loc;		/* The location in the bucket. */
   char  *find_data;		/* Returned from find_key. */
 
+  GDBM_DEBUG_DATUM (GDBM_DEBUG_READ, key, "%s: fetching key:", dbf->name);
+
   /* Set the default return value. */
   return_val.dptr  = NULL;
   return_val.dsize = 0;
@@ -61,7 +63,12 @@ gdbm_fetch (GDBM_FILE dbf, datum key)
 	  return return_val;
 	}
       memcpy (return_val.dptr, find_data, return_val.dsize);
+      
+      GDBM_DEBUG_DATUM (GDBM_DEBUG_READ, return_val,
+			"%s: found", dbf->name);
     }
+  else
+    GDBM_DEBUG (GDBM_DEBUG_READ, "%s: key not found", dbf->name);
   
   return return_val;
 }

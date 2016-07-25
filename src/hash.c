@@ -56,5 +56,5 @@ _gdbm_hash_key (GDBM_FILE dbf, datum key, int *hash, int *bucket, int *offset)
   int hashval = _gdbm_hash (key);
   *hash = hashval;
   *bucket = _gdbm_bucket_dir (dbf, hashval);
-  *offset = hashval % dbf->header->bucket_elems; 
+  *offset = hashval % dbf->header->bucket_elems;
 }

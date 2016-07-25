@@ -176,10 +176,16 @@ AM_CONDITIONAL([GDBM_COND_READLINE], [test "$status_readline" = "yes"])
 # Additional debugging
 AC_ARG_ENABLE([debug],
               AC_HELP_STRING([--enable-debug],
-                             [provide additional debugging functions]),
+                             [provide additional debugging information]),
               [status_debug=$withval],
 	      [status_debug=no])
 
+AC_SUBST([GDBM_DEBUG_ENABLE])
+if test "$status_debug" = "yes"; then
+  GDBM_DEBUG_ENABLE=1
+else
+  GDBM_DEBUG_ENABLE=0
+fi  
 AM_CONDITIONAL([GDBM_COND_DEBUG_ENABLE], [test "$status_debug" = "yes"])
 
 # Initialize the test suite.
@@ -197,7 +203,7 @@ Compatibility library ......................... $status_compat
 Compatibility export tool ..................... $status_export
 Memory mapped I/O ............................. $mapped_io
 GNU Readline .................................. $status_readline
-Debugging functions ........................... $status_debug
+Debugging support ............................. $status_debug
 *******************************************************************
 
 EOF

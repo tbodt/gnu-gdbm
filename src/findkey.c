@@ -107,8 +107,14 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
   int    home_loc;		/* The home location in the bucket. */
   int    key_size;		/* Size of the key on the file.  */
 
+  GDBM_DEBUG_DATUM (GDBM_DEBUG_LOOKUP, key, "%s: fetching key:", dbf->name);
+  
   /* Compute hash value and load proper bucket.  */
   _gdbm_hash_key (dbf, key, &new_hash_val, &bucket_dir, &elem_loc);
+
+  GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: location = %#4x:%d:%d", dbf->name,
+	      new_hash_val, bucket_dir, elem_loc);
+
   if (ret_hash_val)
     *ret_hash_val = new_hash_val;
   if (_gdbm_get_bucket (dbf, bucket_dir))
@@ -121,9 +127,10 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
       && dbf->cache_entry->ca_data.dptr != NULL
       && memcmp (dbf->cache_entry->ca_data.dptr, key.dptr, key.dsize) == 0)
     {
+      GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: found in cache", dbf->name);
       /* This is it. Return the cache pointer. */
       if (ret_dptr)
-	*ret_dptr = dbf->cache_entry->ca_data.dptr+key.dsize;
+	*ret_dptr = dbf->cache_entry->ca_data.dptr + key.dsize;
       return dbf->cache_entry->ca_data.elem_loc;
     }
       
@@ -150,10 +157,15 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
 	     The only way to tell is to read it. */
 	  file_key = _gdbm_read_entry (dbf, elem_loc);
 	  if (!file_key)
-	    return -1;
+	    {
+	      GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: error reading entry: %s",
+			  dbf->name, gdbm_db_strerror (dbf));
+	      return -1;
+	    }
 	  if (memcmp (file_key, key.dptr, key_size) == 0)
 	    {
 	      /* This is the item. */
+	      GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: found", dbf->name);
 	      if (ret_dptr)
 		*ret_dptr = file_key + key.dsize;
 	      return elem_loc;
@@ -167,9 +179,12 @@ _gdbm_findkey (GDBM_FILE dbf, datum key, char **ret_dptr, int *ret_hash_val)
 	      bucket_hash_val = dbf->bucket->h_table[elem_loc].hash_value;
 	    }
 	}
+      GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: next location = %#4x:%d:%d",
+		  dbf->name, bucket_hash_val, bucket_dir, elem_loc);
     }
 
   /* If we get here, we never found the key. */
+  GDBM_DEBUG (GDBM_DEBUG_LOOKUP, "%s: not found", dbf->name);
   gdbm_set_errno (dbf, GDBM_ITEM_NOT_FOUND, FALSE);
   return -1;
 

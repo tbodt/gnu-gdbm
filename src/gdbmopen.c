@@ -115,7 +115,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
   dbf->fast_write = TRUE;	/* Default to setting fast_write. */
   dbf->file_locking = TRUE;	/* Default to doing file locking. */
   dbf->central_free = FALSE;	/* Default to not using central_free. */
-  dbf->coalesce_blocks = FALSE; /* Default to not coalescing blocks. */
+  dbf->coalesce_blocks = FALSE; /* Default to not coalesce blocks. */
 
   dbf->need_recovery = FALSE;
   dbf->last_error = GDBM_NO_ERROR;
@@ -186,6 +186,8 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  flags &= ~GDBM_BSEXACT;
 	}
       compute_directory_size (dbf, block_size, &dir_size, &dir_bits);
+      GDBM_DEBUG (GDBM_DEBUG_OPEN, "%s: computed dir_size=%d, dir_bits=%d",
+		  dbf->name, dir_size, dir_bits);
       /* Check for correct block_size. */
       if (dir_size != block_size)
 	{
@@ -200,6 +202,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  else
 	    block_size = dir_size;
 	}
+      GDBM_DEBUG (GDBM_DEBUG_OPEN, "%s: block_size=%d", dbf->name, block_size);
       
       /* Get space for the file header. It will be written to disk, so
          make sure there's no garbage in it. */
@@ -312,6 +315,9 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       rc = _gdbm_full_read (dbf, &partial_header, sizeof (gdbm_file_header));
       if (rc)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: error reading partial header: %s",
+		      dbf->name, strerror (errno));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
@@ -323,6 +329,10 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       if (partial_header.header_magic != GDBM_MAGIC
 	  && partial_header.header_magic != GDBM_OMAGIC)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: unexpected magic: %#4x",
+		      dbf->name, partial_header.header_magic);
+
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
@@ -347,6 +357,9 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       dbf->header = (gdbm_file_header *) malloc (partial_header.block_size);
       if (dbf->header == NULL)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: can't allocate header",
+		      dbf->name);
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
@@ -355,9 +368,12 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	}
       memcpy (dbf->header, &partial_header, sizeof (gdbm_file_header));
       rc = _gdbm_full_read (dbf, &dbf->header->avail.av_table[1],
-			    dbf->header->block_size-sizeof (gdbm_file_header));
+			    dbf->header->block_size - sizeof (gdbm_file_header));
       if (rc)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: error reading av_table",
+		      dbf->name);
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
@@ -369,6 +385,9 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       dbf->dir = (off_t *) malloc (dbf->header->dir_size);
       if (dbf->dir == NULL)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: can't allocate directory",
+		      dbf->name);
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
@@ -380,6 +399,9 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: __lseek: %s",
+		      dbf->name, strerror (errno));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
@@ -390,6 +412,9 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       rc = _gdbm_full_read (dbf, dbf->dir, dbf->header->dir_size);
       if (rc)
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: error reading dir: %s",
+		      dbf->name, strerror (errno));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
@@ -407,6 +432,10 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       else
 	{
 	  /* gdbm_errno should already be set. */
+	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
+		      "%s: _gdbm_mapped_init failed: %s",
+		      dbf->name, strerror (errno));
+
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
@@ -424,7 +453,9 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
   dbf->directory_changed = FALSE;
   dbf->bucket_changed = FALSE;
   dbf->second_changed = FALSE;
-  
+
+  GDBM_DEBUG (GDBM_DEBUG_ALL, "%s: opened successfully", dbf->name);
+
   /* Everything is fine, return the pointer to the file
      information structure.  */
   return dbf;
@@ -457,7 +488,7 @@ gdbm_open (const char *file, int block_size, int flags, int mode,
   int fd;
   /* additional bits for open(2) flags */
   int fbits = 0;
-  
+
   switch (flags & GDBM_OPENMASK)
     {
       case GDBM_READER:

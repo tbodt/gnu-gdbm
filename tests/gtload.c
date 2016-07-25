@@ -120,8 +120,22 @@ install_hook (char *id)
 	    }
 	}
     }
+#ifdef GDBM_DEBUG_ENABLE
   _gdbm_debug_hook_install (id, hookfn, clos);
+#endif
 }
+
+#ifdef GDBM_DEBUG_ENABLE
+void
+debug_printer (char const *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  va_end (ap);
+}
+#endif
 
 int
 main (int argc, char **argv)
@@ -146,6 +160,10 @@ main (int argc, char **argv)
   int rcvr_flags = 0;
   
   progname = canonical_progname (argv[0]);
+#ifdef GDBM_DEBUG_ENABLE
+  gdbm_debug_printer = debug_printer;
+#endif
+  
   while (--argc)
     {
       char *arg = *++argv;
@@ -209,6 +227,21 @@ main (int argc, char **argv)
 	  rcvr.max_failures = read_size (arg + 20);
 	  rcvr_flags |= GDBM_RCVR_MAX_FAILED_BUCKETS;
 	}
+#ifdef GDBM_DEBUG_ENABLE
+      else if (strncmp (arg, "-debug=", 7) == 0)
+	{
+	  char *p;
+
+	  for (p = strtok (arg + 7, ","); p; p = strtok (NULL, ","))
+	    {
+	      int f = gdbm_debug_token (p);
+	      if (!f)
+		fprintf (stderr, "%s: unknown flag: %s\n", progname, p);
+	      else
+		gdbm_debug_flags |= f;
+	    }
+	}
+#endif
       else if (strcmp (arg, "--") == 0)
 	{
 	  --argc;
