@@ -358,11 +358,16 @@ void
 open_handler (struct handler_param *param)
 {
   char *name = tildexpand (PARAM_STRING (param, 0));
-  if (opendb (name) == 0)
-    {
+  if (file_name)
+    { 
+      gdbm_close (gdbm_file);
+      gdbm_file = NULL;
       free (file_name);
-      file_name = name;
+      file_name = NULL;
     }
+  
+  if (opendb (name) == 0)
+    file_name = name;
   else
     free (name);
 }
@@ -377,6 +382,8 @@ close_handler (struct handler_param *param)
     {
       gdbm_close (gdbm_file);
       gdbm_file = NULL;
+      free (file_name);
+      file_name = NULL;
     }
 }
 
@@ -738,14 +745,33 @@ print_dir_begin (struct handler_param *param GDBM_ARG_UNUSED, size_t *exp_count)
   return 0;
 }
 
+static size_t
+bucket_count (void)
+{
+  int i;
+  off_t last = 0;
+  size_t count = 0;
+  
+  for (i = 0; i < GDBM_DIR_COUNT (gdbm_file); i++)
+    {
+      if (gdbm_file->dir[i] != last)
+	{
+	  ++count;
+	  last = gdbm_file->dir[i];
+	}
+    }
+  return count;
+}
+
 void
 print_dir_handler (struct handler_param *param)
 {
   int i;
   
   fprintf (param->fp, _("Hash table directory.\n"));
-  fprintf (param->fp, _("  Size =  %d.  Bits = %d. \n\n"),
-	   gdbm_file->header->dir_size, gdbm_file->header->dir_bits);
+  fprintf (param->fp, _("  Size =  %d.  Bits = %d,  Buckets = %zu.\n\n"),
+	   gdbm_file->header->dir_size, gdbm_file->header->dir_bits,
+	   bucket_count ());
   
   for (i = 0; i < GDBM_DIR_COUNT (gdbm_file); i++)
     fprintf (param->fp, "  %10d:  %12lu\n",
@@ -1098,6 +1124,13 @@ struct argdef
 
 #define NARGS 10
 
+enum command_repeat_type
+  {
+    REPEAT_NEVER,
+    REPEAT_ALWAYS,
+    REPEAT_NOARG
+  };
+
 struct command
 {
   char *name;           /* Command name */
@@ -1108,7 +1141,7 @@ struct command
   void (*end) (void *data);
   struct argdef args[NARGS];
   int variadic;
-  int repeat;
+  enum command_repeat_type repeat;
   char *doc;
 };
 
@@ -1118,13 +1151,13 @@ struct command command_tab[] = {
     checkdb, count_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("count (number of entries)") },
   { S(delete), T_CMD,
     checkdb, delete_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("delete a record") },
   { S(export), T_CMD,
     checkdb, export_handler, NULL,
@@ -1133,13 +1166,13 @@ struct command command_tab[] = {
       { "[binary|ascii]", GDBM_ARG_STRING },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("export") },
   { S(fetch), T_CMD,
     checkdb, fetch_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("fetch record") },
   { S(import), T_CMD,
     NULL, import_handler, NULL,
@@ -1154,14 +1187,14 @@ struct command command_tab[] = {
     list_begin, list_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("list") },
   { S(next), T_CMD,
     checkdb, nextkey_handler, NULL,
-    { { N_("[KEY]"), GDBM_ARG_STRING },
+    { { N_("[KEY]"), GDBM_ARG_DATUM, DS_KEY },
       { NULL } },
     FALSE,
-    TRUE,
+    REPEAT_NOARG,
     N_("nextkey") },
   { S(store), T_CMD,
     checkdb, store_handler, NULL,
@@ -1169,19 +1202,19 @@ struct command command_tab[] = {
       { N_("DATA"), GDBM_ARG_DATUM, DS_CONTENT },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("store") },
   { S(first), T_CMD,
     checkdb, firstkey_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("firstkey") },
   { S(reorganize), T_CMD,
     checkdb, reorganize_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("reorganize") },
   { S(recover), T_CMD,
     checkdb, recover_handler, NULL,
@@ -1192,87 +1225,87 @@ struct command command_tab[] = {
       { "[max-failures=N]", GDBM_ARG_STRING },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("recover the database") },
   { S(avail), T_CMD,
     avail_begin, avail_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print avail list") }, 
   { S(bucket), T_CMD,
     print_bucket_begin, print_current_bucket_handler, NULL,
     { { N_("NUMBER"), GDBM_ARG_STRING },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print a bucket") },
   { S(current), T_CMD,
     print_current_bucket_begin, print_current_bucket_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print current bucket") },
   { S(dir), T_CMD,
     print_dir_begin, print_dir_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print hash directory") },
   { S(header), T_CMD,
     print_header_begin , print_header_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print database file header") },
   { S(hash), T_CMD,
     NULL, hash_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("hash value of key") },
   { S(cache), T_CMD,
     print_cache_begin, print_cache_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print the bucket cache") },
   { S(status), T_CMD,
     NULL, status_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print current program status") },
   { S(version), T_CMD,
     NULL, print_version_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print version of gdbm") },
   { S(help), T_CMD,
     help_begin, help_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("print this help list") },
   { S(quit), T_CMD,
     NULL, quit_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("quit the program") },
   { S(set), T_SET,
     NULL, NULL, NULL,
     { { "[VAR=VALUE...]" }, { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("set or list variables") },
   { S(unset), T_UNSET,
     NULL, NULL, NULL,
     { { "VAR..." }, { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("unset variables") },
   { S(define), T_DEF,
     NULL, NULL, NULL,
@@ -1280,26 +1313,26 @@ struct command command_tab[] = {
       { "{ FIELD-LIST }", GDBM_ARG_STRING },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("define datum structure") },
   { S(source), T_CMD,
     NULL, source_handler, NULL,
     { { "FILE", GDBM_ARG_STRING },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("source command script") },
   { S(close), T_CMD,
     NULL, close_handler, NULL,
     { { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("close the database") },
   { S(open), T_CMD,
     NULL, open_handler, NULL,
     { { "FILE", GDBM_ARG_STRING }, { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("open new database") },
 #ifdef WITH_READLINE
   { S(history), T_CMD,
@@ -1308,14 +1341,14 @@ struct command command_tab[] = {
       { N_("[COUNT]"), GDBM_ARG_STRING },
       { NULL } },
     FALSE,
-    FALSE,
+    REPEAT_NEVER,
     N_("show input history") },
 #endif
   { S(debug), T_CMD,
     NULL, debug_handler, NULL,
     { { NULL } },
     TRUE,
-    FALSE,
+    REPEAT_NEVER,
     N_("query/set debug level") },
 #undef S
   { 0 }
@@ -1755,10 +1788,22 @@ run_last_command (void)
 {
   if (interactive)
     {
-      if (last_cmd && last_cmd->repeat)
+      if (last_cmd)
 	{
-	  if (run_command (last_cmd, &last_args))
-	    exit (EXIT_USAGE);
+	  switch (last_cmd->repeat)
+	    {
+	    case REPEAT_NEVER:
+	      break;
+	    case REPEAT_NOARG:
+	      gdbmarglist_free (&last_args);
+	      /* FALLTHROUGH */
+	    case REPEAT_ALWAYS:
+	      if (run_command (last_cmd, &last_args))
+		exit (EXIT_USAGE);
+	      break;
+	    default:
+	      abort ();
+	    }
 	}
     }
 }

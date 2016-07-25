@@ -82,14 +82,20 @@ datbuf_format (char vbuf[DATBUFSIZE], const char *buf, size_t size)
 	{
 	  c = *(const unsigned char*)buf++;
 	  j++;
+
+	  sprintf (p, "%02X ", c);
+	  p += 3;
+	  *q++ = isprint (c) ? c : '.';
+	  if (i == 7)
+	    {
+	      *p++ = ' ';
+	      *q++ = ' ';
+	    }
 	}
       else
-	c = 0;
-      sprintf(p, "%02X ", c);
-      p += 3;
-      *q++ = isprint(c) ? c : '.';
-      if (i == 7)
 	{
+	  *p++ = ' ';
+	  *p++ = ' ';
 	  *p++ = ' ';
 	  *q++ = ' ';
 	}
@@ -112,7 +118,8 @@ gdbm_debug_datum (datum dat, char const *pfx)
       gdbm_debug_printer ("%s%s\n", pfx, "NULL");
       return;
     }
-  
+
+  gdbm_debug_printer ("size=%d\n", size);
   while (size)
     {
       size_t rd = datbuf_format (vbuf, buf, size);

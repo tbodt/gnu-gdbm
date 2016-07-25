@@ -1923,8 +1923,8 @@ existing @acronym{GDBM} database or to create a new one.
 @flindex junk.gdbm
 When invoked without arguments, it tries to open a database file called
 @file{junk.gdbm}, located in the current working directory.  You can
-change this default by supplying the name of the database to use as
-an argument to the program, e.g.:
+change this default by supplying the name of the database as
+argument to the program, e.g.:
 
 @example
 $ gdbmtool file.db
@@ -2007,7 +2007,7 @@ command line options.
 
 After successful startup, @command{gdbmtool} starts a loop, in which
 it reads commands from the standard input, executes them and prints
-the results on the standard output.  If the standard input is attached
+results on the standard output.  If the standard input is attached
 to a console, @command{gdbmtool} runs in interactive mode, which is
 indicated by its @dfn{prompt}:
 
@@ -2383,6 +2383,11 @@ List the contents of the database.
 @deffn {command verb} next [@var{key}]
 Sequential access: fetch and display the next record.  If the @var{key} is
 given, the record following the one with this key will be fetched.
+
+Issuing several @code{next} commands in row is rather common.  A
+shortcut is provided to facilitate such use: if the last entered
+command was @command{next}, hitting the @kbd{Enter} key repeats it
+without arguments.
 
 See also @code{first}, above.
 
