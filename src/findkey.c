@@ -79,7 +79,10 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 	    _gdbm_full_read (dbf, data_ca->dptr, key_size+data_size));
   if (rc)
     {
-      GDBM_SET_ERRNO2 (dbf, rc, TRUE, GDBM_DEBUG_LOOKUP);
+      GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_LOOKUP|GDBM_DEBUG_READ,
+		  "%s: error reading entry: %s",
+		  dbf->name, gdbm_db_strerror (dbf));
+      dbf->need_recovery = TRUE;
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return NULL;
     }

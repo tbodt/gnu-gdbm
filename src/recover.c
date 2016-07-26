@@ -26,17 +26,17 @@ gdbm_copy_meta (GDBM_FILE dst, GDBM_FILE src)
 
   if (fstat (src->desc, &st))
     {
-      gdbm_set_errno (src, GDBM_FILE_STAT_ERROR, src->need_recovery);
+      GDBM_SET_ERRNO (src, GDBM_FILE_STAT_ERROR, src->need_recovery);
       return -1;
     }
   if (fchown (dst->desc, st.st_uid, st.st_gid))
     {
-      gdbm_set_errno (dst, GDBM_ERR_FILE_OWNER, dst->need_recovery);
+      GDBM_SET_ERRNO (dst, GDBM_ERR_FILE_OWNER, dst->need_recovery);
       return -1;
     }
   if (fchmod (dst->desc, st.st_mode & 0777))
     {
-      gdbm_set_errno (dst, GDBM_ERR_FILE_MODE, dst->need_recovery);
+      GDBM_SET_ERRNO (dst, GDBM_ERR_FILE_MODE, dst->need_recovery);
       return -1;
     }
   return 0;
@@ -117,13 +117,13 @@ _gdbm_finish_transfer (GDBM_FILE dbf, GDBM_FILE new_dbf,
       if (!bkname)
 	{
 	  SAVE_ERRNO (gdbm_close (new_dbf));
-	  gdbm_set_errno (NULL, GDBM_BACKUP_FAILED, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_BACKUP_FAILED, FALSE);
 	  return -1;
 	}
       if (rename (dbf->name, bkname) != 0)
 	{
 	  SAVE_ERRNO (gdbm_close (new_dbf); free (bkname));
-	  gdbm_set_errno (NULL, GDBM_BACKUP_FAILED, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_BACKUP_FAILED, FALSE);
 	  return -1;
 	}
       rcvr->backup_name = bkname;
@@ -133,7 +133,7 @@ _gdbm_finish_transfer (GDBM_FILE dbf, GDBM_FILE new_dbf,
 
   if (rename (new_dbf->name, dbf->name) != 0)
     {
-      gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
+      GDBM_SET_ERRNO (NULL, GDBM_REORGANIZE_FAILED, FALSE);
       gdbm_close (new_dbf);
       return -1;
     }
@@ -342,7 +342,7 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
   /* Readers can not reorganize! */
   if (dbf->read_write == GDBM_READER)
     {
-      gdbm_set_errno (dbf, GDBM_READER_CANT_REORGANIZE, dbf->need_recovery);
+      GDBM_SET_ERRNO (dbf, GDBM_READER_CANT_REORGANIZE, dbf->need_recovery);
       return -1;
     }
 
@@ -365,7 +365,7 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
       new_name = malloc (len + sizeof (TMPSUF));
       if (!new_name)
 	{
-	  gdbm_set_errno (NULL, GDBM_MALLOC_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_MALLOC_ERROR, FALSE);
 	  return -1;
 	}
       strcat (strcpy (new_name, dbf->name), TMPSUF);
@@ -373,7 +373,7 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
       fd = mkstemp (new_name);
       if (fd == -1)
 	{
-	  gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_FILE_OPEN_ERROR, FALSE);
 	  free (new_name);
 	  return -1;
 	}
@@ -387,7 +387,7 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
   
       if (new_dbf == NULL)
 	{
-	  gdbm_set_errno (NULL, GDBM_REORGANIZE_FAILED, FALSE);
+	  GDBM_SET_ERRNO (NULL, GDBM_REORGANIZE_FAILED, FALSE);
 	  return -1;
 	}
 

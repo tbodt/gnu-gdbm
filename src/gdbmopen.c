@@ -57,7 +57,6 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
   struct stat file_stat;	/* Space for the stat information. */
   off_t       file_pos;		/* Used with seeks. */
   int 	      index;		/* Used as a loop index. */
-  int         rc;               /* temporary error code */ 
   
   /* Initialize the gdbm_errno variable. */
   gdbm_set_errno (NULL, GDBM_NO_ERROR, FALSE);
@@ -270,35 +269,38 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 
       /* Write initial configuration to the file. */
       /* Block 0 is the file header and active avail block. */
-      rc = _gdbm_full_write (dbf, dbf->header, dbf->header->block_size);
-      if (rc)
+      if (_gdbm_full_write (dbf, dbf->header, dbf->header->block_size))
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_OPEN|GDBM_DEBUG_ERR,
+		      "%s: error writing header: %s",
+		      dbf->name, gdbm_db_strerror (dbf));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
       /* Block 1 is the initial bucket directory. */
-      rc = _gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size);
-      if (rc)
+      if (_gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size))
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_OPEN|GDBM_DEBUG_ERR,
+		      "%s: error writing directory: %s",
+		      dbf->name, gdbm_db_strerror (dbf));	  
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
       /* Block 2 is the only bucket. */
-      rc = _gdbm_full_write (dbf, dbf->bucket, dbf->header->bucket_size);
-      if (rc)
+      if (_gdbm_full_write (dbf, dbf->bucket, dbf->header->bucket_size))
 	{
+	  GDBM_DEBUG (GDBM_DEBUG_OPEN|GDBM_DEBUG_ERR,
+		      "%s: error writing bucket: %s",
+		      dbf->name, gdbm_db_strerror (dbf));	  
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -315,16 +317,14 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       gdbm_file_header partial_header;  /* For the first part of it. */
 
       /* Read the partial file header. */
-      rc = _gdbm_full_read (dbf, &partial_header, sizeof (gdbm_file_header));
-      if (rc)
+      if (_gdbm_full_read (dbf, &partial_header, sizeof (gdbm_file_header)))
 	{
 	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
 		      "%s: error reading partial header: %s",
-		      dbf->name, strerror (errno));
+		      dbf->name, gdbm_db_strerror (dbf));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 
@@ -332,10 +332,6 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       if (partial_header.header_magic != GDBM_MAGIC
 	  && partial_header.header_magic != GDBM_OMAGIC)
 	{
-	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
-		      "%s: unexpected magic: %#4x",
-		      dbf->name, partial_header.header_magic);
-
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
@@ -370,17 +366,15 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  return NULL;
 	}
       memcpy (dbf->header, &partial_header, sizeof (gdbm_file_header));
-      rc = _gdbm_full_read (dbf, &dbf->header->avail.av_table[1],
-			    dbf->header->block_size - sizeof (gdbm_file_header));
-      if (rc)
+      if (_gdbm_full_read (dbf, &dbf->header->avail.av_table[1],
+			   dbf->header->block_size - sizeof (gdbm_file_header)))
 	{
 	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
-		      "%s: error reading av_table",
-		      dbf->name);
+		      "%s: error reading av_table: %s",
+		      dbf->name, gdbm_db_strerror (dbf));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 	
@@ -406,16 +400,14 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  return NULL;
 	}
 
-      rc = _gdbm_full_read (dbf, dbf->dir, dbf->header->dir_size);
-      if (rc)
+      if (_gdbm_full_read (dbf, dbf->dir, dbf->header->dir_size))
 	{
 	  GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_OPEN,
 		      "%s: error reading dir: %s",
-		      dbf->name, strerror (errno));
+		      dbf->name, gdbm_db_strerror (dbf));
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  SAVE_ERRNO (gdbm_close (dbf));
-	  gdbm_set_errno (NULL, rc, FALSE);
 	  return NULL;
 	}
 

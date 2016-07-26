@@ -34,7 +34,7 @@ write_header (GDBM_FILE dbf)
 				  __lseek (dbf, 0L, SEEK_SET));
   if (file_pos != 0)
     {
-      gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_STORE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
@@ -44,8 +44,9 @@ write_header (GDBM_FILE dbf)
   
   if (rc)
     {
-      gdbm_set_errno (dbf, rc, TRUE);
-      gdbm_set_errno (dbf, rc, TRUE);
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: error writing header: %s",
+		  dbf->name, gdbm_db_strerror (dbf));	        
       return -1;
     }
 
@@ -99,7 +100,7 @@ _gdbm_end_update (GDBM_FILE dbf)
 		           __lseek (dbf, dbf->header->dir, SEEK_SET));
       if (file_pos != dbf->header->dir)
 	{
-	  gdbm_set_errno (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+	  GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_STORE);
 	  _gdbm_fatal (dbf, _("lseek error"));
 	  return -1;
 	}
@@ -108,7 +109,9 @@ _gdbm_end_update (GDBM_FILE dbf)
 		_gdbm_full_write (dbf, dbf->dir, dbf->header->dir_size));
       if (rc)
 	{
-	  gdbm_set_errno (dbf, rc, TRUE);
+	  GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		      "%s: error writing directory: %s",
+		      dbf->name, gdbm_db_strerror (dbf));	  	  
 	  _gdbm_fatal (dbf, gdbm_strerror (rc));
 	  return -1;
 	}

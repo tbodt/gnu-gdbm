@@ -18,9 +18,9 @@
 #include "gdbmdefs.h"
 
 /* Read exactly SIZE bytes of data into BUFFER.  Return value is 0 on
-   success, GDBM_FILE_EOF, if not enough data is available, and
-   GDBM_FILE_READ_ERROR, if a read error occurs.  In the latter case
-   errno keeps actual system error code. */
+   success, and -1 on error.  In the latter case, gdbm_errno is set to
+   GDBM_FILE_EOF, if not enough data is available, and to
+   GDBM_FILE_READ_ERROR, if a read error occurs. */
 int
 _gdbm_full_read (GDBM_FILE dbf, void *buffer, size_t size)
 {
@@ -32,10 +32,14 @@ _gdbm_full_read (GDBM_FILE dbf, void *buffer, size_t size)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  return GDBM_FILE_READ_ERROR;
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_READ_ERROR, FALSE);
+	  return -1;
 	}
       if (rdbytes == 0)
-	return GDBM_FILE_EOF;
+	{
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_EOF, FALSE);
+	  return -1;
+	}
       ptr += rdbytes;
       size -= rdbytes;
     }
@@ -43,8 +47,7 @@ _gdbm_full_read (GDBM_FILE dbf, void *buffer, size_t size)
 }
 
 /* Write exactly SIZE bytes of data from BUFFER tp DBF.  Return 0 on
-   success, and GDBM_FILE_READ_ERROR on error.  In the latter case errno
-   will keep actual system error code. */
+   success, and -1 (setting gdbm_errno to GDBM_FILE_READ_ERROR) on error. */
 int
 _gdbm_full_write (GDBM_FILE dbf, void *buffer, size_t size)
 {
@@ -56,12 +59,14 @@ _gdbm_full_write (GDBM_FILE dbf, void *buffer, size_t size)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  return GDBM_FILE_WRITE_ERROR;
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_WRITE_ERROR, TRUE);
+	  return -1;
 	}
       if (wrbytes == 0)
 	{
 	  errno = ENOSPC;
-	  return GDBM_FILE_WRITE_ERROR;
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_WRITE_ERROR, TRUE);
+	  return -1;
 	}
       ptr += wrbytes;
       size -= wrbytes;

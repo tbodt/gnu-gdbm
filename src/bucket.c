@@ -111,8 +111,11 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 		_gdbm_full_read (dbf, dbf->bucket, dbf->header->bucket_size));
       if (rc)
 	{
-	  _gdbm_fatal (dbf, gdbm_strerror (rc));
-	  GDBM_SET_ERRNO (dbf, rc, TRUE);
+	  GDBM_DEBUG (GDBM_DEBUG_ERR,
+		      "%s: error reading bucket: %s",
+		      dbf->name, gdbm_db_strerror (dbf));
+	  dbf->need_recovery = TRUE;
+	  _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
 	  return -1;
 	}
     }
@@ -150,10 +153,11 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       return -1;
     }
-  rc = _gdbm_full_read (dbf, bucket, size);
-  if (rc)
+  if (_gdbm_full_read (dbf, bucket, size))
     {
-      GDBM_SET_ERRNO (dbf, rc, TRUE);
+      GDBM_DEBUG (GDBM_DEBUG_ERR,
+		  "%s: error reading bucket: %s",
+		  dbf->name, gdbm_db_strerror (dbf));
       return -1;
     }
   return 0;
@@ -394,7 +398,9 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
         _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size));
   if (rc)
     {
-      GDBM_SET_ERRNO (dbf, rc, TRUE);
+      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		  "%s: error writing bucket: %s",
+		  dbf->name, gdbm_db_strerror (dbf));	  
       _gdbm_fatal (dbf, gdbm_strerror (rc));
       return -1;
     }

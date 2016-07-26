@@ -99,7 +99,7 @@ _gdbm_internal_remap (GDBM_FILE dbf, size_t size)
   if (p == MAP_FAILED)
     {
       dbf->mapped_region = NULL;
-      gdbm_set_errno (dbf, GDBM_MALLOC_ERROR, FALSE);
+      GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, FALSE);
       return -1;
     }
   
@@ -135,7 +135,7 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
   if (_gdbm_file_size (dbf, &file_size))
     {
       SAVE_ERRNO (_gdbm_mapped_unmap (dbf));
-      gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, FALSE);
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_STAT_ERROR, FALSE);
       return -1; 
     }
 
@@ -330,7 +330,7 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
  	    off_t file_size;
 	    if (_gdbm_file_size (dbf, &file_size))
 	      {
-		gdbm_set_errno (dbf, GDBM_FILE_STAT_ERROR, FALSE);
+		GDBM_SET_ERRNO (dbf, GDBM_FILE_STAT_ERROR, FALSE);
 		return -1;
 	      }
 	    needle = file_size - offset; 
