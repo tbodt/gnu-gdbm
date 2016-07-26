@@ -16,6 +16,7 @@
 
 #include "autoconf.h"
 #include "gdbmdefs.h"
+#include <ctype.h>
 
 gdbm_debug_printer_t gdbm_debug_printer;
 int gdbm_debug_flags;
@@ -74,6 +75,7 @@ datbuf_format (char vbuf[DATBUFSIZE], const char *buf, size_t size)
   char *q = vbuf + 51;
   int i;
   size_t j = 0;
+  static char hexchar[] = "0123456789ABCDEF";
   
   for (i = 0; i < 16; i++)
     {
@@ -83,8 +85,10 @@ datbuf_format (char vbuf[DATBUFSIZE], const char *buf, size_t size)
 	  c = *(const unsigned char*)buf++;
 	  j++;
 
-	  sprintf (p, "%02X ", c);
-	  p += 3;
+	  *p++ = hexchar[c >> 4];
+	  *p++ = hexchar[c & 0xf];
+	  *p++ = ' ';
+	  
 	  *q++ = isprint (c) ? c : '.';
 	  if (i == 7)
 	    {
@@ -111,6 +115,7 @@ gdbm_debug_datum (datum dat, char const *pfx)
 {
   char const *buf = dat.dptr;
   size_t size = dat.dsize;
+  unsigned off;
   char vbuf[DATBUFSIZE];
 
   if (!buf)
@@ -120,12 +125,14 @@ gdbm_debug_datum (datum dat, char const *pfx)
     }
 
   gdbm_debug_printer ("size=%d\n", size);
+  off = 0;
   while (size)
     {
       size_t rd = datbuf_format (vbuf, buf, size);
-      gdbm_debug_printer ("%s%s\n", pfx, vbuf);
+      gdbm_debug_printer ("%s%04x:  %s\n", pfx, off, vbuf);
       size -= rd;
       buf += rd;
+      off += rd;
     }
 }
 

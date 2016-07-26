@@ -128,7 +128,7 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
 		      size_t size)
 {
   off_t file_pos;
-  int i, rc;
+  int i;
 
   if (dbf->cache_entry && dbf->cache_entry->ca_adr == off)
     {
