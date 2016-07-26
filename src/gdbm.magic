@@ -14,28 +14,34 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. 
 
-0	long	0x13579acf	GNU DBM 64-bit
+0	lelong	0x13579acf	GNU DBM 64-bit, little endian
 !:mime	application/octet-stream
->4	long	x		\b; block size=%d
->8	quad	x		\b; dir offset=%lld
->16	long	x		\b, size=%d
->20	long	x		\b, bits=%d
->24	long	x		\b; bucket size=%d
->28	long	x		\b, elts=%d
+>4	lelong	x		\b; block size=%d
+>8	lequad	x		\b; dir offset=%lld
+>16	lelong	x		\b, size=%d
+>20	lelong	x		\b, bits=%d
+>24	lelong	x		\b; bucket size=%d
+>28	lelong	x		\b, elts=%d
 
-0	long	0x13579acd	GNU DBM 32-bit
+0	belong	0x13579acf	GNU DBM 64-bit, big endian
+!:mime	application/octet-stream
+>4	belong	x		\b; block size=%d
+>8	bequad	x		\b; dir offset=%lld
+>16	belong	x		\b, size=%d
+>20	belong	x		\b, bits=%d
+>24	belong	x		\b; bucket size=%d
+>28	belong	x		\b, elts=%d
+
+0	lelong	0x13579acd	GNU DBM 32-bit, little endian
 !:mime	application/octet-stream
 
-0	long	0x13579ace	GNU DBM old format
+0	belong	0x13579acd	GNU DBM 32-bit, big endian
 !:mime	application/octet-stream
 
-0	long	0xce9a5713	GNU DBM old format, byte-swapped
+0	lelong	0x13579ace	GNU DBM old format, little endian
 !:mime	application/octet-stream
 
-0	long	0xcd9a5713	GNU DBM 32-bit, byte-swapped
-!:mime	application/octet-stream
-
-0	long	0xcf9a5713	GNU DBM 64-bit, byte-swapped
+0	belong	0x13579ace	GNU DBM old format, big endian
 !:mime	application/octet-stream
 
 0	string	\!\r\n
