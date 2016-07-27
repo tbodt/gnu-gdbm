@@ -186,43 +186,46 @@ extern int gdbm_load_from_file (GDBM_FILE *, FILE *, int replace,
 
 extern int gdbm_copy_meta (GDBM_FILE dst, GDBM_FILE src);
 
-# define GDBM_NO_ERROR		0
-# define GDBM_MALLOC_ERROR	1
-# define GDBM_BLOCK_SIZE_ERROR	2
-# define GDBM_FILE_OPEN_ERROR	3
-# define GDBM_FILE_WRITE_ERROR	4
-# define GDBM_FILE_SEEK_ERROR	5
-# define GDBM_FILE_READ_ERROR	6
-# define GDBM_BAD_MAGIC_NUMBER	7
-# define GDBM_EMPTY_DATABASE	8
-# define GDBM_CANT_BE_READER	9
-# define GDBM_CANT_BE_WRITER	10
+# define GDBM_NO_ERROR		         0
+# define GDBM_MALLOC_ERROR	         1
+# define GDBM_BLOCK_SIZE_ERROR	         2
+# define GDBM_FILE_OPEN_ERROR	         3
+# define GDBM_FILE_WRITE_ERROR	         4
+# define GDBM_FILE_SEEK_ERROR	         5
+# define GDBM_FILE_READ_ERROR	         6
+# define GDBM_BAD_MAGIC_NUMBER	         7
+# define GDBM_EMPTY_DATABASE	         8
+# define GDBM_CANT_BE_READER	         9
+# define GDBM_CANT_BE_WRITER	        10
 # define GDBM_READER_CANT_DELETE	11
-# define GDBM_READER_CANT_STORE	12
+# define GDBM_READER_CANT_STORE	        12
 # define GDBM_READER_CANT_REORGANIZE	13
-# define GDBM_UNKNOWN_UPDATE	14
-# define GDBM_ITEM_NOT_FOUND	15
-# define GDBM_REORGANIZE_FAILED	16
-# define GDBM_CANNOT_REPLACE	17
-# define GDBM_ILLEGAL_DATA	18
-# define GDBM_OPT_ALREADY_SET	19
-# define GDBM_OPT_ILLEGAL	20
-# define GDBM_BYTE_SWAPPED	21
-# define GDBM_BAD_FILE_OFFSET	22
-# define GDBM_BAD_OPEN_FLAGS	23
-# define GDBM_FILE_STAT_ERROR   24
-# define GDBM_FILE_EOF          25
-# define GDBM_NO_DBNAME         26
-# define GDBM_ERR_FILE_OWNER    27
-# define GDBM_ERR_FILE_MODE     28
-# define GDBM_NEED_RECOVERY     29
-# define GDBM_BACKUP_FAILED     30
-# define GDBM_ERR_DIR_OVERFLOW  31
+# define GDBM_ERR_UNKNOWN_ERROR	        14
+# define GDBM_ITEM_NOT_FOUND	        15
+# define GDBM_REORGANIZE_FAILED	        16
+# define GDBM_CANNOT_REPLACE	        17
+# define GDBM_ILLEGAL_DATA	        18
+# define GDBM_OPT_ALREADY_SET	        19
+# define GDBM_OPT_ILLEGAL           	20
+# define GDBM_BYTE_SWAPPED	        21
+# define GDBM_BAD_FILE_OFFSET	        22
+# define GDBM_BAD_OPEN_FLAGS	        23
+# define GDBM_FILE_STAT_ERROR           24
+# define GDBM_FILE_EOF                  25
+# define GDBM_NO_DBNAME                 26
+# define GDBM_ERR_FILE_OWNER            27
+# define GDBM_ERR_FILE_MODE             28
+# define GDBM_NEED_RECOVERY             29
+# define GDBM_BACKUP_FAILED             30
+# define GDBM_DIR_OVERFLOW              31
 
 # define _GDBM_MIN_ERRNO	0
-# define _GDBM_MAX_ERRNO	GDBM_ERR_DIR_OVERFLOW
+# define _GDBM_MAX_ERRNO	GDBM_DIR_OVERFLOW
 
-typedef int gdbm_error;		/* For compatibilities sake. */
+/* This one was never used and will be removed in the future */
+# define GDBM_UNKNOWN_UPDATE GDBM_ERR_UNKNOWN_ERROR
+  
+typedef int gdbm_error;
 extern gdbm_error gdbm_errno;
 extern const char * const gdbm_errlist[];
 extern int const gdbm_syserr[];

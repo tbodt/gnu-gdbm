@@ -107,7 +107,7 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_READER_CANT_DELETE]     = N_("Reader can't delete"),
   [GDBM_READER_CANT_STORE]      = N_("Reader can't store"),
   [GDBM_READER_CANT_REORGANIZE] = N_("Reader can't reorganize"),
-  [GDBM_UNKNOWN_UPDATE]         = N_("Unknown update"),
+  [GDBM_UNKNOWN_ERRNO]          = N_("Should not happen: unused error code"),
   [GDBM_ITEM_NOT_FOUND]         = N_("Item not found"),
   [GDBM_REORGANIZE_FAILED]      = N_("Reorganize failed"),
   [GDBM_CANNOT_REPLACE]         = N_("Cannot replace"),
@@ -124,20 +124,15 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_ERR_FILE_MODE]          = N_("Failed to restore file mode"),
   [GDBM_NEED_RECOVERY]          = N_("Database needs recovery"),
   [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy"),
-  [GDBM_ERR_DIR_OVERFLOW]       = N_("File directory overflow")
+  [GDBM_DIR_OVERFLOW]           = N_("Bucket directory overflow")
 };
 
 const char *
 gdbm_strerror (gdbm_error error)
 {
-  if (((int)error < _GDBM_MIN_ERRNO) || ((int)error > _GDBM_MAX_ERRNO))
-    {
-      return _("Unknown error");
-    }
-  else
-    {
-      return gettext (gdbm_errlist[(int)error]);
-    }
+  if (error < _GDBM_MIN_ERRNO || error > _GDBM_MAX_ERRNO)
+    error = GDBM_UNKNOWN_ERRNO;
+  return gettext (gdbm_errlist[error]);
 }
 
 char const *
@@ -145,16 +140,7 @@ gdbm_db_strerror (GDBM_FILE dbf)
 {
   if (!dbf->last_errstr)
     {
-      char const *errstr;
-
-      if (dbf->last_error == GDBM_MALLOC_ERROR)
-	return _("Out of memory");
-      
-      if ((dbf->last_error < _GDBM_MIN_ERRNO)
-	  || (dbf->last_error > _GDBM_MAX_ERRNO))
-	errstr = _("Unknown error");
-      else
-	errstr = gettext (gdbm_errlist[dbf->last_error]);
+      char const *errstr = gdbm_strerror (dbf->last_error);
 
       if (dbf->last_syserror)
 	{

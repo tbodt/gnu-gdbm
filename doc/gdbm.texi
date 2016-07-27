@@ -1543,10 +1543,6 @@ Set by the @code{gdbm_reorganize} (@pxref{Reorganization}) if it attempted to
 operate on a database that is open in read-only mode (@pxref{Open,
 GDBM_READER}).
 
-@kwindex GDBM_UNKNOWN_UPDATE
-@item GDBM_UNKNOWN_UPDATE
-Currently unused.  Reserved for future uses.
-
 @kwindex GDBM_ITEM_NOT_FOUND
 @item GDBM_ITEM_NOT_FOUND
 Requested item was not found.  This error is set by @code{gdbm_delete}
@@ -1649,6 +1645,11 @@ detailed description of recovery functions.
 @kwindex GDBM_BACKUP_FAILED
 @item GDBM_BACKUP_FAILED
 The GDBM engine is unable to create backup copy of the file.
+
+@kwindex GDBM_DIR_OVERFLOW
+@item GDBM_DIR_OVERFLOW
+Bucket directory would overflow the size limit during an attempt to split
+hash bucket.  This error can occur while storing a new key. 
 @end table
 
 @node Compatibility

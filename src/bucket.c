@@ -251,7 +251,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	{
 	  if (dbf->header->dir_size >= GDBM_MAX_DIR_HALF)
 	    {
-	      GDBM_SET_ERRNO (dbf, GDBM_ERR_DIR_OVERFLOW, TRUE);
+	      GDBM_SET_ERRNO (dbf, GDBM_DIR_OVERFLOW, TRUE);
 	      _gdbm_fatal (dbf, _("directory overflow"));
 	      return -1;
 	    }
