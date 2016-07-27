@@ -123,7 +123,8 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_ERR_FILE_OWNER]         = N_("Failed to restore file owner"),
   [GDBM_ERR_FILE_MODE]          = N_("Failed to restore file mode"),
   [GDBM_NEED_RECOVERY]          = N_("Database needs recovery"),
-  [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy")
+  [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy"),
+  [GDBM_ERR_DIR_OVERFLOW]       = N_("File directory overflow")
 };
 
 const char *

@@ -17,11 +17,12 @@
    You should have received a copy of the GNU General Public License
    along with GDBM. If not, see <http://www.gnu.org/licenses/>.   */
 
-/* Include system configuration before all else. */
 #include "autoconf.h"
-
 #include "gdbmdefs.h"
+#include <limits.h>
 
+#define GDBM_MAX_DIR_SIZE INT_MAX
+#define GDBM_MAX_DIR_HALF (GDBM_MAX_DIR_SIZE / 2)
 
 /* Initializing a new hash buckets sets all bucket entries to -1 hash value. */
 void
@@ -40,8 +41,6 @@ _gdbm_new_bucket (GDBM_FILE dbf, hash_bucket *bucket, int bits)
   for (index = 0; index < dbf->header->bucket_elems; index++)
     bucket->h_table[index].hash_value = -1;
 }
-
-
 
 /* Find a bucket for DBF that is pointed to by the bucket directory from
    location DIR_INDEX.   The bucket cache is first checked to see if it
@@ -201,7 +200,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 
   if (dbf->bucket_cache == NULL)
     {
-      if (_gdbm_init_cache(dbf, DEFAULT_CACHESIZE) == -1)
+      if (_gdbm_init_cache (dbf, DEFAULT_CACHESIZE) == -1)
 	{
 	  _gdbm_fatal (dbf, _("couldn't init cache"));
 	  return -1;
@@ -235,7 +234,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[cache_1]))
 	    return -1;
 	}
-      new_bits = dbf->bucket->bucket_bits+1;
+      new_bits = dbf->bucket->bucket_bits + 1;
       _gdbm_new_bucket (dbf, bucket[0], new_bits);
       _gdbm_new_bucket (dbf, bucket[1], new_bits);
       adr_0 = _gdbm_alloc (dbf, dbf->header->bucket_size);
@@ -250,6 +249,12 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       /* Double the directory size if necessary. */
       if (dbf->header->dir_bits == dbf->bucket->bucket_bits)
 	{
+	  if (dbf->header->dir_size >= GDBM_MAX_DIR_HALF)
+	    {
+	      GDBM_SET_ERRNO (dbf, GDBM_ERR_DIR_OVERFLOW, TRUE);
+	      _gdbm_fatal (dbf, _("directory overflow"));
+	      return -1;
+	    }
 	  dir_size = dbf->header->dir_size * 2;
 	  dir_adr  = _gdbm_alloc (dbf, dir_size);
 	  if (dir_adr == 0)
@@ -287,7 +292,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
       /* Copy all elements in dbf->bucket into the new buckets. */
       for (index = 0; index < dbf->header->bucket_elems; index++)
 	{
-	  old_el = & (dbf->bucket->h_table[index]);
+	  old_el = &dbf->bucket->h_table[index];
 	  select = (old_el->hash_value >> (GDBM_HASH_BITS - new_bits)) & 1;
 	  elem_loc = old_el->hash_value % dbf->header->bucket_elems;
 	  while (bucket[select]->h_table[elem_loc].hash_value != -1)
@@ -315,7 +320,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 			     bucket[1]->bucket_avail,
 			     &bucket[1]->av_count, FALSE);
 	  index = 1;
-	  bucket[0]->av_count --;
+	  bucket[0]->av_count--;
 	}
       for (; index < dbf->bucket->av_count; index++)
 	{
