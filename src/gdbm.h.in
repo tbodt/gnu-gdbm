@@ -200,7 +200,7 @@ extern int gdbm_copy_meta (GDBM_FILE dst, GDBM_FILE src);
 # define GDBM_READER_CANT_DELETE	11
 # define GDBM_READER_CANT_STORE	        12
 # define GDBM_READER_CANT_REORGANIZE	13
-# define GDBM_ERR_UNKNOWN_ERROR	        14
+# define GDBM_UNKNOWN_ERROR	        14
 # define GDBM_ITEM_NOT_FOUND	        15
 # define GDBM_REORGANIZE_FAILED	        16
 # define GDBM_CANNOT_REPLACE	        17

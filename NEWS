@@ -105,7 +105,7 @@ that is not desirable.
 
 Copy meta-information (ownership and file permissions) from src to dst.
 
-** gdbmtool
+* gdbmtool
 
 ** Line editing in gdbmtool
 

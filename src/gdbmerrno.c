@@ -107,7 +107,7 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_READER_CANT_DELETE]     = N_("Reader can't delete"),
   [GDBM_READER_CANT_STORE]      = N_("Reader can't store"),
   [GDBM_READER_CANT_REORGANIZE] = N_("Reader can't reorganize"),
-  [GDBM_UNKNOWN_ERRNO]          = N_("Should not happen: unused error code"),
+  [GDBM_UNKNOWN_ERROR]          = N_("Should not happen: unused error code"),
   [GDBM_ITEM_NOT_FOUND]         = N_("Item not found"),
   [GDBM_REORGANIZE_FAILED]      = N_("Reorganize failed"),
   [GDBM_CANNOT_REPLACE]         = N_("Cannot replace"),
@@ -131,7 +131,7 @@ const char *
 gdbm_strerror (gdbm_error error)
 {
   if (error < _GDBM_MIN_ERRNO || error > _GDBM_MAX_ERRNO)
-    error = GDBM_UNKNOWN_ERRNO;
+    error = GDBM_UNKNOWN_ERROR;
   return gettext (gdbm_errlist[error]);
 }
 
