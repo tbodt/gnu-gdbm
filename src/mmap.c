@@ -82,7 +82,11 @@ _gdbm_internal_remap (GDBM_FILE dbf, size_t size)
   int flags = PROT_READ;
   size_t page_size = sysconf (_SC_PAGESIZE);
 
-  munmap (dbf->mapped_region, dbf->mapped_size);
+  if (dbf->mapped_region)
+    {
+      munmap (dbf->mapped_region, dbf->mapped_size);
+      dbf->mapped_region = NULL;
+    }
   dbf->mapped_size = size;
 
   if (size == 0)
