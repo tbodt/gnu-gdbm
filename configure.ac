@@ -1,6 +1,6 @@
 # This file is part of GDBM.                                   -*- autoconf -*-
-# Copyright (C) 2007, 2009, 2011, 2013, 2014,
-# 2016 Free Software Foundation, Inc.
+# Copyright (C) 2007, 2009, 2011, 2013-2014, 2016-2017 Free Software
+# Foundation, Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
