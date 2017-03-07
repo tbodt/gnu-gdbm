@@ -23,11 +23,15 @@ noinst_HEADERS = \
  gdbmconst.h\
  gdbmdefs.h\
  gettext.h\
+ gram.h\
  proto.h\
  systems.h
 
-EXTRA_DIST = gdbm.h.in gram.h gdbm.magic
-BUILT_SOURCES = gdbm.h
+EXTRA_DIST = gdbm.h.in gdbm.magic
+BUILT_SOURCES = gdbm.h gram.h
+
+gram.h: gram.c
+
 # The libraries
 VI_CURRENT  = 4
 VI_REVISION = 0
