@@ -22,7 +22,7 @@ gdbm_TEXINFOS=\
 
 dist_man_MANS   = gdbm.3 gdbm_dump.1 gdbm_load.1 gdbmtool.1
 
-GENDOCS=$(srcdir)/gendocs.sh
+GENDOCS=$(srcdir)/gendocs.sh --no-copy-images --html '--init-file=$(abs_srcdir)/html.init'
 
 TEXI2DVI=texi2dvi -t '@set $(RENDITION)'
 
