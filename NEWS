@@ -1,10 +1,10 @@
-GNU dbm NEWS -- history of user-visible changes. 2016-07-25
+GNU dbm NEWS -- history of user-visible changes. 2017-03-11
 Copyright (C) 1990-2017 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
 
-Version 1.12.90 (Git)
+Version 1.13 - 2017-03-11
 
 * gdbm_fetch, gdbm_firstkey, and gdbm_nextkey behavior
 
@@ -370,7 +370,7 @@ Version 0.9
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1990-2016 Free Software Foundation, Inc.
+Copyright (C) 1990-2017 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
