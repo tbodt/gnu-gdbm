@@ -142,7 +142,7 @@ add_options (struct gdbm_option *options)
     {
       option_max = option_count + count + 1;
       option_tab = erealloc (option_tab,
-			  sizeof (option_tab[0]) * option_max);
+			     sizeof (option_tab[0]) * option_max);
     }
   
 #ifdef HAVE_GETOPT_LONG
@@ -223,6 +223,9 @@ indent (size_t start, size_t col)
 static void
 print_option_descr (const char *descr, size_t lmargin, size_t rmargin)
 {
+  if (!(descr && descr[0]))
+    return;
+  descr = gettext (descr);
   while (*descr)
     {
       size_t s = 0;
@@ -269,11 +272,8 @@ print_option (size_t num)
   
   if (IS_GROUP_HEADER (opt))
     {
-      if (num)
-	putchar ('\n');
       indent (0, GROUPCOLUMN);
-      print_option_descr (gettext (opt->opt_descr),
-			  GROUPCOLUMN, RMARGIN);
+      print_option_descr (opt->opt_descr, GROUPCOLUMN, RMARGIN);
       putchar ('\n');
       return num + 1;
     }
@@ -333,7 +333,7 @@ print_option (size_t num)
       w = 0;
     }
   indent (w, DESCRCOLUMN);
-  print_option_descr (gettext (opt->opt_descr), DESCRCOLUMN, RMARGIN);
+  print_option_descr (opt->opt_descr, DESCRCOLUMN, RMARGIN);
 
   return next;
 }
@@ -349,8 +349,7 @@ parseopt_print_help (void)
 	  parseopt_program_name ? parseopt_program_name : progname,
 	  _("OPTION"),
 	  gettext (parseopt_program_args));
-  if (parseopt_program_doc)
-    print_option_descr (gettext (parseopt_program_doc), 0, RMARGIN);
+  print_option_descr (parseopt_program_doc, 0, RMARGIN);
   putchar ('\n');
 
   sort_all_options ();
@@ -362,7 +361,7 @@ parseopt_print_help (void)
 #ifdef HAVE_GETOPT_LONG
   if (argsused)
     {
-      print_option_descr (_("Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."), 0, RMARGIN);
+      print_option_descr (N_("Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."), 0, RMARGIN);
       putchar ('\n');
     }
 #endif
