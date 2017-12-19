@@ -227,7 +227,8 @@ extern int gdbm_copy_meta (GDBM_FILE dst, GDBM_FILE src);
 # define GDBM_UNKNOWN_UPDATE GDBM_UNKNOWN_ERROR
   
 typedef int gdbm_error;
-extern gdbm_error gdbm_errno;
+extern int *gdbm_errno_location (void);
+#define gdbm_errno (*gdbm_errno_location ())
 extern const char * const gdbm_errlist[];
 extern int const gdbm_syserr[];
   

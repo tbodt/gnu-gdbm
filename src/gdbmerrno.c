@@ -23,7 +23,13 @@
 #include "gdbmdefs.h"
 
 /* The dbm error number is placed in the variable GDBM_ERRNO. */
-gdbm_error gdbm_errno = GDBM_NO_ERROR;
+static __thread gdbm_error gdbm_errno_storage = GDBM_NO_ERROR;
+
+int *
+gdbm_errno_location (void)
+{
+  return &gdbm_errno_storage;
+}
 
 /* Store error code EC in the database structure DBF and in the
    global variable gdbm_error. 
