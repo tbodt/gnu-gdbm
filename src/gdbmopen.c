@@ -71,7 +71,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
     }
   
   /* Allocate new info structure. */
-  dbf = (GDBM_FILE) malloc (sizeof (*dbf));
+  dbf = calloc (1, sizeof (*dbf));
   if (dbf == NULL)
     {
       if (flags & GDBM_CLOERROR)
@@ -171,7 +171,15 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
   if ((flags & GDBM_OPENMASK) == GDBM_NEWDB && file_stat.st_size != 0)
     {
       TRUNCATE (dbf);
-      fstat (dbf->desc, &file_stat);
+      if (fstat (dbf->desc, &file_stat))
+	{
+	  if (flags & GDBM_CLOERROR)
+	    close (dbf->desc);
+	  free (dbf->name);
+	  free (dbf);
+	  GDBM_SET_ERRNO2 (NULL, GDBM_FILE_STAT_ERROR, FALSE, GDBM_DEBUG_OPEN);
+	  return NULL;
+	}
     }
 
   /* Decide if this is a new file or an old file. */
@@ -208,7 +216,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       
       /* Get space for the file header. It will be written to disk, so
          make sure there's no garbage in it. */
-      dbf->header = (gdbm_file_header *) calloc (1, block_size);
+      dbf->header = calloc (1, block_size);
       if (dbf->header == NULL)
 	{
 	  if (!(flags & GDBM_CLOERROR))
@@ -241,7 +249,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	(dbf->header->block_size - sizeof (hash_bucket))
 	/ sizeof (bucket_element) + 1;
       dbf->header->bucket_size  = dbf->header->block_size;
-      dbf->bucket = (hash_bucket *) malloc (dbf->header->bucket_size);
+      dbf->bucket = calloc (1, dbf->header->bucket_size);
       if (dbf->bucket == NULL)
 	{
 	  if (!(flags & GDBM_CLOERROR))
@@ -356,7 +364,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	}
 
       /* It is a good database, read the entire header. */
-      dbf->header = (gdbm_file_header *) malloc (partial_header.block_size);
+      dbf->header = malloc (partial_header.block_size);
       if (dbf->header == NULL)
 	{
 	  if (!(flags & GDBM_CLOERROR))
@@ -379,7 +387,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	}
 	
       /* Allocate space for the hash table directory.  */
-      dbf->dir = (off_t *) malloc (dbf->header->dir_size);
+      dbf->dir = malloc (dbf->header->dir_size);
       if (dbf->dir == NULL)
 	{
 	  if (!(flags & GDBM_CLOERROR))

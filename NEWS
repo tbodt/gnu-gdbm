@@ -110,7 +110,7 @@ Copy meta-information (ownership and file permissions) from src to dst.
 ** Line editing in gdbmtool
 
 The gdbmtool utility now offers the usual line-editing facilities (if
-the package has been compiled with GNU Readline.
+the package has been compiled with GNU Readline).
 
 ** Keyboard shortcuts
 

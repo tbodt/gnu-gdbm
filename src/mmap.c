@@ -54,7 +54,10 @@ _gdbm_file_size (GDBM_FILE dbf, off_t *psize)
 {
   struct stat sb;
   if (fstat (dbf->desc, &sb))
-    return -1; 
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_STAT_ERROR, FALSE);
+      return -1;
+    }
   *psize = sb.st_size;
   return 0;
 }
@@ -112,6 +115,48 @@ _gdbm_internal_remap (GDBM_FILE dbf, size_t size)
   return 0;
 }
 
+/* Grow the disk file of DBF to the SIZE bytes in length. Fill the
+   newly allocated space with zeros. */
+static int
+_gdbm_file_extend (GDBM_FILE dbf, off_t size)
+{
+  size_t page_size = sysconf (_SC_PAGESIZE);
+  char *buf;
+  off_t file_end;
+
+  file_end = lseek (dbf->desc, 0, SEEK_END);
+  if (!file_end)
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, FALSE);
+      return -1;
+    }
+  size -= file_end;
+  
+  if (size < page_size)
+    page_size = size;
+  buf = calloc (1, page_size);
+  if (!buf)
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, FALSE);
+      return -1;
+    }
+
+  while (size)
+    {
+      ssize_t n = write (dbf->desc, buf, size < page_size ? size : page_size);
+      if (n <= 0)
+	{
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_WRITE_ERROR, FALSE);
+	  break;
+	}
+      size -= n;
+    }
+  free (buf);
+  if (size)
+    return -1;
+  return 0;
+}
+  
 # define _REMAP_DEFAULT 0
 # define _REMAP_EXTEND  1
 # define _REMAP_END     2
@@ -140,7 +185,6 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
   if (_gdbm_file_size (dbf, &file_size))
     {
       SAVE_ERRNO (_gdbm_mapped_unmap (dbf));
-      GDBM_SET_ERRNO (dbf, GDBM_FILE_STAT_ERROR, FALSE);
       return -1; 
     }
 
@@ -153,12 +197,10 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
 	{
 	  if (flag != _REMAP_DEFAULT)
 	    {
-	      char c = 0;
-
 	      if (size < dbf->header->next_block)
 		size = dbf->header->next_block;
-	      lseek (dbf->desc, size - 1, SEEK_SET);
-	      write (dbf->desc, &c, 1);
+	      if (_gdbm_file_extend (dbf, size))
+		return -1;
 	      file_size = size;
 	    }
 	  else
@@ -334,10 +376,7 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
 	  {
  	    off_t file_size;
 	    if (_gdbm_file_size (dbf, &file_size))
-	      {
-		GDBM_SET_ERRNO (dbf, GDBM_FILE_STAT_ERROR, FALSE);
-		return -1;
-	      }
+	      return -1;
 	    needle = file_size - offset; 
 	    break;
 	  }

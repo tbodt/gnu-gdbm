@@ -295,7 +295,6 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param, int meta_mask)
   int meta_flags = 0;
   const char *p;
   char *end;
-  int rc = 0;
 
   if (!(meta_mask & GDBM_META_MASK_OWNER))
     {
@@ -366,7 +365,11 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param, int meta_mask)
 	  if ((meta_flags & (META_UID|META_GID)) != (META_UID|META_GID))
 	    {
 	      struct stat st;
-	      fstat (fd, &st);
+	      if (fstat (fd, &st))
+		{
+		  GDBM_SET_ERRNO (dbf, GDBM_FILE_STAT_ERROR, FALSE);
+		  return 1;
+		}
 	      if (!(meta_flags & META_UID))
 		owner_uid = st.st_uid;
 	      if (!(meta_flags & META_GID))
@@ -375,16 +378,16 @@ _set_gdbm_meta_info (GDBM_FILE dbf, char *param, int meta_mask)
 	  if (fchown (fd, owner_uid, owner_gid))
 	    {
 	      GDBM_SET_ERRNO (dbf, GDBM_ERR_FILE_OWNER, FALSE);
-	      rc = 1;
+	      return 1;
 	    }
 	}
       if ((meta_flags & META_MODE) && fchmod (fd, mode))
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_ERR_FILE_OWNER, FALSE);
-	  rc = 1;
+	  return 1;
 	}
     }
-  return rc;
+  return 0;
 }
 
 int
