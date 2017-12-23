@@ -336,7 +336,8 @@ gdbm_setopt (GDBM_FILE dbf, int optflag, void *optval, int optlen)
   GDBM_ASSERT_CONSISTENCY (dbf, -1);
 
   if (optflag >= 0
-  && optflag < sizeof (setopt_handler_tab) / sizeof (setopt_handler_tab[0]))
+      && optflag < sizeof (setopt_handler_tab) / sizeof (setopt_handler_tab[0])
+      && setopt_handler_tab[optflag])
     return setopt_handler_tab[optflag] (dbf, optval, optlen);
   
   GDBM_SET_ERRNO (dbf, GDBM_OPT_ILLEGAL, FALSE);
