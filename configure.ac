@@ -17,7 +17,7 @@
 
 m4_define([_GDBM_VERSION_MAJOR], 1)
 m4_define([_GDBM_VERSION_MINOR], 13)
-dnl m4_define([_GDBM_VERSION_PATCH], 90)
+m4_define([_GDBM_VERSION_PATCH], 90)
 
 AC_INIT([gdbm],
         _GDBM_VERSION_MAJOR._GDBM_VERSION_MINOR[]m4_ifdef([_GDBM_VERSION_PATCH],._GDBM_VERSION_PATCH),
@@ -98,6 +98,14 @@ if test $ac_cv_type_unsigned_long_long_int = yes; then
 else
 	GDBM_COUNT_T="unsigned long"
 fi
+
+AC_MSG_CHECKING([for TLS qualifier])
+AC_TRY_COMPILE([],
+ [static __thread int x = 0;],
+ [gdbm_cv__thread=__thread],
+ [gdbm_cv__thread=])
+AC_MSG_RESULT($gdbm_cv__thread)
+AC_DEFINE_UNQUOTED([GDBM_THREAD_LOCAL],$gdbm_cv__thread,[TLS qualifier])
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])

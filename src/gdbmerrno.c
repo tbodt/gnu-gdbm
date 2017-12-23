@@ -23,7 +23,7 @@
 #include "gdbmdefs.h"
 
 /* The dbm error number is placed in the variable GDBM_ERRNO. */
-static __thread gdbm_error gdbm_errno_storage = GDBM_NO_ERROR;
+static GDBM_THREAD_LOCAL gdbm_error gdbm_errno_storage = GDBM_NO_ERROR;
 
 int *
 gdbm_errno_location (void)
