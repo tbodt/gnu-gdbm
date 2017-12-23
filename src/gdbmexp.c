@@ -21,8 +21,13 @@
 # include "autoconf.h"
 # include <arpa/inet.h>
 
+#ifdef GDBM_EXPORT_18
+# define GDBM_SET_ERRNO(dbf, ec, fatal) gdbm_errno = ec
+# define GDBM_ASSERT_CONSISTENCY(dbf, val)
+#else
 # include "gdbmdefs.h"
 # include "gdbm.h"
+#endif
 
 int
 gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)

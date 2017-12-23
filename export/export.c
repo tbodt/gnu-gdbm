@@ -24,6 +24,7 @@
 #include <gdbm.h>
 
 /* Pull in gdbm_export() */
+#define GDBM_EXPORT_18
 #include "gdbmexp.c"
 
 void
