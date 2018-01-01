@@ -1,8 +1,25 @@
-GNU dbm NEWS -- history of user-visible changes. 2017-03-11
+GNU dbm NEWS -- history of user-visible changes. 2018-01-01
 Copyright (C) 1990-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
+
+Version 1.14 - 2018-01-01
+
+* Make sure created databases are byte-for-byte reproducible
+
+This fixes two longstanding bugs: (1) when allocating database file
+header blocks, the unused memory is filled with zeroes; (2) when expanding
+a mmapped memory area, the added extent is filled with zeroes.
+
+* Fix build with --enable-gdbm-export
+
+* Make gdbm_error global variable thread safe.
+
+* Fix possible segmentation violation in gdbm_setopt
+
+* Fix handling of group headers in --help output.
+
 
 Version 1.13 - 2017-03-11
 
