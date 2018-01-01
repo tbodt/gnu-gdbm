@@ -1,5 +1,5 @@
 # This file is part of GDBM.                                   -*- Makefile -*-
-# Copyright (C) 2007, 2011, 2013, 2016-2017 Free Software Foundation,
+# Copyright (C) 2007, 2011, 2013, 2016-2018 Free Software Foundation,
 # Inc.
 #
 # GDBM is free software; you can redistribute it and/or modify

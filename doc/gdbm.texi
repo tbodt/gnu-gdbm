@@ -43,7 +43,7 @@ Published by the Free Software Foundation,
 51 Franklin Street, Fifth Floor
 Boston, MA 02110-1301, USA
 
-Copyright @copyright{} 1989-1999, 2007-2017 Free Software Foundation,
+Copyright @copyright{} 1989-1999, 2007-2018 Free Software Foundation,
 Inc.
 
 Permission is granted to copy, distribute and/or modify this document
