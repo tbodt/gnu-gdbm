@@ -33,7 +33,7 @@ BUILT_SOURCES = gdbm.h gram.h
 gram.h: gram.c
 
 # The libraries
-VI_CURRENT  = 4
+VI_CURRENT  = 5
 VI_REVISION = 0
 VI_AGE      = 0
 
