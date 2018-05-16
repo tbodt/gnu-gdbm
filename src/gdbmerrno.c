@@ -131,7 +131,9 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_ERR_FILE_MODE]          = N_("Failed to restore file mode"),
   [GDBM_NEED_RECOVERY]          = N_("Database needs recovery"),
   [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy"),
-  [GDBM_DIR_OVERFLOW]           = N_("Bucket directory overflow")
+  [GDBM_DIR_OVERFLOW]           = N_("Bucket directory overflow"),
+  [GDBM_BAD_BUCKET]             = N_("Malformed bucket header"),
+  [GDBM_WRONG_OFF_T]            = N_("File header assumes wrong off_t size")
 };
 
 const char *

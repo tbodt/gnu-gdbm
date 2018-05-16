@@ -72,6 +72,8 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
   /* Is that one is not already current, we must find it. */
   if (dbf->cache_entry->ca_adr != bucket_adr)
     {
+      size_t max_bucket_elts;
+      
       /* Look in the cache. */
       for (index = 0; index < dbf->cache_size; index++)
         {
@@ -115,6 +117,18 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 		      dbf->name, gdbm_db_strerror (dbf));
 	  dbf->need_recovery = TRUE;
 	  _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
+	  return -1;
+	}
+      /* Validate the bucket */
+      max_bucket_elts =
+	      (dbf->header->bucket_size - sizeof(hash_bucket))
+	         / sizeof(bucket_element) + 1;
+      if (!(dbf->bucket->count >= 0
+	    && dbf->bucket->av_count >= 0
+	    && dbf->bucket->count <= max_bucket_elts
+	    && dbf->bucket->av_count <= max_bucket_elts))
+	{
+	  GDBM_SET_ERRNO (dbf, GDBM_BAD_BUCKET, TRUE);
 	  return -1;
 	}
     }

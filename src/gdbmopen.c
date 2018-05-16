@@ -49,6 +49,52 @@ compute_directory_size (GDBM_FILE dbf, blksize_t block_size,
   *ret_dir_bits = dir_bits;
 }
 
+static int
+validate_header (gdbm_file_header const *hdr, struct stat const *st)
+{
+  /* Is the magic number good? */
+  if (hdr->header_magic != GDBM_MAGIC)
+    {
+      switch (hdr->header_magic)
+	{
+	case GDBM_OMAGIC:
+	  /* OK */
+	  break;
+
+	case GDBM_OMAGIC_SWAP:
+	case GDBM_MAGIC32_SWAP:
+	case GDBM_MAGIC64_SWAP:
+	  return GDBM_BYTE_SWAPPED;
+
+	case GDBM_MAGIC32:
+	case GDBM_MAGIC64:
+	  return GDBM_WRONG_OFF_T;
+
+	default:
+	  return GDBM_BAD_MAGIC_NUMBER;
+	}
+    }
+  
+  if (!(hdr->block_size > sizeof (gdbm_file_header)
+	&& hdr->block_size - sizeof (gdbm_file_header) >=
+	sizeof(hdr->avail.av_table[0])))
+    {
+      return GDBM_BLOCK_SIZE_ERROR;
+    }
+
+  /* Make sure dir and dir + dir_size fall within the file boundary */
+  if (!(hdr->dir > 0
+	&& hdr->dir < st->st_size
+	&& hdr->dir_size > 0
+	&& hdr->dir + hdr->dir_size < st->st_size))
+    return GDBM_BAD_FILE_OFFSET;
+
+  if (!(hdr->bucket_size > sizeof(hash_bucket)))
+    return GDBM_BAD_MAGIC_NUMBER;
+
+  return 0;
+}
+  
 GDBM_FILE 
 gdbm_fd_open (int fd, const char *file_name, int block_size,
 	      int flags, void (*fatal_func) (const char *))
@@ -323,7 +369,8 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	 header and initialize the hash directory. */
 
       gdbm_file_header partial_header;  /* For the first part of it. */
-
+      int rc;
+      
       /* Read the partial file header. */
       if (_gdbm_full_read (dbf, &partial_header, sizeof (gdbm_file_header)))
 	{
@@ -336,33 +383,17 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  return NULL;
 	}
 
-      /* Is the magic number good? */
-      if (partial_header.header_magic != GDBM_MAGIC
-	  && partial_header.header_magic != GDBM_OMAGIC)
+      /* Is the header valid? */
+      rc = validate_header (&partial_header, &file_stat);
+      if (rc != GDBM_NO_ERROR)
 	{
 	  if (!(flags & GDBM_CLOERROR))
 	    dbf->desc = -1;
 	  gdbm_close (dbf);
-	  switch (partial_header.header_magic)
-	    {
-	      case GDBM_OMAGIC_SWAP:
-	      case GDBM_MAGIC32_SWAP:
-	      case GDBM_MAGIC64_SWAP:
-		GDBM_SET_ERRNO2 (NULL, GDBM_BYTE_SWAPPED, FALSE,
-				 GDBM_DEBUG_OPEN);
-		break;
-	      case GDBM_MAGIC32:
-	      case GDBM_MAGIC64:
-		GDBM_SET_ERRNO2 (NULL, GDBM_BAD_FILE_OFFSET, FALSE,
-				 GDBM_DEBUG_OPEN);
-		break;
-	      default:
-		GDBM_SET_ERRNO2 (NULL, GDBM_BAD_MAGIC_NUMBER, FALSE,
-				 GDBM_DEBUG_OPEN);
-	    }
+	  GDBM_SET_ERRNO2 (NULL, rc, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
-
+      
       /* It is a good database, read the entire header. */
       dbf->header = malloc (partial_header.block_size);
       if (dbf->header == NULL)
@@ -373,6 +404,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  GDBM_SET_ERRNO2 (NULL, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
+      
       memcpy (dbf->header, &partial_header, sizeof (gdbm_file_header));
       if (_gdbm_full_read (dbf, &dbf->header->avail.av_table[1],
 			   dbf->header->block_size - sizeof (gdbm_file_header)))
