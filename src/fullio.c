@@ -32,7 +32,8 @@ _gdbm_full_read (GDBM_FILE dbf, void *buffer, size_t size)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  GDBM_SET_ERRNO (dbf, GDBM_FILE_READ_ERROR, FALSE);
+	  if (gdbm_last_errno (dbf) == GDBM_NO_ERROR)
+	    GDBM_SET_ERRNO (dbf, GDBM_FILE_READ_ERROR, FALSE);
 	  return -1;
 	}
       if (rdbytes == 0)
@@ -59,7 +60,8 @@ _gdbm_full_write (GDBM_FILE dbf, void *buffer, size_t size)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  GDBM_SET_ERRNO (dbf, GDBM_FILE_WRITE_ERROR, TRUE);
+	  if (gdbm_last_errno (dbf) == GDBM_NO_ERROR)
+	    GDBM_SET_ERRNO (dbf, GDBM_FILE_WRITE_ERROR, TRUE);
 	  return -1;
 	}
       if (wrbytes == 0)

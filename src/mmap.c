@@ -233,7 +233,12 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
       dbf->mapped_pos += dbf->mapped_off;
       dbf->mapped_off = 0;
     }
-
+  if (pos > file_size)
+    {
+      errno = EINVAL;
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      return -1;
+    }
   return _gdbm_internal_remap (dbf, size);
 }
 
@@ -271,6 +276,10 @@ _gdbm_mapped_read (GDBM_FILE dbf, void *buffer, size_t len)
 		{
 		  int rc;
 
+		  if (dbf->need_recovery)
+		    return -1;
+
+		  /* Disable memory mapping and retry */
 		  dbf->memory_mapping = FALSE;
 		  if (lseek (dbf->desc, pos, SEEK_SET) != pos)
 		    return total > 0 ? total : -1;
@@ -320,6 +329,9 @@ _gdbm_mapped_write (GDBM_FILE dbf, void *buffer, size_t len)
 				      _REMAP_EXTEND))
 		{
 		  int rc;
+
+		  if (dbf->need_recovery)
+		    return -1;
 
 		  dbf->memory_mapping = FALSE;
 		  if (lseek (dbf->desc, pos, SEEK_SET) != pos)

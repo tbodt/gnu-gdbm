@@ -110,8 +110,9 @@ _gdbm_dump_ascii (GDBM_FILE dbf, FILE *fp)
       count++;
     }
 
-  if (rc == 0)
+  if (rc == 0 && (rc = gdbm_last_errno (dbf)) == 0)
     {
+      
       /* FIXME: Something like that won't hurt, although load does not
 	 use it currently. */
       fprintf (fp, "#:count=%lu\n", (unsigned long) count);

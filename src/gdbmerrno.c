@@ -122,7 +122,7 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_OPT_ALREADY_SET]        = N_("Option already set"),
   [GDBM_OPT_ILLEGAL]            = N_("Illegal option"),
   [GDBM_BYTE_SWAPPED]           = N_("Byte-swapped file"),
-  [GDBM_BAD_FILE_OFFSET]        = N_("Wrong file offset"),
+  [GDBM_BAD_FILE_OFFSET]        = N_("File header assumes wrong off_t size"),
   [GDBM_BAD_OPEN_FLAGS]         = N_("Bad file flags"),
   [GDBM_FILE_STAT_ERROR]        = N_("Cannot stat file"),
   [GDBM_FILE_EOF]               = N_("Unexpected end of file"),
@@ -133,7 +133,7 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy"),
   [GDBM_DIR_OVERFLOW]           = N_("Bucket directory overflow"),
   [GDBM_BAD_BUCKET]             = N_("Malformed bucket header"),
-  [GDBM_WRONG_OFF_T]            = N_("File header assumes wrong off_t size")
+  [GDBM_BAD_HEADER]             = N_("Malformed database file header")
 };
 
 const char *

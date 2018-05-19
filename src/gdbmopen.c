@@ -49,6 +49,13 @@ compute_directory_size (GDBM_FILE dbf, blksize_t block_size,
   *ret_dir_bits = dir_bits;
 }
 
+static inline int
+bucket_element_count (gdbm_file_header const *hdr)
+{
+  return (hdr->block_size - sizeof (hash_bucket))
+         / sizeof (bucket_element) + 1;
+}
+
 static int
 validate_header (gdbm_file_header const *hdr, struct stat const *st)
 {
@@ -68,14 +75,15 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
 
 	case GDBM_MAGIC32:
 	case GDBM_MAGIC64:
-	  return GDBM_WRONG_OFF_T;
+	  return GDBM_BAD_FILE_OFFSET;
 
 	default:
 	  return GDBM_BAD_MAGIC_NUMBER;
 	}
     }
   
-  if (!(hdr->block_size > sizeof (gdbm_file_header)
+  if (!(hdr->block_size > 0
+	&& hdr->block_size > sizeof (gdbm_file_header)
 	&& hdr->block_size - sizeof (gdbm_file_header) >=
 	sizeof(hdr->avail.av_table[0])))
     {
@@ -87,11 +95,14 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
 	&& hdr->dir < st->st_size
 	&& hdr->dir_size > 0
 	&& hdr->dir + hdr->dir_size < st->st_size))
-    return GDBM_BAD_FILE_OFFSET;
+    return GDBM_BAD_HEADER;
 
-  if (!(hdr->bucket_size > sizeof(hash_bucket)))
-    return GDBM_BAD_MAGIC_NUMBER;
+  if (!(hdr->bucket_size > 0 && hdr->bucket_size > sizeof(hash_bucket)))
+    return GDBM_BAD_HEADER;
 
+  if (hdr->bucket_elems != bucket_element_count (hdr))
+    return GDBM_BAD_HEADER;
+  
   return 0;
 }
   
@@ -291,9 +302,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       dbf->header->dir = dbf->header->block_size;
 
       /* Create the first and only hash bucket. */
-      dbf->header->bucket_elems =
-	(dbf->header->block_size - sizeof (hash_bucket))
-	/ sizeof (bucket_element) + 1;
+      dbf->header->bucket_elems = bucket_element_count (dbf->header);
       dbf->header->bucket_size  = dbf->header->block_size;
       dbf->bucket = calloc (1, dbf->header->bucket_size);
       if (dbf->bucket == NULL)
@@ -557,7 +566,7 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
   if (dbf->bucket_cache == NULL)
     {
       dbf->bucket_cache = GDBM_DEBUG_ALLOC ("_gdbm_init_cache:malloc-failure",
-	                      malloc (sizeof(cache_elem) * size));
+					    calloc (size, sizeof(cache_elem)));
       if (dbf->bucket_cache == NULL)
         {
           GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
