@@ -27,6 +27,10 @@ m4_define([AT_COMPAT_PREREQ],[
 test $COMPAT -eq 1 || AT_SKIP_TEST
 ])
 
+m4_define([AT_UNPACK],[
+test -n "$GZIP_BIN" && test -n "$BASE64_BIN" || AT_SKIP_TEST
+echo "$2" | $BASE64_BIN -d | $GZIP_BIN -d -c > $1])
+
 dnl # Begin tests
 
 AT_INIT
@@ -74,5 +78,10 @@ m4_include([cloexec00.at])
 m4_include([cloexec01.at])
 m4_include([cloexec02.at])
 m4_include([cloexec03.at])
+
+AT_BANNER([Handling invalid input])
+m4_include([dump00.at])
+m4_include([dump01.at])
+m4_include([dump02.at])
 
 # End of testsuite.at

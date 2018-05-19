@@ -127,6 +127,6 @@ main (int argc, char **argv)
   
   gdbm_close (dbf);
 
-  exit (rc ? EXIT_OK : EXIT_FATAL);
+  exit (rc == GDBM_NO_ERROR ? EXIT_OK : EXIT_FATAL);
 }
   

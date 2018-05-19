@@ -1,0 +1,38 @@
+# This file is part of GDBM.                                   -*- autoconf -*-
+# Copyright (C) 2018 Free Software Foundation, Inc.
+#
+# GDBM is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GDBM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
+
+AT_SETUP([Invalid bucket size in header])
+AT_KEYWORDS([dump])
+AT_CHECK([
+AT_UNPACK([t.db],dnl
+[H4sICC3M/1oAA2lkOjAwMDAwMCxzaWc6MTEsc3JjOjAwMDAwMCxvcDpoYXZvYyxyZXA6MTI4AO1a
+XUrDQBjctUXbgrVYsEVbLdRXwSPkwRMI4gUEvUVzC8EHD+BlvIBo+6AWERSfCtV8bmtj/nbTJPub
+tgM67OTbmbGJEBfvb87rqIZQg3xNQbg84YEPZPmNcoK21nSsIuTAvygGr32ApFBLrN2OWLuUcE60
+xpuFMw+eSB7kpr5KFOj9vV5hybCRekdx/ggdP4HVkYeshorxkmUTDDgStzn2hmEL9FKOPY3Zd6l3
+DAsSauQUAPAkx/ld1htgjlDSXWCCKtfu2vwRP2yKpuSPkRXC6P9Bdw3UWRaGnhk9XN4ypEfeeJxk
+Dh6l5b8Bp48DgfWVkF4W536DuKwqr6IoZxGZLusstSnXn7yK93V/6HJ43ZAeGbhrSI9GynnthReC
+Xw3psWIhDNAD1vVDXn8svq8ONqCCOLbU5/JsnhxMKi3L5AuEEs1FGLv73HOjYyQV5KWJcs7YjOg4
+dp6qg5NunluPn7ml67NDh4CO/31wZD6KNaTiZ6ScIyr4bJ0MPpGmsfOXQa2WradAfZfbh42EPiPI
+lJtAP6XpNjDn2frAW+i9X6bp5NuIorfU9CkMEdqX6G+w3nZ1S2luK6L71p0QC84vRfVq3HxQDz+S
+ht3PWL1sWJ8kepOhcxiPWQ9eSh9bUJ/86Cqy+jHzn1JymdPXyVxsEW0wQ0/m43xlzV0QvSvKfzug
+133D0wvh8YqoXIIHQT6zf08y5fY8zzr+Ao/nJqluLwAA])
+gdbm_dump t.db t
+],
+[1],
+[],
+[gdbm_dump: gdbm_open failed: Malformed database file header
+])
+AT_CLEANUP
