@@ -17,7 +17,7 @@
 
 m4_define([_GDBM_VERSION_MAJOR], 1)
 m4_define([_GDBM_VERSION_MINOR], 14)
-m4_define([_GDBM_VERSION_PATCH], 1)
+m4_define([_GDBM_VERSION_PATCH], 90)
 
 AC_INIT([gdbm],
         _GDBM_VERSION_MAJOR._GDBM_VERSION_MINOR[]m4_ifdef([_GDBM_VERSION_PATCH],._GDBM_VERSION_PATCH),
@@ -53,34 +53,6 @@ AC_ARG_ENABLE([libgdbm-compat],
 AC_ARG_VAR([COMPATINCLUDEDIR],[installation directory for dbm.h and ndbm.h])
 test -z "$COMPATINCLUDEDIR" && COMPATINCLUDEDIR='$(includedir)'
 
-AC_ARG_ENABLE([gdbm-export],
-  AC_HELP_STRING(
-    [--enable-gdbm-export],
-    [Build and install gdbmexport with specified gdbm 1.8 library. (Default is NO.)]),
-    [want_export=$enableval],
-    [want_export=no])
-
-AC_ARG_WITH([gdbm183-library],
-  AC_HELP_STRING(
-    [--with-gdbm183-library],
-    [Build gdbmexport with specified (static) library.]),
-    [GDBM183_LIBRARY=$withval],
-    [GDBM183_LIBRARY="-lgdbm"])
-
-AC_ARG_WITH([gdbm183-libdir],
-  AC_HELP_STRING(
-    [--with-gdbm183-libdir],
-    [Build gdbmexport with the gdbm library in the specified directory.]),
-    [GDBM183_LIBDIR=$withval],
-    [GDBM183_LIBDIR="/usr/local/lib"])
-
-AC_ARG_WITH([gdbm183-includedir],
-  AC_HELP_STRING(
-    [--with-gdbm183-includedir],
-    [Build gdbmexport with gdbm.h in the specified directory.]),
-    [GDBM183_INCLUDEDIR=$withval],
-    [GDBM183_INCLUDEDIR="/usr/local/include"])
-    
 dnl Check for programs
 AC_PROG_CC
 AC_PROG_CPP
@@ -132,11 +104,7 @@ AC_TYPE_OFF_T
 AC_CHECK_SIZEOF(off_t)
 AC_CHECK_MEMBERS([struct stat.st_blksize])
 
-AC_SUBST(GDBM183_LIBRARY)
-AC_SUBST(GDBM183_LIBDIR)
-AC_SUBST(GDBM183_INCLUDEDIR)
 AM_CONDITIONAL([COMPAT_OPT], [test "$want_compat" = yes])
-AM_CONDITIONAL([ENABLE_EXPORT], [test "$want_export" = yes])
 
 # Check for Curses libs.
 for lib in ncurses curses termcap
@@ -214,7 +182,6 @@ cat <<EOF
 GDBM settings summary:
 
 Compatibility library ......................... $status_compat
-Compatibility export tool ..................... $status_export
 Memory mapped I/O ............................. $mapped_io
 GNU Readline .................................. $status_readline
 Debugging support ............................. $status_debug
@@ -223,7 +190,6 @@ Debugging support ............................. $status_debug
 EOF
 ],
 [status_compat=$want_compat
-status_export=$want_export
 mapped_io=$mapped_io
 status_readline=$status_readline
 status_debug=$status_debug])
@@ -232,7 +198,6 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
 		 src/gdbm.h
 		 doc/Makefile
-		 compat/Makefile
-		 export/Makefile])
+		 compat/Makefile])
 
 AC_OUTPUT

@@ -15,16 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
-ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = build-aux/config.rpath NOTE-WARNING git2chg.awk
 
 if COMPAT_OPT
   MAYBE_COMPAT = compat
 endif
-if ENABLE_EXPORT
-  MAYBE_EXPORT = export
-endif
-SUBDIRS = po src doc $(MAYBE_COMPAT) $(MAYBE_EXPORT) tests
+SUBDIRS = po src doc $(MAYBE_COMPAT) tests
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --enable-libgdbm-compat
 

@@ -1,5 +1,4 @@
 GNU dbm README
-Copyright (C) 2011, 2016-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 * Introduction
@@ -42,23 +41,6 @@ to install them elsewhere, define the variable COMPATINCLUDEDIR, e.g.
 
  ./configure --enable-libgdbm-compat COMPATINCLUDEDIR=/usr/include/gdbm
 
-** --enable-gdbm-export
-
-Build and install gdbmexport with the specified gdbm 1.8 library.
-
-** --with-gdbm183-library=LIB
-
-Build gdbmexport with specified (static) library.  LIB must be
-a loader argument valid for the use with cc(1), e.g.: -lgdbm-1.8.
-
-** --gdbm183-libdir=DIR
-
-Build gdbmexport with the gdbm library from the specified directory.
-
-** --gdbm183-includedir=DIR
-
-Build gdbmexport with gdbm.h from the specified directory.
-
 ** --without-readline
 
 Don't compile GNU Readline support.  By default, configure enables
@@ -99,7 +81,7 @@ To track the development, visit
 
 * Copyright information:
 
-Copyright (C) 2011, 2016 Free Software Foundation, Inc.
+Copyright (C) 2011, 2016-2018 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

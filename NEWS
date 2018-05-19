@@ -1,8 +1,17 @@
-GNU dbm NEWS -- history of user-visible changes. 2018-01-03
+GNU dbm NEWS -- history of user-visible changes. 2018-05-19
 Copyright (C) 1990-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
+
+Version 1.14.90
+
+* Implement database consistency checks
+
+* Improved error checking
+
+* Removed gdbm-1.8.3 compatibility layer
+
 
 Version 1.14.1 - 2018-01-03
 

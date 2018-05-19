@@ -124,7 +124,6 @@ Programs
 * gdbmtool::                   Examine and modify a GDBM database.
 * gdbm_dump::                  Dump the database into a flat file.          
 * gdbm_load::                  Load the database from a flat file.
-* gdbmexport::                 Export a database into a portable format.  
 * Exit codes::                 Exit codes returned by GDBM utilities.
 
 Other topics:
@@ -2324,8 +2323,6 @@ dump is created.
 
 The global variable @code{filemode} specifies the permissions to use
 for the created output file.
-
-See also @ref{gdbmexport}.
 @end deffn
 
 @deffn {command verb} fetch @var{key}
@@ -2742,30 +2739,6 @@ Print program version and licensing information and exit.
 @item --usage
 Print a terse invocation syntax summary along with a list of available
 command line options.
-@end table
-
-@node gdbmexport
-@chapter Export a database into a portable format.
-@prindex gdbmexport
-
-The @command{gdbmexport} utility converts the database of an older
-GDBM version into a binary flat format.
-
-The utility takes two mandatory arguments: the name of the database
-file to convert and the output file name, e.g.:
-
-@example
-$ gdbmexport junk.gdbm junk.flat
-@end example
-
-In addition the following two options are understood:
-
-@table @option
-@item -h
-Display short usage summary and exit.
-
-@item -v
-Display program version and licensing information, and exit.
 @end table
 
 @node Exit codes
