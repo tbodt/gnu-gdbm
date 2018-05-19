@@ -1,0 +1,34 @@
+# This file is part of GDBM.                                   -*- autoconf -*-
+# Copyright (C) 2018 Free Software Foundation, Inc.
+#
+# GDBM is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GDBM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
+
+AT_SETUP([Wrong dir_bits in header])
+AT_KEYWORDS([dump])
+AT_CHECK([
+AT_UNPACK([t.db],dnl
+[H4sICIxAAFsAA2lkOjAwMDAwMSxzaWc6MTEsc3JjOjAwMDA3OCswMDAwODgsb3A6c3BsaWNlLHJl
+cDoyAO2ZUQqCQBRFxyiCfoqEoD/bQUuINtECaiGtowW0gDbSFvpvAQVKpSmFMW8yZ/K9qXtADl6f
+etEPhdlvFqEaKHXfVO5x4W3mWR4nylN2KfojQbNFGiHmLuAlvVzXFN4iT5YvUHOxsfGKyI9W3VTH
+7vSClpOrUKTv8lR1UPsM9WnbohIAoCa/+LUGAACQcRHz8/1PRHAdC6nhjdkLwDAMwzBs9lBIDxiG
+YQ89EdLjnYNi97H+P1X2HOhD9Gpbo/nIMH/OosrXjwh3XdYt53MTrm6C3Lt8zXBf3Ro793NAjlxO
+HlaYZ6qGHPm38r6wPsiZ8tKIgD5O84iwtJ7IkX+S3wAsqaqZFzAAAA==
+])
+gdbm_dump t.db t
+],
+[1],
+[],
+[gdbm_dump: gdbm_open failed: Malformed database file header
+])
+AT_CLEANUP

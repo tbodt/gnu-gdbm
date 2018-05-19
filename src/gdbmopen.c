@@ -32,7 +32,7 @@
 #endif
 
 static void
-compute_directory_size (GDBM_FILE dbf, blksize_t block_size,
+compute_directory_size (blksize_t block_size,
 			int *ret_dir_size, int *ret_dir_bits)
 {
   /* Create the initial hash table directory.  */
@@ -59,6 +59,8 @@ bucket_element_count (gdbm_file_header const *hdr)
 static int
 validate_header (gdbm_file_header const *hdr, struct stat const *st)
 {
+  int dir_size, dir_bits;
+  
   /* Is the magic number good? */
   if (hdr->header_magic != GDBM_MAGIC)
     {
@@ -97,6 +99,10 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
 	&& hdr->dir + hdr->dir_size < st->st_size))
     return GDBM_BAD_HEADER;
 
+  compute_directory_size (hdr->block_size, &dir_size, &dir_bits);
+  if (hdr->dir_size != dir_size || hdr->dir_bits != dir_bits)
+    return GDBM_BAD_HEADER;
+  
   if (!(hdr->bucket_size > 0 && hdr->bucket_size > sizeof(hash_bucket)))
     return GDBM_BAD_HEADER;
 
@@ -251,7 +257,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  block_size = STATBLKSIZE (file_stat);
 	  flags &= ~GDBM_BSEXACT;
 	}
-      compute_directory_size (dbf, block_size, &dir_size, &dir_bits);
+      compute_directory_size (block_size, &dir_size, &dir_bits);
       GDBM_DEBUG (GDBM_DEBUG_OPEN, "%s: computed dir_size=%d, dir_bits=%d",
 		  dbf->name, dir_size, dir_bits);
       /* Check for correct block_size. */

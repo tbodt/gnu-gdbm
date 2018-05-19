@@ -83,5 +83,7 @@ AT_BANNER([Handling invalid input])
 m4_include([dump00.at])
 m4_include([dump01.at])
 m4_include([dump02.at])
+m4_include([dump03.at])
+m4_include([dump04.at])
 
 # End of testsuite.at

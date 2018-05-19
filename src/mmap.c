@@ -394,6 +394,12 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
 	  }
 	}
 
+      if (needle < 0)
+	{
+	  errno = EINVAL;
+	  return -1;
+	}
+      
       if (!_GDBM_IN_MAPPED_REGION_P (dbf, needle))
 	{
 	  _gdbm_mapped_unmap (dbf);

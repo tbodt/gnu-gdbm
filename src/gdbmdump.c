@@ -103,6 +103,8 @@ _gdbm_dump_ascii (GDBM_FILE dbf, FILE *fp)
 	      break;
 	    }
  	}
+      else
+	break;
       nextkey = gdbm_nextkey (dbf, key);
       free (key.dptr);
       free (data.dptr);
