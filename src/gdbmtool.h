@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <limits.h>
 
 #ifndef GDBM_ARG_UNUSED
 # define GDBM_ARG_UNUSED __attribute__ ((__unused__))
@@ -107,19 +108,67 @@ void terror (const char *fmt, ...)
 
 char *make_prompt (void);
 
-int setsource (const char *filename, int intr);
-
 extern char *file_name;
-extern int interactive;
 extern int open_mode;
 
 #define GDBMTOOLRC ".gdbmtoolrc"
 #define GDBMTOOL_DEFFILE "junk.gdbm"
 
-ssize_t input_read (FILE *fp, char *buf, size_t size);
+typedef struct instream *instream_t;
+
+struct instream
+{
+  char *in_name;           /* Input stream name */
+  int in_inter;            /* True if this is an interactive stream */
+  ssize_t (*in_read) (instream_t, char*, size_t);
+                           /* Read from stream */
+  void (*in_close) (instream_t);
+                           /* Close the stream */
+  int (*in_eq) (instream_t, instream_t);
+                           /* Return true if both streams refer to the
+			      same input */
+};
+
+static inline char const *
+instream_name (instream_t in)
+{
+  return in->in_name;
+}
+
+static inline ssize_t
+instream_read (instream_t in, char *buf, size_t size)
+{
+  return in->in_read (in, buf, size);
+}
+
+static inline void
+instream_close (instream_t in)
+{
+  in->in_close (in);
+}
+
+static inline int
+instream_interactive (instream_t in)
+{
+  return in->in_inter;
+}
+
+static inline int
+instream_eq (instream_t a, instream_t b)
+{
+  return a->in_eq (a, b);
+}
+
 void input_init (void);
 void input_done (void);
 
+instream_t instream_stdin_create (void);
+instream_t instream_argv_create (int argc, char **argv);
+instream_t instream_file_create (char const *name);
+
+int interactive (void);
+int input_context_push (instream_t);
+
 struct handler_param;
 void input_history_handler (struct handler_param *param);
 int input_history_begin (struct handler_param *param, size_t *exp_count);

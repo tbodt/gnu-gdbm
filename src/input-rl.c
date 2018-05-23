@@ -62,64 +62,6 @@ retrieve_history (char *str)
   return 0;
 }
 
-ssize_t
-input_read (FILE *fp, char *buf, size_t size)
-{
-  static char *input_line;
-  static size_t input_length;
-  static size_t input_off;
-#define input_ptr() (input_line + input_off)
-#define input_size() (input_length - input_off)
-  
-  if (interactive)
-    {
-      size_t len = input_size ();
-      if (!len)
-	{
-	  if (input_line)
-	    {
-	    newline:
-	      free (input_line);
-	      input_line = NULL;
-	      buf[0] = '\n';
-	      return 1;
-	    }
-	  else
-	    {
-	      char *prompt;
-	    again:
-	      prompt = make_prompt ();
-	      input_line = readline (prompt);
-	      free (prompt);
-	      if (!input_line)
-		return 0;
-	      input_length = strlen (input_line);
-	      input_off = 0;
-	      if (input_length)
-		{
-		  if (retrieve_history (input_line))
-		    {
-		      free (input_line);
-		      goto again;
-		    }
-		}
-	      else
-		goto newline;
-	      len = input_size ();
-	      add_history (input_line);
-	    }
-	}
-
-      if (len > size)
-	len = size;
-      memcpy (buf, input_ptr (), len);
-      input_off += len;
-
-      return len;
-    }
-  return fread (buf, 1, size, fp);
-} 
-
 struct history_param
 {
   int from;
@@ -180,7 +122,7 @@ input_history_handler (struct handler_param *param)
 #define HISTFILE_SUFFIX "_history"
 
 static char *
-get_history_file_name ()
+get_history_file_name (void)
 {
   static char *filename = NULL;
 
@@ -222,14 +164,99 @@ input_init (void)
   rl_readline_name = (char *) progname;
   rl_attempted_completion_function = shell_completion;
   rl_pre_input_hook = pre_input;
-  if (interactive)
-    read_history (get_history_file_name ());
+  read_history (get_history_file_name ());
 }
 
 void
 input_done (void)
 {
-  if (interactive)
-    write_history (get_history_file_name ());
+  write_history (get_history_file_name ());
+}
+
+static void
+instream_stdin_close (instream_t istr)
+{
+  free (istr);
 }
 
+static ssize_t
+stdin_read_readline (instream_t istr, char *buf, size_t size)
+{
+  static char *input_line;
+  static size_t input_length;
+  static size_t input_off;
+#define input_ptr() (input_line + input_off)
+#define input_size() (input_length - input_off)
+  size_t len = input_size ();
+  if (!len)
+    {
+      if (input_line)
+	{
+	newline:
+	  free (input_line);
+	  input_line = NULL;
+	  buf[0] = '\n';
+	  return 1;
+	}
+      else
+	{
+	  char *prompt;
+	again:
+	  prompt = make_prompt ();
+	  input_line = readline (prompt);
+	  free (prompt);
+	  if (!input_line)
+	    return 0;
+	  input_length = strlen (input_line);
+	  input_off = 0;
+	  if (input_length)
+	    {
+	      if (retrieve_history (input_line))
+		{
+		  free (input_line);
+		  goto again;
+		}
+	    }
+	  else
+	    goto newline;
+	  len = input_size ();
+	  add_history (input_line);
+	}
+    }
+  
+  if (len > size)
+    len = size;
+  memcpy (buf, input_ptr (), len);
+  input_off += len;
+
+  return len;
+} 
+
+static ssize_t
+instream_stdin_read (instream_t istr, char *buf, size_t size)
+{
+  if (istr->in_inter)
+    return stdin_read_readline (istr, buf, size);
+  return fread (buf, 1, size, stdin);
+}
+
+static int
+instream_stdin_eq (instream_t a, instream_t b)
+{
+  return 0;
+}
+
+instream_t
+instream_stdin_create (void)
+{
+  struct instream *istr;
+
+  istr = emalloc (sizeof *istr);
+  istr->in_name = "stdin";
+  istr->in_inter = isatty (fileno (stdin));
+  istr->in_read = instream_stdin_read;
+  istr->in_close = instream_stdin_close;
+  istr->in_eq = instream_stdin_eq;
+
+  return istr;
+}

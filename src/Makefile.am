@@ -96,6 +96,8 @@ gdbmtool_LDADD  = \
 gdbmtool_SOURCES = \
  datconv.c\
  gram.y\
+ input-argv.c\
+ input-file.c\
  lex.l\
  gdbmtool.h\
  gdbmtool.c\
@@ -109,7 +111,7 @@ else
 endif
 
 AM_YFLAGS = -dtv
-#AM_LFLAGS = -d
+AM_LFLAGS = -d
 
 gdbm_load_LDADD  = ./libgdbmapp.a ./libgdbm.la 
 gdbm_dump_LDADD  = ./libgdbmapp.a ./libgdbm.la 

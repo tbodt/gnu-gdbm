@@ -78,7 +78,7 @@ opendb (char *dbname)
       
   if (open_mode == GDBM_NEWDB)
     {
-      if (interactive && variable_is_true ("confirm") &&
+      if (interactive () && variable_is_true ("confirm") &&
 	  access (dbname, F_OK) == 0)
 	{
 	  if (!getyn (_("database %s already exists; overwrite"), dbname))
@@ -1106,9 +1106,10 @@ void
 source_handler (struct handler_param *param)
 {
   char *fname = tildexpand (PARAM_STRING (param, 0));
-  if (setsource (fname, 0) == 0)
-    yyparse ();
+  instream_t istr = instream_file_create (fname);
   free (fname);
+  if (input_context_push (istr) == 0)
+    yyparse ();
 }
 
 
@@ -1456,7 +1457,7 @@ command_lookup (const char *str, struct locus *loc, struct command **pcmd)
 	      break;
 
 	    case fcom_found:
-	      if (!interactive)
+	      if (!interactive ())
 		{
 		  state = fcom_abort;
 		  found = NULL;
@@ -1479,9 +1480,8 @@ command_lookup (const char *str, struct locus *loc, struct command **pcmd)
     }
 
   if (state == fcom_init)
-    lerror (loc,
-		 interactive ? _("Invalid command. Try ? for help.") :
-	                       _("Unknown command"));
+    lerror (loc, interactive () ? _("Invalid command. Try ? for help.") :
+	                          _("Unknown command"));
   if (!found)
     return T_BOGUS;
 
@@ -1490,7 +1490,12 @@ command_lookup (const char *str, struct locus *loc, struct command **pcmd)
 }
 
 char *parseopt_program_doc = N_("examine and/or modify a GDBM database");
-char *parseopt_program_args = N_("DBFILE");
+char *parseopt_program_args = N_("DBFILE [COMMAND [ARG ...]]");
+
+enum {
+  OPT_LEX_TRACE = 256,
+  OPT_GRAM_TRACE
+};
 
 struct gdbm_option optab[] = {
   { 'b', "block-size", N_("SIZE"), N_("set block size") },
@@ -1504,6 +1509,8 @@ struct gdbm_option optab[] = {
   { 'r', "read-only",  NULL,       N_("open database in read-only mode") },
   { 's', "synchronize", NULL,      N_("synchronize to disk after each write") },
   { 'q', "quiet",      NULL,       N_("don't print initial banner") },
+  { OPT_LEX_TRACE, "lex-trace", NULL, N_("enable lexical analyzer traces") },
+  { OPT_GRAM_TRACE, "gram-trace", NULL, N_("enable grammar traces") },
   { 0 }
 };
 
@@ -1786,7 +1793,7 @@ static struct gdbmarglist last_args;
 void
 run_last_command (void)
 {
-  if (interactive)
+  if (interactive ())
     {
       if (last_cmd)
 	{
@@ -1846,7 +1853,7 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 	/* Optional argument */
 	break;
 
-      if (!interactive)
+      if (!interactive ())
 	{
 	  terror (_("%s: not enough arguments"), cmd->name);
 	  return 1;
@@ -1896,7 +1903,7 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
   pagfp = NULL;
       
   expected_lines = 0;
-  expected_lines_ptr = (interactive && pager) ? &expected_lines : NULL;
+  expected_lines_ptr = (interactive () && pager) ? &expected_lines : NULL;
   if (!(cmd->begin && cmd->begin (&param, expected_lines_ptr)))
     {
       if (pager && expected_lines > get_screen_lines ())
@@ -1938,12 +1945,13 @@ run_command (struct command *cmd, struct gdbmarglist *arglist)
 }
 
 static void
-source_rcfile ()
+source_rcfile (void)
 {
+  instream_t istr = NULL;
+  
   if (access (GDBMTOOLRC, R_OK) == 0)
     {
-      if (setsource (GDBMTOOLRC, 0) == 0)
-	yyparse ();
+      istr = instream_file_create (GDBMTOOLRC);
     }
   else
     {
@@ -1962,10 +1970,16 @@ source_rcfile ()
       fname = mkfilename (p, GDBMTOOLRC, NULL);
       if (access (fname, R_OK) == 0)
 	{
-	  if (setsource (fname, 0) == 0)
-	    yyparse ();
+	  istr = instream_file_create (GDBMTOOLRC);
 	}
       free (fname);
+    }
+
+  if (istr)
+    {
+      if (input_context_push (istr))
+	exit (EXIT_FATAL);
+      yyparse ();
     }
 }
 
@@ -1984,12 +1998,12 @@ debug_printer (char const *fmt, ...)
 int
 main (int argc, char *argv[])
 {
-  int intr;  
   int opt;
   int bv;
   int norc = 0;
   int res;
-  char *source = "-";
+  char *source = NULL;
+  instream_t input = NULL;
   
   set_progname (argv[0]);
 #if GDBM_DEBUG_ENABLE
@@ -2005,8 +2019,6 @@ main (int argc, char *argv[])
   sort_commands ();
   
   /* Initialize variables. */
-  intr = isatty (0);
-  interactive = intr; /* Used early by input_init */
   dsdef[DS_KEY] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
   dsdef[DS_CONTENT] = dsegm_new_field (datadef_lookup ("string"), NULL, 1);
 
@@ -2014,6 +2026,7 @@ main (int argc, char *argv[])
   variable_set ("pager", VART_STRING, getenv ("PAGER"));
   
   input_init ();
+  lex_trace (0);
   
   for (opt = parseopt_first (argc, argv, optab);
        opt != EOF;
@@ -2022,7 +2035,6 @@ main (int argc, char *argv[])
       {
       case 'f':
 	source = optarg;
-	intr = 0;
 	break;
 	
       case 'l':
@@ -2068,6 +2080,14 @@ main (int argc, char *argv[])
 	bv = 1;
 	variable_set ("quiet", VART_BOOL, &bv);
 	break;
+
+      case OPT_LEX_TRACE:
+	lex_trace (1);
+	break;
+
+      case OPT_GRAM_TRACE:
+	gram_trace (1);
+	break;
 	
       default:
 	terror (_("unknown option; try `%s -h' for more info"),
@@ -2078,14 +2098,30 @@ main (int argc, char *argv[])
   argc -= optind;
   argv += optind;
 
-  if (argc > 1)
+  if (source && strcmp (source, "-"))
     {
-      terror (_("too many arguments"));
-      exit (EXIT_USAGE);
+      input = instream_file_create (source);
+      if (!input)
+	exit (1);
     }
-      
-  if (argc == 1)
-    file_name = estrdup (argv[0]);
+  
+  if (argc >= 1)
+    {
+      file_name = estrdup (argv[0]);
+      argc--;
+      argv++;
+      if (argc)
+	{
+	  if (input)
+	    {
+	      terror (_("--file and and command cannot be used together"));
+	      exit (EXIT_USAGE);
+	    }
+	  input = instream_argv_create (argc, argv);
+	  if (!input)
+	    exit (1);
+	}
+    }
 
   signal (SIGPIPE, SIG_IGN);
 
@@ -2093,13 +2129,16 @@ main (int argc, char *argv[])
   argmax = 0;
 
   if (!norc)
-    source_rcfile ();	  
+    source_rcfile ();
+
+  if (!input)
+    input = instream_stdin_create ();
   
   /* Welcome message. */
-  if (intr && !variable_is_true ("quiet"))
+  if (instream_interactive (input) && !variable_is_true ("quiet"))
     printf (_("\nWelcome to the gdbm tool.  Type ? for help.\n\n"));
 
-  if (setsource (source, intr))
+  if (input_context_push (input))
     exit (EXIT_FATAL);
   res = yyparse ();
   input_done ();

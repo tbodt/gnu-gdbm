@@ -16,17 +16,42 @@
 
 #include "gdbmtool.h"
 
-ssize_t
-input_read (FILE *fp, char *buf, size_t size)
+static ssize_t
+instream_stdin_read (instream_t istr, char *buf, size_t size)
 {
-  if (interactive)
-    {
-      print_prompt_at_bol ();
-      if (fgets (buf, size, fp) == NULL)
-	return 0;
-      return strlen (buf);
-    }
-  return fread (buf, 1, size, fp);
+  if (istr->in_inter)
+    print_prompt_at_bol ();
+  if (fgets (buf, size, stdin) == NULL)
+    return 0;
+  return strlen (buf);
+}
+
+static void
+instream_stdin_close (instream_t istr)
+{
+  free (istr);
+}
+
+static int
+instream_stdin_eq (instream_t a, instream_t b)
+{
+  return 0;
+}
+
+instream_t
+instream_stdin_create (void)
+{
+  struct instream_file *istr;
+
+  istr = emalloc (sizeof *istr);
+  istr->base.in_name = "stdin";
+  istr->base.in_inter = isatty (fileno (stdin));
+  istr->base.in_read = instream_stdin_read;
+  istr->base.in_close = instream_stdin_close;
+  istr->base.in_eq = instream_stdin_eq;
+  istr->fp = stdin;
+
+  return istr;
 }
 
 void

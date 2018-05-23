@@ -71,20 +71,20 @@ stmtlist  : stmt
           | stmtlist stmt
           ;
 
-stmt      : /* empty */ '\n'
+stmt      : /* empty */ eol
             {
 	      run_last_command ();
 	    }
-          | T_CMD arglist '\n'
+          | T_CMD arglist eol
             {
-	      if (run_command ($1, &$2) && !interactive)
+	      if (run_command ($1, &$2) && !interactive ())
 		exit (EXIT_USAGE);
 	    }
-          | set '\n'
-          | defn '\n'
-	  | T_BOGUS '\n'
+          | set eol
+          | defn eol
+	  | T_BOGUS eol
 	    {
-	      if (interactive)
+	      if (interactive ())
 		{
 		  yyclearin;
 		  yyerrok;
@@ -92,9 +92,9 @@ stmt      : /* empty */ '\n'
 	      else
 		YYERROR;
 	    }
-          | error { end_def(); } '\n'
+          | error { end_def(); } eol
             {
-	      if (interactive)
+	      if (interactive ())
 		{
 		  yyclearin;
 		  yyerrok;
@@ -102,6 +102,10 @@ stmt      : /* empty */ '\n'
 	      else
 		YYERROR;
 	    }
+          ;
+
+eol       : '\n'
+          | ';'
           ;
 
 arglist   : /* empty */
@@ -366,4 +370,10 @@ yyerror (char const *s)
 {
   terror ("%s", s);
   return 0;
+}
+
+void
+gram_trace (int n)
+{
+  yydebug = 1;
 }

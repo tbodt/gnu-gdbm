@@ -86,4 +86,9 @@ m4_include([dump02.at])
 m4_include([dump03.at])
 m4_include([dump04.at])
 
+AT_BANNER([gdbmtool])
+m4_include([gdbmtool00.at])
+m4_include([gdbmtool01.at])
+m4_include([gdbmtool02.at])
+
 # End of testsuite.at

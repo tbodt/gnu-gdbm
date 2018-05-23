@@ -11,6 +11,7 @@
 * GDBM: (gdbm).                  The GNU database manager.
 * gdbm_dump: (gdbm) gdbm_dump.   Dump the GDBM database into a flat file.
 * gdbm_load: (gdbm) gdbm_load.   Load the database from a flat file.
+* gdbmtool: (gdbm) gdbmtool.     Examine and modify a GDBM database.
 @end direntry
 @end ifinfo
 
