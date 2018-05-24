@@ -98,7 +98,7 @@ name (struct xdatum *xd, char *str)             \
     return 1;                                   \
   if (errno == ERANGE || (t = n) != n)          \
     return 1;                                   \
-  xd_store (xd, &n, sizeof (n));                \
+  xd_store (xd, &t, sizeof (t));                \
   return 0;                                     \
 }
 
@@ -337,6 +337,23 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 	  if (!ds->v.field.type->scan)
 	    abort ();
 
+	  if (kv->type == KV_STRING && ds->v.field.dim > 1)
+	    {
+	      /* If a char[] value was supplied as a quoted string.
+	         convert it it list for further processing */
+	      if (ds->v.field.type->size == 1)
+		{
+		  struct slist *head = slist_new_l (kv->val.s, 1);
+		  struct slist *tail = head;
+		  char *s;
+		  for (s = kv->val.s + 1; *s; s++)
+		    slist_insert (&tail, slist_new_l (s, 1));
+		  free (kv->val.s);
+		  kv->val.l = head;
+		  kv->type = KV_LIST;
+		}
+	    }
+	  
 	  switch (kv->type)
 	    {
 	    case KV_STRING:
@@ -358,7 +375,11 @@ datum_scan_notag (datum *dat, struct dsegm *ds, struct kvpair *kv)
 		      break;
 		    }
 		}
-	      /* FIXME: Warn if (s) -> "extra data" */
+	      if (s)
+		{
+		  lerror (&kv->loc, "surplus initializers ignored");
+		  err = 1;
+		}
 	    }				      
 	  break;
 
