@@ -152,7 +152,7 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 
 
 /* Gets the avail block at the top of the stack and loads it into the
-   active avail block.  It does a "free" for itself!  This can (and is)
+   active avail block.  It does a "free" for itself!  This can be (and is)
    now called even when the avail block is not empty, so we must be
    smart about things. */
 
@@ -206,12 +206,19 @@ pop_avail_block (GDBM_FILE dbf)
       return -1;
     }
 
+  if (!gdbm_avail_block_valid_p (new_blk))
+    {
+      gdbm_set_errno (dbf, GDBM_BAD_AVAIL, TRUE);
+      _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
+      return -1;
+    }
+
   /* Add the elements from the new block to the header. */
   index = 0;
   while (index < new_blk->count)
     {
-      while(index < new_blk->count
-            && dbf->header->avail.count < dbf->header->avail.size)
+      while (index < new_blk->count
+	     && dbf->header->avail.count < dbf->header->avail.size)
 	{
 	   /* With luck, this will merge a lot of blocks! */
 	   _gdbm_put_av_elem (new_blk->av_table[index],

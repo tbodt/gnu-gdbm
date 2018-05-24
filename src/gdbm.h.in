@@ -221,9 +221,10 @@ extern int gdbm_copy_meta (GDBM_FILE dst, GDBM_FILE src);
 # define GDBM_DIR_OVERFLOW              31
 # define GDBM_BAD_BUCKET                32
 # define GDBM_BAD_HEADER                33
+# define GDBM_BAD_AVAIL                 34
 
 # define _GDBM_MIN_ERRNO	0
-# define _GDBM_MAX_ERRNO	GDBM_BAD_HEADER
+# define _GDBM_MAX_ERRNO	GDBM_BAD_AVAIL
 
 /* This one was never used and will be removed in the future */
 # define GDBM_UNKNOWN_UPDATE GDBM_UNKNOWN_ERROR

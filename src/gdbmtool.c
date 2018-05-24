@@ -225,14 +225,29 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
 	  break;
 	}
 
-      lines += av_stk->count;
-      if (lines > min_size)
-	break;
+      if (gdbm_avail_block_valid_p (av_stk))
+	{
+	  lines += av_stk->count;
+	  if (lines > min_size)
+	    break;
+	}
       temp = av_stk->next_block;
     }
   free (av_stk);
 
   return lines;
+}
+
+static void
+av_table_display (avail_elem *av_table, int count, FILE *fp)
+{
+  int i;
+  
+  for (i = 0; i < count; i++)
+    {
+      fprintf (fp, "  %15d   %10lu \n",
+	       av_table[i].av_size, (unsigned long) av_table[i].av_adr);
+    }
 }
 
 void
@@ -246,12 +261,7 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
   /* Print the the header avail block.  */
   fprintf (fp, _("\nheader block\nsize  = %d\ncount = %d\n"),
 	   dbf->header->avail.size, dbf->header->avail.count);
-  for (temp = 0; temp < dbf->header->avail.count; temp++)
-    {
-      fprintf (fp, "  %15d   %10lu \n",
-	       dbf->header->avail.av_table[temp].av_size,
-	       (unsigned long) dbf->header->avail.av_table[temp].av_adr);
-    }
+  av_table_display (dbf->header->avail.av_table, dbf->header->avail.count, fp);
 
   /* Initialize the variables for a pass throught the avail stack. */
   temp = dbf->header->avail.next_block;
@@ -280,11 +290,10 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
       /* Print the block! */
       fprintf (fp, _("\nblock = %d\nsize  = %d\ncount = %d\n"), temp,
 	       av_stk->size, av_stk->count);
-      for (temp = 0; temp < av_stk->count; temp++)
-	{
-	  fprintf (fp, "  %15d   %10lu \n", av_stk->av_table[temp].av_size,
-		   (unsigned long) av_stk->av_table[temp].av_adr);
-	}
+      if (gdbm_avail_block_valid_p (av_stk))
+	av_table_display (av_stk->av_table, av_stk->count, fp);
+      else
+	terror (_("invalid avail_block"));
       temp = av_stk->next_block;
     }
   free (av_stk);

@@ -51,6 +51,13 @@ typedef struct
   avail_elem av_table[1]; /* The table.  Make it look like an array.  */
 } avail_block;
 
+/* Return true if avail_block is valid */
+static int inline
+gdbm_avail_block_valid_p (avail_block const *av)
+{
+  return (av->size >= 0 && av->count >= 0 && av->count <= av->size);
+}
+
 /* The dbm file header keeps track of the current location of the hash
    directory and the free space in the file.  */
 

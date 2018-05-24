@@ -108,6 +108,10 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
 
   if (hdr->bucket_elems != bucket_element_count (hdr))
     return GDBM_BAD_HEADER;
+
+  /* Validate the avail block */
+  if (!gdbm_avail_block_valid_p (&hdr->avail))
+    return GDBM_BAD_HEADER;
   
   return 0;
 }

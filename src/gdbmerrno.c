@@ -133,7 +133,8 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_BACKUP_FAILED]          = N_("Failed to create backup copy"),
   [GDBM_DIR_OVERFLOW]           = N_("Bucket directory overflow"),
   [GDBM_BAD_BUCKET]             = N_("Malformed bucket header"),
-  [GDBM_BAD_HEADER]             = N_("Malformed database file header")
+  [GDBM_BAD_HEADER]             = N_("Malformed database file header"),
+  [GDBM_BAD_AVAIL]              = N_("Malforemd avail_block")
 };
 
 const char *
