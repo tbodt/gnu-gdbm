@@ -1528,8 +1528,10 @@ struct gdbm_option optab[] = {
   { 'r', "read-only",  NULL,       N_("open database in read-only mode") },
   { 's', "synchronize", NULL,      N_("synchronize to disk after each write") },
   { 'q', "quiet",      NULL,       N_("don't print initial banner") },
+#if GDBMTOOL_DEBUG    
   { OPT_LEX_TRACE, "lex-trace", NULL, N_("enable lexical analyzer traces") },
   { OPT_GRAM_TRACE, "gram-trace", NULL, N_("enable grammar traces") },
+#endif  
   { 0 }
 };
 

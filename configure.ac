@@ -39,19 +39,35 @@ AC_SUBST([GDBM_VERSION_PATCH], m4_ifdef([_GDBM_VERSION_PATCH],_GDBM_VERSION_PATC
 
 AC_ARG_ENABLE([memory-mapped-io],
   AC_HELP_STRING(
-    [--enable-memory-mapped-io]
+    [--enable-memory-mapped-io],
     [Use mmap(2) for disk I/O. (Default is YES.)]),
-    [mapped_io=$enableval],
-    [mapped_io=yes])
+  [mapped_io=$enableval],
+  [mapped_io=yes])
 
 AC_ARG_ENABLE([libgdbm-compat],
   AC_HELP_STRING(
-    [--enable-libgdbm-compat]
+    [--enable-libgdbm-compat],
     [Build and install libgdbm_compat. (Default is NO.)]),
-    [want_compat=$enableval],
-    [want_compat=no])
+  [want_compat=$enableval],
+  [want_compat=no])
 AC_ARG_VAR([COMPATINCLUDEDIR],[installation directory for dbm.h and ndbm.h])
 test -z "$COMPATINCLUDEDIR" && COMPATINCLUDEDIR='$(includedir)'
+
+AC_ARG_ENABLE([gdbmtool-debug],
+  AC_HELP_STRING(
+    [--enable-gdbmtool-debug],
+    [instrument gdbmtool for additional debugging]),
+    [want_gdbmtool_debug=$enableval],
+    [want_gdbmtool_debug=no])
+
+AC_SUBST(YFLAGS_DEBUG)
+AC_SUBST(LFLAGS_DEBUG)
+if test "$want_gdbmtool_debug" = yes; then
+    YFLAGS_DEBUG=-t
+    LFLAGS_DEBUG=-d
+fi    
+
+AM_CONDITIONAL([COND_GDBMTOOL_DEBUG], [test "$want_gdbmtool_debug" = yes])
 
 dnl Check for programs
 AC_PROG_CC

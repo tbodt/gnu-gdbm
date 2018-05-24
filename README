@@ -46,6 +46,15 @@ to install them elsewhere, define the variable COMPATINCLUDEDIR, e.g.
 Don't compile GNU Readline support.  By default, configure enables
 line-editing support if GNU Readline is available on the system.
 
+** --enable-gdbmtool-debug
+
+This option instruments gdbmtool for additional debugging. Configured
+with this option, gdbmtool accepts two additional arguments:
+--lex-trace, which enables tracing the operation of the lexical
+analyzer, and --gram-trace, which enables parser tracing output.
+
+Note, that this additional instrumentation requires bison and flex.
+
 * Installation 
 
   make install

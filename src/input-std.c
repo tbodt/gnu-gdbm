@@ -41,15 +41,14 @@ instream_stdin_eq (instream_t a, instream_t b)
 instream_t
 instream_stdin_create (void)
 {
-  struct instream_file *istr;
+  struct instream *istr;
 
   istr = emalloc (sizeof *istr);
-  istr->base.in_name = "stdin";
-  istr->base.in_inter = isatty (fileno (stdin));
-  istr->base.in_read = instream_stdin_read;
-  istr->base.in_close = instream_stdin_close;
-  istr->base.in_eq = instream_stdin_eq;
-  istr->fp = stdin;
+  istr->in_name = "stdin";
+  istr->in_inter = isatty (fileno (stdin));
+  istr->in_read = instream_stdin_read;
+  istr->in_close = instream_stdin_close;
+  istr->in_eq = instream_stdin_eq;
 
   return istr;
 }

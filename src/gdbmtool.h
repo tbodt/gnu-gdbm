@@ -342,6 +342,9 @@ int yylex (void);
 int yyerror (char const *s);
 int yyparse (void);
 
+void lex_trace (int n);
+void gram_trace (int n);
+
 void datum_format (FILE *fp, datum const *dat, struct dsegm *ds);
 int datum_scan (datum *dat, struct dsegm *ds, struct kvpair *kv);
 void dsprint (FILE *fp, int what, struct dsegm *ds);

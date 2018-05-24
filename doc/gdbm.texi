@@ -1956,6 +1956,24 @@ the database already exists, it will be deleted, so use it sparingly.
 @section gdbmtool invocation
 @cindex command line options, @command{gdbmtool}
 
+When started without additional arguments, @command{gdbmtool} operates
+on the default database @file{junk.gdbm}. Otherwise, the first
+argument supplies the name of the database to operate upon. If neither
+any additional arguments nor the @option{-f} (@option{--file}) option
+are given, @command{gdbmtool} opens starts interactive shell and
+receives commands directly from the human operator.
+
+If more than one arguments are given, all arguments past the database
+name are parsed as @command{gdbmtool} commands (@pxref{shell}, for a
+description of available commands) and executed in turn. All commands,
+except the last one, should be terminated with semicolons. Semicolon
+after the last command is optional. Note, that semicolons should be
+escaped in order to prevent them from being interpreted by the shell.
+
+Finally, if the @option{-f} (@option{--file}) option is supplied, its
+argument specifies the name of the disk file with @command{gdbmtool}
+script. The program will open that file and read commands from it.
+
 The following table summarizes all @command{gdbmtool} command line
 options:
 
@@ -2022,10 +2040,11 @@ detects end-of-file on its standard input, whichever occurs first.
 
 A @command{gdbmtool} command consists of a @dfn{command verb},
 optionally followed by @dfn{arguments}, separated by any
-amount of white space.  A command verb can be entered either in full
-or in an abbreviated form, as long as that abbreviation does not match
-any other verb.  For example, @samp{co} can be used instead of
-@samp{count} and @samp{ca} instead of @samp{cache}.  
+amount of white space and terminated with a newline or semicolon.
+A command verb can be entered either in full or in an abbreviated
+form, as long as that abbreviation does not match any other verb.  For
+example, @samp{co} can be used instead of @samp{count} and @samp{ca}
+instead of @samp{cache}.
 
 Any sequence of non-whitespace characters appearing after the command
 verb forms an argument.  If the argument contains whitespace or
@@ -2305,6 +2324,14 @@ Print the number of entries in the database.
 Print the current bucket.
 @end deffn
 
+@deffn {command verb} debug [[+-]@var{token}...]
+If @command{GDBM} is configured with additional debugging, this
+statement queries or sets @command{GDBM} internal debugging level.
+This is intended for debugging and testing purposes and requires
+good knowledge of @command{GDBM} internals. The use of this command is
+not recommended.
+@end deffn
+
 @deffn {command verb} delete @var{key}
 Delete record with the given @var{key}
 @end deffn
@@ -2421,6 +2448,33 @@ Specifies the permissions to use in case a new file is created.
 
 @deffn {command verb} quit
 Close the database and quit the utility.
+@end deffn
+
+@deffn {command verb} recover [@var{options}]
+Run database recovery. The following @var{options} are understood:
+
+@table @option
+@item backup
+Create a backup copy of the original database.
+
+@item max-failed-buckets=@var{n}
+Abort recovery process if @var{n} buckets could not be recovered.
+
+@item max-failed-keys=@var{n}
+Abort recovery process if @var{n} keys could not be recovered.
+
+@item max-failures=@var{n}
+Abort recovery process after @var{n} failures. A @dfn{failure} in this
+context is either a key or a bucket that failed to be recovered.
+
+@item summary
+Print the recovery statistics at the end of the run. The statistics
+includes number of successfully recovered, failed and duplicate keys
+and the number of recovered and failed buckets.
+
+@item verbose
+Verbosely list each error encountered.
+@end table
 @end deffn
 
 @deffn {command verb} reorganize

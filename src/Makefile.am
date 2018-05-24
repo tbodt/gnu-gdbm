@@ -110,8 +110,12 @@ else
   gdbmtool_SOURCES += input-std.c
 endif
 
-AM_YFLAGS = -dtv
-AM_LFLAGS = -d
+AM_YFLAGS = -dv $(YFLAGS_DEBUG)
+AM_LFLAGS = $(LFLAGS_DEBUG)
+
+if COND_GDBMTOOL_DEBUG
+  AM_CPPFLAGS += -DGDBMTOOL_DEBUG=1
+endif
 
 gdbm_load_LDADD  = ./libgdbmapp.a ./libgdbm.la 
 gdbm_dump_LDADD  = ./libgdbmapp.a ./libgdbm.la 

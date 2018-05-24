@@ -375,5 +375,7 @@ yyerror (char const *s)
 void
 gram_trace (int n)
 {
+#if GDBMTOOL_DEBUG  
   yydebug = 1;
+#endif
 }
