@@ -206,7 +206,7 @@ pop_avail_block (GDBM_FILE dbf)
       return -1;
     }
 
-  if (!gdbm_avail_block_valid_p (new_blk))
+  if (!gdbm_avail_table_valid_p (dbf, new_blk))
     {
       gdbm_set_errno (dbf, GDBM_BAD_AVAIL, TRUE);
       _gdbm_fatal (dbf, gdbm_db_strerror (dbf));

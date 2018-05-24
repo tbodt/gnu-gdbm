@@ -56,6 +56,12 @@ bucket_element_count (gdbm_file_header const *hdr)
          / sizeof (bucket_element) + 1;
 }
 
+int
+gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_block const *av)
+{
+  return gdbm_avail_block_valid_p (av) && av->size <= dbf->header->avail.size;
+}
+
 static int
 validate_header (gdbm_file_header const *hdr, struct stat const *st)
 {
@@ -100,7 +106,10 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
     return GDBM_BAD_HEADER;
 
   compute_directory_size (hdr->block_size, &dir_size, &dir_bits);
-  if (hdr->dir_size != dir_size || hdr->dir_bits != dir_bits)
+  if (!(hdr->dir_size >= dir_size))
+    return GDBM_BAD_HEADER;
+  compute_directory_size (hdr->dir_size, &dir_size, &dir_bits);
+  if (hdr->dir_bits != dir_bits)
     return GDBM_BAD_HEADER;
   
   if (!(hdr->bucket_size > 0 && hdr->bucket_size > sizeof(hash_bucket)))
@@ -112,6 +121,10 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
   /* Validate the avail block */
   if (!gdbm_avail_block_valid_p (&hdr->avail))
     return GDBM_BAD_HEADER;
+
+  if (((hdr->block_size - sizeof (gdbm_file_header)) / sizeof(avail_elem) + 1)
+      != hdr->avail.size)
+    return GDBM_BAD_HEADER;    
   
   return 0;
 }
