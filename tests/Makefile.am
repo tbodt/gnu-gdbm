@@ -169,4 +169,6 @@ site.exp: Makefile
 	@mv $@-t site.exp
 
 EXTRA_DIST += \
-  gdbmtool/base.exp
+  gdbmtool/base.exp\
+  config/default.exp
+
