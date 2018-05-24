@@ -195,7 +195,6 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
   int             size;
   avail_block    *av_stk;
   size_t          lines;
-  int             rc;
   
   lines = 4 + dbf->header->avail.count;
   if (lines > min_size)
@@ -215,13 +214,9 @@ _gdbm_avail_list_size (GDBM_FILE dbf, size_t min_size)
 	  break;
 	}
       
-      if ((rc = _gdbm_full_read (dbf, av_stk, size)))
+      if (_gdbm_full_read (dbf, av_stk, size))
 	{
-	  if (rc == GDBM_FILE_EOF)
-	    terror ("read: %s", gdbm_strerror (rc));
-	  else
-	    terror ("read: %s (%s)",
-			  gdbm_strerror (rc), strerror (errno));
+	  terror ("read: %s", gdbm_db_strerror (dbf));
 	  break;
 	}
 
@@ -256,7 +251,6 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
   int             temp;
   int             size;
   avail_block    *av_stk;
-  int             rc;
   
   /* Print the the header avail block.  */
   fprintf (fp, _("\nheader block\nsize  = %d\ncount = %d\n"),
@@ -278,12 +272,9 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
 	  break;
 	}
       
-      if ((rc = _gdbm_full_read (dbf, av_stk, size)))
+      if (_gdbm_full_read (dbf, av_stk, size))
 	{
-	  if (rc == GDBM_FILE_EOF)
-	    terror ("read: %s", gdbm_strerror (rc));
-	  else
-	    terror ("read: %s (%s)", gdbm_strerror (rc), strerror (errno));
+          terror ("read: %s", gdbm_db_strerror (dbf));
 	  break;
 	}
 

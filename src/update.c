@@ -112,7 +112,7 @@ _gdbm_end_update (GDBM_FILE dbf)
 	  GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
 		      "%s: error writing directory: %s",
 		      dbf->name, gdbm_db_strerror (dbf));	  	  
-	  _gdbm_fatal (dbf, gdbm_strerror (rc));
+	  _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
 	  return -1;
 	}
 

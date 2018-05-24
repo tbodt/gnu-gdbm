@@ -202,7 +202,7 @@ pop_avail_block (GDBM_FILE dbf)
 			    _gdbm_full_read (dbf, new_blk, new_el.av_size));
   if (rc)
     {
-      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
       return -1;
     }
 
@@ -330,7 +330,7 @@ push_avail_block (GDBM_FILE dbf)
       GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
 		  "%s: error writing avail data: %s",
 		  dbf->name, gdbm_db_strerror (dbf));	  
-      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
       return -1;
     }
 

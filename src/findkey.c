@@ -83,7 +83,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
 		  "%s: error reading entry: %s",
 		  dbf->name, gdbm_db_strerror (dbf));
       dbf->need_recovery = TRUE;
-      _gdbm_fatal (dbf, gdbm_strerror (rc));
+      _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
       return NULL;
     }
   
