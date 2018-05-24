@@ -552,7 +552,7 @@ err_printer (void *data GDBM_ARG_UNUSED, char const *fmt, ...)
   fprintf (stderr, "\n");
 }
 
-/* recover verbose backup max-failed-keys=N max-failed-buckets=N max-failures=N */
+/* recover sumamry verbose backup max-failed-keys=N max-failed-buckets=N max-failures=N */
 void
 recover_handler (struct handler_param *param)
 {
@@ -561,14 +561,19 @@ recover_handler (struct handler_param *param)
   int rc;
   int i;
   char *p;
+  int summary = 0;
   
-  for (i = 1; i < param->argc; i++)
+  for (i = 0; i < param->argc; i++)
     {
       char *arg = PARAM_STRING (param, i);
       if (strcmp (arg, "verbose") == 0)
 	{
 	  rcvr.errfun = err_printer;
 	  flags |= GDBM_RCVR_ERRFUN;
+	}
+      else if (strcmp (arg, "summary") == 0)
+	{
+	  summary = 1;
 	}
       else if (strcmp (arg, "backup") == 0)
 	{
@@ -617,6 +622,19 @@ recover_handler (struct handler_param *param)
   if (rc == 0)
     {
       fprintf (param->fp, _("Recovery succeeded.\n"));
+      if (summary)
+	{
+	  fprintf (param->fp,
+		   _("Keys recovered: %lu, failed: %lu, duplicate: %lu\n"),
+		   (unsigned long) rcvr.recovered_keys,
+		   (unsigned long) rcvr.failed_keys,
+		   (unsigned long) rcvr.duplicate_keys);
+	  fprintf (param->fp,
+		   _("Buckets recovered: %lu, failed: %lu\n"),
+		   (unsigned long) rcvr.recovered_buckets,
+		   (unsigned long) rcvr.failed_buckets);
+	}
+      
       if (rcvr.backup_name)
 	{
 	  fprintf (param->fp,
@@ -925,7 +943,7 @@ export_handler (struct handler_param *param)
   int i;
   int filemode;
 
-  for (i = 1; i < param->argc; i++)
+  for (i = 0; i < param->argc; i++)
     {
       if (strcmp (PARAM_STRING (param, i), "truncate") == 0)
 	 flags = GDBM_NEWDB;
@@ -959,7 +977,7 @@ import_handler (struct handler_param *param)
   int i;
   int rc;
 
-  for (i = 1; i < param->argc; i++)
+  for (i = 0; i < param->argc; i++)
     {
       if (strcmp (PARAM_STRING (param, i), "replace") == 0)
 	 flag = GDBM_REPLACE;
@@ -1220,6 +1238,7 @@ struct command command_tab[] = {
   { S(recover), T_CMD,
     checkdb, recover_handler, NULL,
     { { "[verbose]", GDBM_ARG_STRING },
+      { "[summary]", GDBM_ARG_STRING },
       { "[backup]",  GDBM_ARG_STRING },
       { "[max-failed-keys=N]", GDBM_ARG_STRING },
       { "[max-failed-buckets=N]", GDBM_ARG_STRING },

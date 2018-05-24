@@ -22,7 +22,21 @@
 
 #include "gdbmdefs.h"
 
-
+int
+gdbm_bucket_element_valid_p (GDBM_FILE dbf, int elem_loc)
+{
+  return
+    elem_loc < dbf->header->bucket_elems
+    && dbf->bucket->h_table[elem_loc].hash_value != -1
+    && dbf->bucket->h_table[elem_loc].key_size >= 0
+    && off_t_sum_ok (dbf->bucket->h_table[elem_loc].data_pointer,
+		     dbf->bucket->h_table[elem_loc].key_size)
+    && dbf->bucket->h_table[elem_loc].data_size >= 0
+    && off_t_sum_ok (dbf->bucket->h_table[elem_loc].data_pointer
+		     + dbf->bucket->h_table[elem_loc].key_size,
+		     dbf->bucket->h_table[elem_loc].data_size);
+}
+  
 /* Read the data found in bucket entry ELEM_LOC in file DBF and
    return a pointer to it.  Also, cache the read value. */
 
@@ -34,11 +48,17 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
   int data_size;
   off_t file_pos;
   data_cache_elem *data_ca;
-  
+
   /* Is it already in the cache? */
   if (dbf->cache_entry->ca_data.elem_loc == elem_loc)
     return dbf->cache_entry->ca_data.dptr;
 
+  if (!gdbm_bucket_element_valid_p (dbf, elem_loc))
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_BAD_HASH_TABLE, TRUE);
+      return NULL;
+    }
+  
   /* Set sizes and pointers. */
   key_size = dbf->bucket->h_table[elem_loc].key_size;
   data_size = dbf->bucket->h_table[elem_loc].data_size;

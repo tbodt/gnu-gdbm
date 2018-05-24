@@ -26,6 +26,22 @@
 #define _(s) gettext (s)
 #define N_(s) s
 
+/* The width in bits of the integer type or expression T. */
+#define TYPE_WIDTH(t) (sizeof (t) * CHAR_BIT)
+
+#define SIGNED_TYPE_MAXIMUM(t) \
+  ((t) ((((t) 1 << (TYPE_WIDTH (t) - 2)) - 1) * 2 + 1))
+
+/* Maximum value for off_t */
+#define OFF_T_MAX SIGNED_TYPE_MAXIMUM (off_t)
+
+/* Return true if A can be added to B without integer overflow */
+static inline off_t
+off_t_sum_ok (off_t a, off_t b)
+{
+  return OFF_T_MAX - a >= b;
+}
+
 /* The type definitions are next.  */
 
 /* The available file space is stored in an "avail" table.  The one with
@@ -93,6 +109,7 @@ typedef struct
   int   data_size;        /* Size of associated data in the file. */
 } bucket_element;
 
+extern int gdbm_bucket_element_valid_p (GDBM_FILE dbf, int elem_loc);
 
 /* A bucket is a small hash table.  This one consists of a number of
    bucket elements plus some bookkeeping fields.  The number of elements

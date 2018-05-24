@@ -312,15 +312,30 @@ run_recovery (GDBM_FILE dbf, GDBM_FILE new_dbf, gdbm_recovery *rcvr, int flags)
 	    
 	      if (gdbm_store (new_dbf, key, data, GDBM_INSERT) != 0)
 		{
-		  if (flags & GDBM_RCVR_ERRFUN)
-		    rcvr->errfun (rcvr->data,
-				  _("fatal: can't store element %d:%d (%lu:%d): %s"),
-				  bucket_dir, i,
-				  (unsigned long) dbf->bucket->h_table[i].data_pointer,
-				  dbf->bucket->h_table[i].key_size
+		  switch (gdbm_last_errno (new_dbf))
+		    {
+		    case GDBM_CANNOT_REPLACE:
+		      rcvr->duplicate_keys++;
+		      if (flags & GDBM_RCVR_ERRFUN)
+			rcvr->errfun (rcvr->data,
+		          _("ignoring duplicate key %d:%d (%lu:%d)"),
+			  bucket_dir, i,
+			  (unsigned long) dbf->bucket->h_table[i].data_pointer,
+			  dbf->bucket->h_table[i].key_size
+				      + dbf->bucket->h_table[i].data_size);
+		      break;
+		      
+		    default:
+		      if (flags & GDBM_RCVR_ERRFUN)
+			rcvr->errfun (rcvr->data,
+			  _("fatal: can't store element %d:%d (%lu:%d): %s"),
+			  bucket_dir, i,
+			  (unsigned long) dbf->bucket->h_table[i].data_pointer,
+			  dbf->bucket->h_table[i].key_size
 				    + dbf->bucket->h_table[i].data_size,
-				  gdbm_db_strerror (new_dbf));
-		  return -1;
+			  gdbm_db_strerror (new_dbf));
+		      return -1;
+		    }
 		}	
 	    }
 	}
@@ -356,6 +371,7 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
   rcvr->recovered_buckets = 0;
   rcvr->failed_keys = 0;
   rcvr->failed_buckets = 0;
+  rcvr->duplicate_keys = 0;
   rcvr->backup_name = NULL;
 
   rc = 0;

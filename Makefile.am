@@ -24,11 +24,25 @@ SUBDIRS = po src doc $(MAYBE_COMPAT) tests
 
 AM_DISTCHECK_CONFIGURE_FLAGS = --enable-libgdbm-compat
 
-dist-hook:
+.PHONY: set-dist-date
+set-dist-date:
 	rm -f $(distdir)/src/version.c; \
 	d=`date '+%d/%m/%Y'`; \
 	sed 's|/\*@DIST_DATE@\*/|"'"$$d"'"|' $(srcdir)/src/version.c > \
 		$(distdir)/src/version.c
+
+dist-hook: ChangeLog set-dist-date
+	@if test -f ChangeLog && test -f NEWS; then			\
+	  PATCHLEV=`echo "$(PACKAGE_VERSION)" | sed -r "s/[0-9]+\.[0-9]+\.?//"`;\
+	  if test $${PATCHLEV:-0} -lt 50; then				     \
+	    if grep -q FIXME NEWS; then					     \
+	      echo >&2 "*** NEWS file contains FIXMEs";			     \
+	      echo >&2 "*** Aborting";					     \
+	      exit 1;							     \
+	    fi;								     \
+	  fi;                                                                \
+	fi
+
 
 gen_start_date = 2016-07-08
 prev_change_log = ChangeLog.cvs

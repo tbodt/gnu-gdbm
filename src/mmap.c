@@ -44,8 +44,15 @@
 # define _GDBM_NEED_REMAP(dbf) \
   (!(dbf)->mapped_region || (dbf)->mapped_pos == (dbf)->mapped_size)
 /* Return the sum of the currently mapped size and DELTA */
-# define SUM_FILE_SIZE(dbf, delta) \
-  ((dbf)->mapped_off + (dbf)->mapped_size + (delta))
+static inline off_t
+SUM_FILE_SIZE (GDBM_FILE dbf, off_t delta)
+{
+  if (delta >= 0
+      && off_t_sum_ok (dbf->mapped_off, dbf->mapped_size)
+      && off_t_sum_ok (dbf->mapped_off + dbf->mapped_size, delta))
+    return dbf->mapped_off + dbf->mapped_size + delta;
+  return -1;
+}
 
 /* Store the size of the GDBM file DBF in *PSIZE.
    Return 0 on success and -1 on failure. */
@@ -182,6 +189,17 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
 {
   off_t file_size, pos;
 
+  if (size < 0)
+    {
+      errno = EINVAL;
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      return -1;
+    }
+
+  if (size < dbf->mapped_size)
+    /* Nothing to do */
+    return 0;
+  
   if (_gdbm_file_size (dbf, &file_size))
     {
       SAVE_ERRNO (_gdbm_mapped_unmap (dbf));
