@@ -75,6 +75,7 @@ TESTSUITE_AT = \
  gdbmtool00.at\
  gdbmtool01.at\
  gdbmtool02.at\
+ gdbmtool03.at\
  fetch00.at\
  fetch01.at\
  setopt00.at\

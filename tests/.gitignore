@@ -26,3 +26,5 @@ testsuite
 testsuite.dir
 *.log
 *.sum
+*.bak
+site.exp

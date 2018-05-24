@@ -90,5 +90,6 @@ AT_BANNER([gdbmtool])
 m4_include([gdbmtool00.at])
 m4_include([gdbmtool01.at])
 m4_include([gdbmtool02.at])
+m4_include([gdbmtool03.at])
 
 # End of testsuite.at
