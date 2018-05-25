@@ -538,7 +538,7 @@ reorganize_handler (struct handler_param *param GDBM_ARG_UNUSED)
   if (gdbm_reorganize (gdbm_file))
     terror ("%s", _("Reorganization failed."));
   else
-    fprintf (param->fp, _("Reorganization succeeded."));
+    fprintf (param->fp, "%s\n", _("Reorganization succeeded."));
 }
 
 static void

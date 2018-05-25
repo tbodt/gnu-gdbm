@@ -135,7 +135,8 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_BAD_BUCKET]             = N_("Malformed bucket header"),
   [GDBM_BAD_HEADER]             = N_("Malformed database file header"),
   [GDBM_BAD_AVAIL]              = N_("Malformed avail_block"),
-  [GDBM_BAD_HASH_TABLE]         = N_("Malformed hash table")
+  [GDBM_BAD_HASH_TABLE]         = N_("Malformed hash table"),
+  [GDBM_BAD_DIR_ENTRY]          = N_("Invalid directory entry")
 };
 
 const char *

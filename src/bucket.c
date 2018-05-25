@@ -42,11 +42,27 @@ _gdbm_new_bucket (GDBM_FILE dbf, hash_bucket *bucket, int bits)
     bucket->h_table[index].hash_value = -1;
 }
 
+/* Return true if the directory entry at DIR_INDEX can be considered
+   valid. This means that DIR_INDEX is in the valid range for addressing
+   the dir array, and the offset stored in dir[DIR_INDEX] points past
+   first two blocks in file. This does not necessarily mean that there's
+   a valid bucket or data block at that offset. All this implies is that
+   it is safe to use the offset for look up in the bucket cache and to
+   attempt to read a block at that offset. */
+int
+gdbm_dir_entry_valid_p (GDBM_FILE dbf, int dir_index)
+{
+  return dir_index >= 0
+         && dir_index < GDBM_DIR_COUNT (dbf)
+         && dbf->dir[dir_index] >= 2*dbf->header->block_size;
+}
+    
 /* Find a bucket for DBF that is pointed to by the bucket directory from
    location DIR_INDEX.   The bucket cache is first checked to see if it
    is already in memory.  If not, a bucket may be tossed to read the new
-   bucket.  In any case, the requested bucket becomes the "current" bucket
-   and dbf->bucket points to the correct bucket. */
+   bucket.  On success, the requested bucket becomes the "current" bucket
+   and dbf->bucket points to the correct bucket. On error, the current
+   bucket remains unchanged. */
 
 int
 _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
@@ -56,6 +72,13 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
   off_t	file_pos;	/* The return address for lseek. */
   int   index;		/* Loop index. */
 
+  if (!gdbm_dir_entry_valid_p (dbf, dir_index))
+    {
+      /* FIXME: negative caching? */
+      GDBM_SET_ERRNO (dbf, GDBM_BAD_DIR_ENTRY, TRUE);
+      return -1;
+    }
+  
   /* Initial set up. */
   dbf->bucket_dir = dir_index;
   bucket_adr = dbf->dir[dir_index];
@@ -69,9 +92,11 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	}
     }
 
-  /* Is that one is not already current, we must find it. */
+  /* If that one is not already current, we must find it. */
   if (dbf->cache_entry->ca_adr != bucket_adr)
     {
+      size_t lru;
+      
       /* Look in the cache. */
       for (index = 0; index < dbf->cache_size; index++)
         {
@@ -84,30 +109,30 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
         }
 
       /* It is not in the cache, read it from the disk. */
-      dbf->last_read = (dbf->last_read + 1) % dbf->cache_size;
-      if (dbf->bucket_cache[dbf->last_read].ca_changed)
-	{
-	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[dbf->last_read]))
-	    return -1;
-	}
-      dbf->bucket_cache[dbf->last_read].ca_adr = bucket_adr;
-      dbf->bucket = dbf->bucket_cache[dbf->last_read].ca_bucket;
-      dbf->cache_entry = &dbf->bucket_cache[dbf->last_read];
-      dbf->cache_entry->ca_data.elem_loc = -1;
-      dbf->cache_entry->ca_changed = FALSE;
 
-      /* Read the bucket. */
+      /* Position the file pointer */
       file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:seek-failure",
 				      __lseek (dbf, bucket_adr, SEEK_SET));
       if (file_pos != bucket_adr)
 	{
-	  _gdbm_fatal (dbf, _("lseek error"));
 	  GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+	  _gdbm_fatal (dbf, _("lseek error"));
 	  return -1;
 	}
       
+      /* Flush and drop the last recently used cache entry */
+      lru = (dbf->last_read + 1) % dbf->cache_size;
+      if (dbf->bucket_cache[lru].ca_changed)
+	{
+	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[lru]))
+	    return -1;
+	}
+      _gdbm_init_cache_entry (dbf, lru);
+      
+      /* Read the bucket. */
       rc = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:read-failure",
-		_gdbm_full_read (dbf, dbf->bucket, dbf->header->bucket_size));
+		_gdbm_full_read (dbf, dbf->bucket_cache[lru].ca_bucket,
+				 dbf->header->bucket_size));
       if (rc)
 	{
 	  GDBM_DEBUG (GDBM_DEBUG_ERR,
@@ -126,8 +151,14 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	  GDBM_SET_ERRNO (dbf, GDBM_BAD_BUCKET, TRUE);
 	  return -1;
 	}
+      /* Finally, store it in cache */
+      dbf->last_read = lru;
+      dbf->bucket_cache[lru].ca_adr = bucket_adr;
+      dbf->bucket = dbf->bucket_cache[lru].ca_bucket;
+      dbf->cache_entry = &dbf->bucket_cache[lru];
+      dbf->cache_entry->ca_data.elem_loc = -1;
+      dbf->cache_entry->ca_changed = FALSE;
     }
-
   return 0;
 }
 

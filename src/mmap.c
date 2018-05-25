@@ -223,7 +223,6 @@ _gdbm_mapped_remap (GDBM_FILE dbf, off_t size, int flag)
 	    }
 	  else
 	    {
-	      size = file_size;
 	      return 0;
 	    }
 	}

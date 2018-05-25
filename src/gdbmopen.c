@@ -50,10 +50,9 @@ compute_directory_size (blksize_t block_size,
 }
 
 static inline int
-bucket_element_count (gdbm_file_header const *hdr)
+bucket_element_count (size_t bucket_size)
 {
-  return (hdr->block_size - sizeof (hash_bucket))
-         / sizeof (bucket_element) + 1;
+  return (bucket_size - sizeof (hash_bucket)) / sizeof (bucket_element) + 1;
 }
 
 int
@@ -115,7 +114,7 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
   if (!(hdr->bucket_size > 0 && hdr->bucket_size > sizeof(hash_bucket)))
     return GDBM_BAD_HEADER;
 
-  if (hdr->bucket_elems != bucket_element_count (hdr))
+  if (hdr->bucket_elems != bucket_element_count (hdr->bucket_size))
     return GDBM_BAD_HEADER;
 
   /* Validate the avail block */
@@ -325,7 +324,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
       dbf->header->dir = dbf->header->block_size;
 
       /* Create the first and only hash bucket. */
-      dbf->header->bucket_elems = bucket_element_count (dbf->header);
+      dbf->header->bucket_elems = bucket_element_count (dbf->header->block_size);
       dbf->header->bucket_size  = dbf->header->block_size;
       dbf->bucket = calloc (1, dbf->header->bucket_size);
       if (dbf->bucket == NULL)
@@ -607,14 +606,20 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
               GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
 	      return -1;
             }
-          (dbf->bucket_cache[index]).ca_adr = 0;
-          (dbf->bucket_cache[index]).ca_changed = FALSE;
-          (dbf->bucket_cache[index]).ca_data.hash_val = -1;
-          (dbf->bucket_cache[index]).ca_data.elem_loc = -1;
-          (dbf->bucket_cache[index]).ca_data.dptr = NULL;
+	  _gdbm_init_cache_entry (dbf, index);
         }
       dbf->bucket = dbf->bucket_cache[0].ca_bucket;
       dbf->cache_entry = &dbf->bucket_cache[0];
     }
   return 0;
+}
+
+void
+_gdbm_init_cache_entry (GDBM_FILE dbf, int index)
+{
+  dbf->bucket_cache[index].ca_adr = 0;
+  dbf->bucket_cache[index].ca_changed = FALSE;
+  dbf->bucket_cache[index].ca_data.hash_val = -1;
+  dbf->bucket_cache[index].ca_data.elem_loc = -1;
+  dbf->bucket_cache[index].ca_data.dptr = NULL;
 }

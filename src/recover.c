@@ -377,6 +377,7 @@ gdbm_recover (GDBM_FILE dbf, gdbm_recovery *rcvr, int flags)
   rc = 0;
   if ((flags & GDBM_RCVR_FORCE) || check_db (dbf))
     {
+      gdbm_clear_error (dbf);
       len = strlen (dbf->name);
       new_name = malloc (len + sizeof (TMPSUF));
       if (!new_name)

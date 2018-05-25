@@ -225,7 +225,7 @@ struct gdbm_file_info
   /* The bucket cache. */
   cache_elem *bucket_cache;
   size_t cache_size;
-  int last_read;
+  size_t last_read;
 
   /* Points to the current hash bucket in the cache. */
   hash_bucket *bucket;

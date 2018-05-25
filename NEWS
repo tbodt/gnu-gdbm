@@ -1,4 +1,4 @@
-GNU dbm NEWS -- history of user-visible changes. 2018-05-24
+GNU dbm NEWS -- history of user-visible changes. 2018-05-25
 Copyright (C) 1990-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -9,6 +9,9 @@ Version 1.14.90
 FIXME: BUMP VI_MAJOR
 
 * Implement database consistency checks
+
+Special thanks to Lionel Debroux and Craig Young for investing
+their time and efforts in testing and providing valuable feedback.
 
 * Improved error checking
 
@@ -40,6 +43,7 @@ recovered_keys - duplicate_keys.
   GDBM_BAD_HEADER      "Malformed database file header"
   GDBM_BAD_AVAIL       "Malformed avail_block"
   GDBM_BAD_HASH_TABLE  "Malformed hash table"
+  GDBM_BAD_DIR_ENTRY   "Invalid directory entry"
 
 
 Version 1.14.1 - 2018-01-03
