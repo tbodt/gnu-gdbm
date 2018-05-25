@@ -53,7 +53,7 @@ with this option, gdbmtool accepts two additional arguments:
 --lex-trace, which enables tracing the operation of the lexical
 analyzer, and --gram-trace, which enables parser tracing output.
 
-Note, that this additional instrumentation requires bison and flex.
+Note, that bison and flex must be installed for this option to take effect, 
 
 * Installation 
 

@@ -58,16 +58,7 @@ AC_ARG_ENABLE([gdbmtool-debug],
     [--enable-gdbmtool-debug],
     [instrument gdbmtool for additional debugging]),
     [want_gdbmtool_debug=$enableval],
-    [want_gdbmtool_debug=no])
-
-AC_SUBST(YFLAGS_DEBUG)
-AC_SUBST(LFLAGS_DEBUG)
-if test "$want_gdbmtool_debug" = yes; then
-    YFLAGS_DEBUG=-t
-    LFLAGS_DEBUG=-d
-fi    
-
-AM_CONDITIONAL([COND_GDBMTOOL_DEBUG], [test "$want_gdbmtool_debug" = yes])
+    [want_gdbmtool_debug=default])
 
 dnl Check for programs
 AC_PROG_CC
@@ -186,6 +177,21 @@ else
 fi  
 AM_CONDITIONAL([GDBM_COND_DEBUG_ENABLE], [test "$status_debug" = "yes"])
 
+AC_SUBST(YFLAGS_DEBUG)
+AC_SUBST(LFLAGS_DEBUG)
+if test "$want_gdbmtool_debug" = yes; then
+    if ! $LEX --version 2>/dev/null | grep -q flex; then
+       AC_MSG_ERROR([--enable-gdbmtool-debug requires flex, which is not available])
+    fi
+    if ! $YACC --version 2>/dev/null | grep -q bison; then
+       AC_MSG_ERROR([--enable-gdbmtool-debug requires bison, which is not available])
+    fi
+    YFLAGS_DEBUG=-t
+    LFLAGS_DEBUG=-d
+fi    
+
+AM_CONDITIONAL([COND_GDBMTOOL_DEBUG], [test "$want_gdbmtool_debug" = yes])
+
 # Initialize the test suite.
 AC_CONFIG_TESTDIR(tests)
 AC_CONFIG_FILES([tests/Makefile tests/atlocal po/Makefile.in])
@@ -204,11 +210,22 @@ Debugging support ............................. $status_debug
 *******************************************************************
 
 EOF
+if test "$want_gdbmtool_debug" != default; then
+    cat <<EOF    
+NOTE: You used the --enable-gdbmtool-debug option. In order for your changes
+NOTE: to take effect, please run the following command prior to building the
+NOTE: package:
+NOTE:
+NOTE:   make -C src maintainer-clean-generic
+NOTE:
+EOF
+fi
 ],
 [status_compat=$want_compat
 mapped_io=$mapped_io
 status_readline=$status_readline
-status_debug=$status_debug])
+status_debug=$status_debug
+want_gdbmtool_debug=$want_gdbmtool_debug])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
