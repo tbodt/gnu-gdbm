@@ -30,7 +30,7 @@ static avail_elem get_elem (int, avail_elem [], int *);
 static avail_elem get_block (int, GDBM_FILE);
 static int push_avail_block (GDBM_FILE);
 static int pop_avail_block (GDBM_FILE);
-static void adjust_bucket_avail (GDBM_FILE);
+static int adjust_bucket_avail (GDBM_FILE);
 
 /* Allocate space in the file DBF for a block NUM_BYTES in length.  Return
    the file address of the start of the block.  
@@ -84,7 +84,8 @@ _gdbm_alloc (GDBM_FILE dbf, int num_bytes)
   /* Put the unused space back in the avail block. */
   av_el.av_adr += num_bytes;
   av_el.av_size -= num_bytes;
-  _gdbm_free (dbf, av_el.av_adr, av_el.av_size);
+  if (_gdbm_free (dbf, av_el.av_adr, av_el.av_size))
+    return 0;
 
   /* Return the address. */
   return file_adr;
@@ -97,14 +98,14 @@ _gdbm_alloc (GDBM_FILE dbf, int num_bytes)
    it avaliable for reuse through _gdbm_alloc.  This routine changes the
    avail structure. */
 
-void
+int
 _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 {
   avail_elem temp;
 
   /* Is it too small to worry about? */
   if (num_bytes <= IGNORE_SIZE)
-    return;
+    return 0;
 
   /* Initialize the avail element. */
   temp.av_size = num_bytes;
@@ -115,7 +116,8 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
     {
       if (dbf->header->avail.count == dbf->header->avail.size)
 	{
-	  push_avail_block (dbf);//FIXME: return
+	  if (push_avail_block (dbf))
+	    return -1;
 	}
       _gdbm_put_av_elem (temp, dbf->header->avail.av_table,
 			 &dbf->header->avail.count, dbf->coalesce_blocks);
@@ -131,7 +133,8 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 	{
 	  if (dbf->header->avail.count == dbf->header->avail.size)
 	    {
-	      push_avail_block (dbf); //FIXME: return
+	      if (push_avail_block (dbf))
+		return -1;
 	    }
 	  _gdbm_put_av_elem (temp, dbf->header->avail.av_table,
 			     &dbf->header->avail.count, dbf->coalesce_blocks);
@@ -139,11 +142,11 @@ _gdbm_free (GDBM_FILE dbf, off_t file_adr, int num_bytes)
 	}
     }
 
-  if (dbf->header_changed)
-    adjust_bucket_avail (dbf);
+  if (dbf->header_changed && adjust_bucket_avail (dbf))
+    return -1;
 
   /* All work is done. */
-  return;
+  return 0;
 }
 
 
@@ -184,7 +187,7 @@ pop_avail_block (GDBM_FILE dbf)
   if (new_blk == NULL)
     {
       GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
-      _gdbm_fatal(dbf, _("malloc failed"));
+      _gdbm_fatal (dbf, _("malloc failed"));
       return -1;
     }
 
@@ -194,6 +197,7 @@ pop_avail_block (GDBM_FILE dbf)
   if (file_pos != new_el.av_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+      free (new_blk);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
@@ -202,13 +206,14 @@ pop_avail_block (GDBM_FILE dbf)
 			    _gdbm_full_read (dbf, new_blk, new_el.av_size));
   if (rc)
     {
+      free (new_blk);
       _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
       return -1;
     }
 
-  if (!gdbm_avail_table_valid_p (dbf, new_blk))
+  if (gdbm_avail_block_validate (dbf, new_blk))
     {
-      gdbm_set_errno (dbf, GDBM_BAD_AVAIL, TRUE);
+      free (new_blk);
       _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
       return -1;
     }
@@ -231,7 +236,10 @@ pop_avail_block (GDBM_FILE dbf)
           /* We're kind of stuck here, so we re-split the header in order to
              avoid crashing.  Sigh. */
           if (push_avail_block (dbf))
-	    return -1;
+	    {
+	      free (new_blk);
+	      return -1;
+	    }
 	}
     }
 
@@ -248,7 +256,10 @@ pop_avail_block (GDBM_FILE dbf)
       /* We're kind of stuck here, so we re-split the header in order to
          avoid crashing.  Sigh. */
       if (push_avail_block (dbf))
-	return -1;
+	{
+	  free (new_blk);
+	  return -1;
+	}
     }
 
   _gdbm_put_av_elem (new_el, dbf->header->avail.av_table,
@@ -405,7 +416,7 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
 	  if ((av_table[index].av_adr
 	       + av_table[index].av_size) == new_el.av_adr)
 	    {
-	      /* Simply expand the endtry. */
+	      /* Simply expand the entry. */
 	      av_table[index].av_size += new_el.av_size;
 	    }
 	    /* Can we merge with the next block? */
@@ -457,7 +468,7 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
 
 
 /* Get_block "allocates" new file space and the end of the file.  This is
-   done in integral block sizes.  (This helps insure that data smaller than
+   done in integral block sizes.  (This helps ensure that data smaller than
    one block size is in a single block.)  Enough blocks are allocated to
    make sure the number of bytes allocated in the blocks is larger than SIZE.
    DBF contains the file header that needs updating.  This routine does
@@ -489,7 +500,7 @@ get_block (int size, GDBM_FILE dbf)
 
 /*  When the header already needs writing, we can make sure the current
     bucket has its avail block as close to 1/3 full as possible. */
-static void
+static int
 adjust_bucket_avail (GDBM_FILE dbf)
 {
   int third = BUCKET_AVAIL / 3;
@@ -500,13 +511,14 @@ adjust_bucket_avail (GDBM_FILE dbf)
     {
       if (dbf->header->avail.count > 0)
 	{
+	  //FIXME: what if _gdbm_put_av_elem return FALSE?
 	  dbf->header->avail.count -= 1;
 	  av_el = dbf->header->avail.av_table[dbf->header->avail.count];
 	  _gdbm_put_av_elem (av_el, dbf->bucket->bucket_avail,
 			     &dbf->bucket->av_count, dbf->coalesce_blocks);
 	  dbf->bucket_changed = TRUE;
 	}
-      return;
+      return 0;
     }
 
   /* Is there too much in the bucket? */
@@ -514,8 +526,15 @@ adjust_bucket_avail (GDBM_FILE dbf)
 	 && dbf->header->avail.count < dbf->header->avail.size)
     {
       av_el = get_elem (0, dbf->bucket->bucket_avail, &dbf->bucket->av_count);
-      _gdbm_put_av_elem (av_el, dbf->header->avail.av_table,
-			 &dbf->header->avail.count, dbf->coalesce_blocks);
+      if (av_el.av_size == 0
+	  || _gdbm_put_av_elem (av_el, dbf->header->avail.av_table,
+				&dbf->header->avail.count,
+				dbf->coalesce_blocks) == FALSE) 
+	{
+	  GDBM_SET_ERRNO (dbf, GDBM_BAD_AVAIL, TRUE);
+	  return -1;
+	}
       dbf->bucket_changed = TRUE;
     }
+  return 0;
 }

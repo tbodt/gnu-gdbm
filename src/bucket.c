@@ -96,6 +96,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
   if (dbf->cache_entry->ca_adr != bucket_adr)
     {
       size_t lru;
+      hash_bucket *bucket;
       
       /* Look in the cache. */
       for (index = 0; index < dbf->cache_size; index++)
@@ -143,14 +144,16 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	  return -1;
 	}
       /* Validate the bucket */
-      if (!(dbf->bucket->count >= 0
-	    && dbf->bucket->av_count >= 0
-	    && dbf->bucket->count <= dbf->header->bucket_elems
-	    && dbf->bucket->av_count <= dbf->header->bucket_elems))
+      bucket = dbf->bucket_cache[lru].ca_bucket;
+      if (!(bucket->count >= 0 && bucket->count <= dbf->header->bucket_elems))
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_BAD_BUCKET, TRUE);
 	  return -1;
 	}
+      /* Validate bucket_avail table */
+      if (gdbm_bucket_avail_table_validate (dbf, bucket))
+	return -1;
+
       /* Finally, store it in cache */
       dbf->last_read = lru;
       dbf->bucket_cache[lru].ca_adr = bucket_adr;
@@ -234,7 +237,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
   int          elem_loc;	/* Location in new bucket to put element. */
   bucket_element *old_el;	/* Pointer into the old bucket. */
   int	       select;		/* Used to index bucket during movement. */
-
+  
   /* No directories are yet old. */
   old_count = 0;
 
@@ -416,7 +419,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 
   /* Get rid of old directories. */
   for (index = 0; index < old_count; index++)
-    _gdbm_free (dbf, old_adr[index], old_size[index]);
+    if (_gdbm_free (dbf, old_adr[index], old_size[index]))
+      return -1;
 
   return 0;
 }

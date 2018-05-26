@@ -21,6 +21,7 @@
 #include "autoconf.h"
 
 #include "gdbmdefs.h"
+#include <stddef.h>
 
 /* Determine our native magic number and bail if we can't. */
 #if SIZEOF_OFF_T == 4
@@ -56,9 +57,47 @@ bucket_element_count (size_t bucket_size)
 }
 
 int
-gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_block const *av)
+gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_elem const *av, int count)
 {
-  return gdbm_avail_block_valid_p (av) && av->size <= dbf->header->avail.size;
+  off_t prev = 0;
+  int i;
+    
+  prev = 0;
+  for (i = 0; i < count; i++, av++)
+    {
+      if (!(av->av_size >= prev
+	    && av->av_adr >= dbf->header->bucket_size
+	    && av->av_adr + av->av_size <= dbf->header->next_block))
+	return 0;
+      prev = av->av_size;
+    }
+  return 1;
+}
+
+int
+gdbm_avail_block_validate (GDBM_FILE dbf, avail_block *avblk)
+{
+  if (!(gdbm_avail_block_valid_p (avblk)
+	&& gdbm_avail_table_valid_p (dbf, avblk->av_table, avblk->count)))
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_BAD_AVAIL, TRUE);
+      return -1;
+    }
+  return 0;
+}
+
+int
+gdbm_bucket_avail_table_validate (GDBM_FILE dbf, hash_bucket *bucket)
+{
+  if (!(bucket->av_count >= 0
+	&& bucket->av_count <= BUCKET_AVAIL
+	&& gdbm_avail_table_valid_p (dbf, bucket->bucket_avail,
+				     bucket->av_count)))
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_BAD_AVAIL, TRUE);
+      return -1;
+    }
+  return 0;
 }
 
 static int
@@ -97,6 +136,10 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
       return GDBM_BLOCK_SIZE_ERROR;
     }
 
+  if (hdr->next_block != st->st_size)
+    /* FIXME: Should return GDBM_NEED_RECOVERY instead? */
+    return GDBM_BAD_HEADER;
+  
   /* Make sure dir and dir + dir_size fall within the file boundary */
   if (!(hdr->dir > 0
 	&& hdr->dir < st->st_size
@@ -115,10 +158,6 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
     return GDBM_BAD_HEADER;
 
   if (hdr->bucket_elems != bucket_element_count (hdr->bucket_size))
-    return GDBM_BAD_HEADER;
-
-  /* Validate the avail block */
-  if (!gdbm_avail_block_valid_p (&hdr->avail))
     return GDBM_BAD_HEADER;
 
   if (((hdr->block_size - sizeof (gdbm_file_header)) / sizeof(avail_elem) + 1)
@@ -448,6 +487,14 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  return NULL;
 	}
+
+      if (gdbm_avail_block_validate (dbf, &dbf->header->avail))
+	{
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  return NULL;
+	}	  
 	
       /* Allocate space for the hash table directory.  */
       dbf->dir = malloc (dbf->header->dir_size);

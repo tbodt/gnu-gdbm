@@ -333,8 +333,8 @@ main (int argc, char **argv)
       data.dsize = strlen (data.dptr) + data_z;
       if (gdbm_store (dbf, key, data, replace) != 0)
 	{
-	  fprintf (stderr, "%s: %d: item not inserted\n",
-		   progname, line);
+	  fprintf (stderr, "%s: %d: item not inserted: %s\n",
+		   progname, line, gdbm_db_strerror (dbf));
 	  if (gdbm_needs_recovery (dbf) && recover)
 	    {
 	      int rc = gdbm_recover (dbf, &rcvr, rcvr_flags);

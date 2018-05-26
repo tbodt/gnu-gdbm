@@ -281,7 +281,7 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
       /* Print the block! */
       fprintf (fp, _("\nblock = %d\nsize  = %d\ncount = %d\n"), temp,
 	       av_stk->size, av_stk->count);
-      if (gdbm_avail_table_valid_p (dbf, av_stk))
+      if (gdbm_avail_block_validate (dbf, av_stk))
 	av_table_display (av_stk->av_table, av_stk->count, fp);
       else
 	terror (_("invalid avail_block"));
@@ -468,7 +468,7 @@ store_handler (struct handler_param *param)
   if (gdbm_store (gdbm_file,
 		  PARAM_DATUM (param, 0), PARAM_DATUM (param, 1),
 		  GDBM_REPLACE) != 0)
-    terror ("%s", _("Item not inserted."));
+    terror (_("Item not inserted: %s."), gdbm_db_strerror (gdbm_file));
 }
 
 /* first - begin iteration */

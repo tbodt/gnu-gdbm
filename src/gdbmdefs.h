@@ -75,7 +75,8 @@ gdbm_avail_block_valid_p (avail_block const *av)
 }
 
 /* Return true if both AV and the size of AV->av_table are valid */
-extern int gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_block const *av);
+extern int gdbm_avail_table_valid_p (GDBM_FILE dbf,
+				     avail_elem const *av, int count);
 
 /* The dbm file header keeps track of the current location of the hash
    directory and the free space in the file.  */

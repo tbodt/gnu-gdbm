@@ -82,7 +82,8 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   /* Free the file space. */
   free_adr = elem.data_pointer;
   free_size = elem.key_size + elem.data_size;
-  _gdbm_free (dbf, free_adr, free_size);
+  if (_gdbm_free (dbf, free_adr, free_size))
+    return -1;
 
   /* Set the flags. */
   dbf->bucket_changed = TRUE;

@@ -28,12 +28,13 @@
    before returning from this procedure.  The FLAGS define the action to
    take when the KEY is already in the database.  The value GDBM_REPLACE
    asks that the old data be replaced by the new CONTENT.  The value
-   GDBM_INSERT asks that an error be returned and no action taken.  A
-   return value of 0 means no errors.  A return value of -1 means that
-   the item was not stored in the data base because the caller was not an
-   official writer. A return value of 0 means that the item was not stored
-   because the argument FLAGS was GDBM_INSERT and the KEY was already in
-   the database. */
+   GDBM_INSERT asks that an error be returned and no action taken.
+
+   On success (the item was stored), 0 is returned. If the item could
+   not be stored because a matching key already exists and GDBM_REPLACE
+   was not given, 1 is returned and gdbm_errno (as well as the database
+   errno value) is set to GDBM_CANNOT_REPLACE. Otherwise, if another
+   error occurred, -1 is returned. */
 
 int
 gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
@@ -91,7 +92,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	              + dbf->bucket->h_table[elem_loc].data_size;
 	  if (free_size != new_size)
 	    {
-	      _gdbm_free (dbf, free_adr, free_size);
+	      if (_gdbm_free (dbf, free_adr, free_size))
+		return -1;
 	    }
 	  else
 	    {
@@ -123,6 +125,8 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
   /* If this is a new entry in the bucket, we need to do special things. */
   if (elem_loc == -1)
     {
+      int start_loc;
+      
       if (dbf->bucket->count == dbf->header->bucket_elems)
 	{
 	  /* Split the current bucket. */
@@ -131,10 +135,17 @@ gdbm_store (GDBM_FILE dbf, datum key, datum content, int flags)
 	}
       
       /* Find space to insert into bucket and set elem_loc to that place. */
-      elem_loc = new_hash_val % dbf->header->bucket_elems;
+      elem_loc = start_loc = new_hash_val % dbf->header->bucket_elems;
       while (dbf->bucket->h_table[elem_loc].hash_value != -1)
-	elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
-
+	{
+	  elem_loc = (elem_loc + 1) % dbf->header->bucket_elems;
+	  if (elem_loc == start_loc)
+	    {
+	      GDBM_SET_ERRNO (dbf, GDBM_BAD_HASH_TABLE, TRUE);
+	      return -1;
+	    }
+	}
+      
       /* We now have another element in the bucket.  Add the new information.*/
       dbf->bucket->count++;
       dbf->bucket->h_table[elem_loc].hash_value = new_hash_val;
