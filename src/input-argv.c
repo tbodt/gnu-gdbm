@@ -25,18 +25,28 @@ struct instream_argv
   int idx;               /* Index of the current argument */
   char *cur;             /* Current position in argv[idx] */
   int delim;             /* True if cur points to a delimiter */
+  int quote;             /* True if the argument must be quoted */
 };
 
 static ssize_t
 instream_argv_read (instream_t istr, char *buf, size_t size)
 {
-  size_t len, total = 0;
+  size_t total = 0;
   struct instream_argv *i = (struct instream_argv*)istr;
+  char const specials[] = " \"\t\n[]{},=";
+  char const escapable[] = "\\\"";
   
   while (total < size)
     {
       if (*i->cur == 0)
 	{
+	  if (i->quote)
+	    {
+	      buf[total++] = '"';
+	      i->quote = 0;
+	      continue;
+	    }
+	  
 	  if (i->idx == i->argc)
 	    {
 	      if (!i->delim)
@@ -54,17 +64,31 @@ instream_argv_read (instream_t istr, char *buf, size_t size)
 	    }
 	  else
 	    {
+	      size_t len;
 	      i->cur = i->argv[i->idx++];
 	      i->delim = 0;
+	      len = strlen (i->cur);
+	      if (len > 1 && i->cur[0] == '"' && i->cur[len-1] == '"')
+		i->quote = 0;
+	      else if (i->cur[strcspn (i->cur, specials)])
+		{
+		  buf[total++] = '"';
+		  i->quote = 1;
+		  continue;
+		}
+	      else
+		i->quote = 0;
 	    }
 	}
       
-      len = strlen (i->cur);
-      if (len > size - total)
-	len = size - total;
-      memcpy (buf + total, i->cur, len);
-      i->cur += len;
-      total += len;
+      if (strchr (escapable, *i->cur))
+	{
+	  if (total + 2 > size)
+	    break;
+	  buf[total++] = '\\';
+	  i->cur++;
+	}
+      buf[total++] = *i->cur++;
     }
   return total;
 }
@@ -99,7 +123,8 @@ instream_argv_create (int argc, char **argv)
   istr->idx = 0;
   istr->cur = "";
   istr->delim = 1;
-
+  istr->quote = 0;
+  
   return (instream_t) istr;
 }
 
