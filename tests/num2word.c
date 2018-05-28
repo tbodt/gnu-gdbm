@@ -20,6 +20,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
+#include <assert.h>
 
 const char *progname;
 
@@ -68,10 +70,14 @@ const char *short_scale[] = {
 };
 size_t short_scale_max = sizeof (short_scale) / sizeof (short_scale[0]);
 
+typedef unsigned long numeral_t;
+
 char buffer[1024];
 size_t bufsize = sizeof(buffer);
 size_t bufoff;
 int delim = 0;
+int revert_option = 0;
+int random_option = 0;
 
 void
 copy (const char *str, int dch)
@@ -87,7 +93,7 @@ copy (const char *str, int dch)
 }
 
 void
-format_100 (unsigned long num)
+format_100 (numeral_t num)
 {
   if (num == 0)
     ;
@@ -97,7 +103,7 @@ format_100 (unsigned long num)
     copy (nstr[1][num-10], delim);
   else 
     {
-      unsigned long tens = num / 10;
+      numeral_t tens = num / 10;
       num %= 10;
       if (num)
 	{
@@ -111,7 +117,7 @@ format_100 (unsigned long num)
 }
 
 void
-format_1000 (unsigned long num, int more)
+format_1000 (numeral_t num, int more)
 {
   size_t n = num % 100;
   num /= 100;
@@ -128,7 +134,7 @@ format_1000 (unsigned long num, int more)
 
 
 void
-format_number (unsigned long num)
+format_number (numeral_t num)
 {
   int s = 0;
   size_t off;
@@ -140,7 +146,7 @@ format_number (unsigned long num)
   
   do
     {
-      unsigned long n = num % 1000;
+      numeral_t n = num % 1000;
 
       num /= 1000;
       
@@ -161,23 +167,26 @@ format_number (unsigned long num)
       
 
 void
-print_number (unsigned long num)
+print_number (numeral_t num)
 {
   format_number (num);
-  printf ("%lu\t%s\n", num, buffer + bufoff);
+  if (revert_option)
+    printf ("%s\t%lu\n", buffer + bufoff, num);
+  else
+    printf ("%lu\t%s\n", num, buffer + bufoff);
 }
 
 void
-print_range (unsigned long num, unsigned long to)
+print_range (numeral_t num, numeral_t to)
 {
   for (; num <= to; num++)
     print_number (num);
 }
 
-unsigned long
+numeral_t
 xstrtoul (char *arg, char **endp)
 {
-  unsigned long num;
+  numeral_t num;
   char *p;
 
   errno = 0;
@@ -199,23 +208,130 @@ xstrtoul (char *arg, char **endp)
     
   return num;
 }
+
+struct numrange
+{
+  numeral_t start;
+  numeral_t count;
+};
+
+struct numrange *range;
+size_t range_count;
+size_t range_max;
+size_t range_total;
+
+#define RANGE_INITIAL_ALLOC 16
+
+static void
+range_add (numeral_t start, numeral_t count)
+{
+  if (range_count == range_max)
+    {
+      if (range_max == 0)
+	range_max = RANGE_INITIAL_ALLOC;
+      else
+	{
+	  assert ((size_t)-1 / 3 * 2 / sizeof (range[0]) > range_max);
+	  range_max += (range_max + 1) / 2;
+	}
+      range = realloc (range, range_max * sizeof (range[0]));
+      if (!range)
+	abort ();
+    }
+  range[range_count].start = start;
+  range[range_count].count = count;
+  ++range_count;
+  range_total += count;
+}
+
+numeral_t
+range_get (size_t idx)
+{
+  numeral_t n;
+  size_t i;
+
+  assert (range_count > 0);
+
+  for (i = 0; i < range_count; i++)
+    {
+      if (idx < range[i].count)
+	break;
+      idx -= range[i].count;
+    }
+  n = range[i].start + idx;
+  if (range[i].count == 1)
+    {
+      /* Remove range */
+      if (i + 1 < range_count)
+	memmove (range + i, range + i + 1,
+		 (range_count - i - 1) * sizeof (range[0]));
+      range_count--;
+    }
+  else if (idx == 0)
+    {
+      range[i].start++;
+      range[i].count--;
+    }
+  else
+    {
+      /* Split range */
+      if (range[i].count > idx - 1)
+	{
+	  range_total -= range[i].count - idx - 1;
+	  range_add (range[i].start + idx + 1, range[i].count - idx - 1);
+	}
+      range[i].count = idx;
+    }
+  range_total--;
+  return n;
+}
 
 int
 main (int argc, char **argv)
 {
   progname = argv[0];
-  
-  if (argc == 1 || strcmp (argv[1], "-h") == 0)
+
+  while (--argc)
     {
-      printf ("usage: %s NUM [NUM...]\n", progname);
-      printf ("where NUM is a decimal number, NUM:COUNT or NUM-NUM\n");
-      exit (0);
+      char *arg = *++argv;
+      if (strcmp (arg, "-h") == 0 || strcmp (arg, "-help") == 0)
+	{
+	  printf ("usage: %s [-revert] [-random] RANGE [RANGE...]\n", progname);
+	  printf ("Lists english numerals in given ranges\n\n");
+	  printf ("Each RANGE is one of:\n\n");
+	  printf ("  X:N        N numerals starting from X; interval [X,X+N]\n");
+	  printf ("  X-Y        numerals from X to Y; interval [X,Y]\n\n");
+	  printf ("Options are:\n\n");
+	  printf ("  -revert    revert output columns (numeral first)\n");
+	  printf ("  -random    produce list in random order\n");
+	  printf ("\n");
+	  exit (0);
+	}
+      else if (strcmp (arg, "-revert") == 0)
+	{
+	  revert_option = 1;
+	}
+      else if (strcmp (arg, "-random") == 0)
+	{
+	  random_option = 1;
+	}
+      else if (arg[0] == '-')
+	{
+	  fprintf (stderr, "%s: unrecognized option: %s\n", progname, arg);
+	  return 1;
+	}
+      else
+	{
+	  argc++;
+	  argv--;
+	  break;
+	}
     }
 
   while (--argc)
     {
       char *arg = *++argv;
-      unsigned long num, num2;
+      numeral_t num, num2;
       char *p;
 
       num = xstrtoul (arg, &p);
@@ -230,7 +346,7 @@ main (int argc, char **argv)
 	      fprintf (stderr, "%s: invalid count\n", progname);
 	      exit (2);
 	    }
-	  print_range (num, num + num2 - 1);
+	  range_add (num, num2);
 	}
       else if (*p == '-')
 	{
@@ -241,15 +357,30 @@ main (int argc, char **argv)
 	      fprintf (stderr, "%s: invalid range: %lu-%lu\n",
 		       progname, num, num2);
 	      exit (2);
-	    }
-	    
-	  print_range (num, num2);
+	    }	    
+	  range_add (num, num2 - num + 1);
 	}
       else
 	{
 	  fprintf (stderr, "%s: invalid argument\n", progname);
 	  exit (2);
 	}
+    }
+
+  if (random_option)
+    {
+      srandom (time (NULL));
+      while (range_total)
+	{
+	  numeral_t n = range_get (random () % range_total);
+	  print_number (n);
+	}
+    }
+  else
+    {
+      size_t i;
+      for (i = 0; i < range_count; i++)
+	print_range (range[i].start, range[i].start + range[i].count - 1);
     }
   exit (0);
 }
