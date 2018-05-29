@@ -299,12 +299,12 @@ _gdbm_print_bucket_cache (FILE *fp, GDBM_FILE dbf)
   if (dbf->bucket_cache != NULL)
     {
       fprintf (fp,
-	_("Bucket Cache (size %zu):\n  Index:  Address  Changed  Data_Hash \n"),
+	_("Bucket Cache (size %zu):\n  Index:         Address  Changed  Data_Hash \n"),
 	 dbf->cache_size);
       for (index = 0; index < dbf->cache_size; index++)
 	{
 	  changed = dbf->bucket_cache[index].ca_changed;
-	  fprintf (fp, "  %5d:  %7lu %7s  %x\n",
+	  fprintf (fp, "  %5d:  %15lu %7s  %x\n",
 		   index,
 		   (unsigned long) dbf->bucket_cache[index].ca_adr,
 		   (changed ? _("True") : _("False")),

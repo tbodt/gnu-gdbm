@@ -209,24 +209,46 @@ xstrtoul (char *arg, char **endp)
   return num;
 }
 
-struct numrange
+struct numrange      /* Range of numbers */
 {
-  numeral_t start;
-  numeral_t count;
+  numeral_t start;   /* Starting number */
+  numeral_t count;   /* Count of numbers in the range */
 };
 
-struct numrange *range;
-size_t range_count;
-size_t range_max;
-size_t range_total;
+struct numrange *range;  /* Array of ranges */
+size_t range_max;        /* Number of elements in RANGE */
+size_t range_total;      /* Total count of numbers (sum of range[i].count) */
 
-#define RANGE_INITIAL_ALLOC 16
+#define RANGE_INITIAL_ALLOC 16 /* Initial allocation for the range (entries) */
 
+/* List of available entries.
+
+   Unallocated entries in RANGE form a singly-linked list. Each unallocated
+   entry has COUNT set to 0, and START set to the index of the next
+   unallocated entry, or AVAIL_NIL, if that's the last free entry.
+ */
+#define AVAIL_NIL ((size_t)-1)  /* Marks end of the list */
+size_t range_avail = AVAIL_NIL; /* Index of the first available entry */
+
+/* Return entry I to the list of available ones */
+static void
+range_remove (size_t i)
+{
+  range[i].count = 0;
+  range[i].start = range_avail;
+  range_avail = i;
+}  
+
+/* Add interval [start, start + count) */
 static void
 range_add (numeral_t start, numeral_t count)
 {
-  if (range_count == range_max)
+  size_t i;
+  
+  if (range_avail == AVAIL_NIL)
     {
+      size_t n = range_max;
+      
       if (range_max == 0)
 	range_max = RANGE_INITIAL_ALLOC;
       else
@@ -234,39 +256,41 @@ range_add (numeral_t start, numeral_t count)
 	  assert ((size_t)-1 / 3 * 2 / sizeof (range[0]) > range_max);
 	  range_max += (range_max + 1) / 2;
 	}
+      
       range = realloc (range, range_max * sizeof (range[0]));
       if (!range)
 	abort ();
+
+      for (i = range_max; i > n; i--)
+	range_remove (i - 1);
     }
-  range[range_count].start = start;
-  range[range_count].count = count;
-  ++range_count;
+
+  i = range_avail;
+  range_avail = range[i].start;
+
+  range[i].start = start;
+  range[i].count = count;
   range_total += count;
 }
 
+/* Treating RANGE as a contiguous array of numbers, return the number in
+   position IDX and remove it from the array. */
 numeral_t
 range_get (size_t idx)
 {
   numeral_t n;
   size_t i;
 
-  assert (range_count > 0);
-
-  for (i = 0; i < range_count; i++)
+  for (i = 0; i < range_max; i++)
     {
       if (idx < range[i].count)
 	break;
       idx -= range[i].count;
     }
+  assert (i < range_max);
   n = range[i].start + idx;
   if (range[i].count == 1)
-    {
-      /* Remove range */
-      if (i + 1 < range_count)
-	memmove (range + i, range + i + 1,
-		 (range_count - i - 1) * sizeof (range[0]));
-      range_count--;
-    }
+    range_remove (i);
   else if (idx == 0)
     {
       range[i].start++;
@@ -286,25 +310,33 @@ range_get (size_t idx)
   return n;
 }
 
+void
+usage (FILE *fp)
+{
+  fprintf (fp, "usage: %s [-revert] [-random] RANGE [RANGE...]\n", progname);
+  fprintf (fp, "Lists english numerals in given ranges\n\n");
+  fprintf (fp, "Each RANGE is one of:\n\n");
+  fprintf (fp, "  X:N        N numerals starting from X; interval [X,X+N]\n");
+  fprintf (fp, "  X-Y        numerals from X to Y; interval [X,Y]\n\n");
+  fprintf (fp, "Options are:\n\n");
+  fprintf (fp, "  -random    produce list in random order\n");
+  fprintf (fp, "  -revert    revert output columns (numeral first)\n");
+  fprintf (fp, "  -help      display this help summary\n");
+  fprintf (fp, "\n");
+}  
+
 int
 main (int argc, char **argv)
 {
-  progname = argv[0];
+  progname = *argv++;
+  --argc;
 
-  while (--argc)
+  for (; argc; argc--, argv++)
     {
-      char *arg = *++argv;
+      char *arg = *argv;
       if (strcmp (arg, "-h") == 0 || strcmp (arg, "-help") == 0)
 	{
-	  printf ("usage: %s [-revert] [-random] RANGE [RANGE...]\n", progname);
-	  printf ("Lists english numerals in given ranges\n\n");
-	  printf ("Each RANGE is one of:\n\n");
-	  printf ("  X:N        N numerals starting from X; interval [X,X+N]\n");
-	  printf ("  X-Y        numerals from X to Y; interval [X,Y]\n\n");
-	  printf ("Options are:\n\n");
-	  printf ("  -revert    revert output columns (numeral first)\n");
-	  printf ("  -random    produce list in random order\n");
-	  printf ("\n");
+	  usage (stdout);
 	  exit (0);
 	}
       else if (strcmp (arg, "-revert") == 0)
@@ -321,22 +353,18 @@ main (int argc, char **argv)
 	  return 1;
 	}
       else
-	{
-	  argc++;
-	  argv--;
-	  break;
-	}
+	break;
     }
-
-  while (--argc)
+  
+  for (; argc; argc--, argv++)
     {
-      char *arg = *++argv;
+      char *arg = *argv;
       numeral_t num, num2;
       char *p;
 
       num = xstrtoul (arg, &p);
       if (*p == 0)
-	print_number (num);
+	range_add (num, 1);
       else if (*p == ':')
 	{
 	  *p++ = 0;
@@ -367,6 +395,12 @@ main (int argc, char **argv)
 	}
     }
 
+  if (range_total == 0)
+    {
+      usage (stderr);
+      exit (1);
+    }
+  
   if (random_option)
     {
       srandom (time (NULL));
@@ -379,8 +413,9 @@ main (int argc, char **argv)
   else
     {
       size_t i;
-      for (i = 0; i < range_count; i++)
-	print_range (range[i].start, range[i].start + range[i].count - 1);
+      for (i = 0; i < range_max; i++)
+	if (range[i].count)
+	  print_range (range[i].start, range[i].start + range[i].count - 1);
     }
   exit (0);
 }
