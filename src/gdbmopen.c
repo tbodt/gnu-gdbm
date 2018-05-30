@@ -634,8 +634,7 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
 
   if (dbf->bucket_cache == NULL)
     {
-      dbf->bucket_cache = GDBM_DEBUG_ALLOC ("_gdbm_init_cache:malloc-failure",
-					    calloc (size, sizeof(cache_elem)));
+      dbf->bucket_cache = calloc (size, sizeof(cache_elem));
       if (dbf->bucket_cache == NULL)
         {
           GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
@@ -645,9 +644,8 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
 
       for (index = 0; index < size; index++)
         {
-	  (dbf->bucket_cache[index]).ca_bucket = 
-	    GDBM_DEBUG_ALLOC ("_gdbm_init_cache:bucket-malloc-failure",
-	                      malloc (dbf->header->bucket_size));
+	  (dbf->bucket_cache[index]).ca_bucket =
+	    malloc (dbf->header->bucket_size);
           if ((dbf->bucket_cache[index]).ca_bucket == NULL)
 	    {
               GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);

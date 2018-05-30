@@ -71,9 +71,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
   data_ca->elem_loc = elem_loc;
   data_ca->hash_val = dbf->bucket->h_table[elem_loc].hash_value;
 
-  if (GDBM_DEBUG_HOOK ("_gdbm_read_entry:malloc-failure"))
-    data_ca->dptr = NULL;
-  else if (key_size + data_size == 0)
+  if (key_size + data_size == 0)
     data_ca->dptr = (char *) malloc (1);
   else
     data_ca->dptr = (char *) malloc (key_size + data_size);
@@ -85,9 +83,8 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
     }
 
   /* Read into the cache. */
-  file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_read_entry:lseek-failure",
-	      __lseek (dbf, dbf->bucket->h_table[elem_loc].data_pointer, 
-		       SEEK_SET));
+  file_pos = __lseek (dbf, dbf->bucket->h_table[elem_loc].data_pointer, 
+		      SEEK_SET);
   if (file_pos != dbf->bucket->h_table[elem_loc].data_pointer)
     {
       GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_LOOKUP);
@@ -95,8 +92,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
       return NULL;
     }
   
-  rc = GDBM_DEBUG_OVERRIDE ("_gdbm_read_entry:read-failure",
-	    _gdbm_full_read (dbf, data_ca->dptr, key_size+data_size));
+  rc = _gdbm_full_read (dbf, data_ca->dptr, key_size+data_size);
   if (rc)
     {
       GDBM_DEBUG (GDBM_DEBUG_ERR|GDBM_DEBUG_LOOKUP|GDBM_DEBUG_READ,

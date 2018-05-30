@@ -39,36 +39,6 @@ err_printer (void *data, char const *fmt, ...)
   fprintf (stderr, "\n");
 }
 
-struct hook_closure
-{
-  unsigned skip;
-  unsigned hits;
-  int disabled;
-};
-
-static int
-hookfn (char const *file, int line, char const *id, void *data)
-{
-  struct hook_closure *clos = data;
-
-  if (clos->disabled)
-    return 0;
-  if (clos->skip)
-    {
-      --clos->skip;
-      return 0;
-    }
-  if (clos->hits)
-    {
-      if (--clos->hits == 0)
-	clos->disabled = 1;
-    }
-  
-  if (verbose)
-    fprintf (stderr, "%s:%d: hit debug hook %s\n", file, line, id);
-  return -1;
-}
-
 size_t
 read_size (char const *arg)
 {
@@ -92,37 +62,6 @@ read_size (char const *arg)
     }
 
   return ret;
-}
-
-void
-install_hook (char *id)
-{
-  char *p = strchr (id, ';');
-  struct hook_closure *clos = malloc (sizeof (*clos));
-  assert (clos != NULL);
-  memset (clos, 0, sizeof (*clos));
-  if (p)
-    {
-      char *q;
-      
-      *p++ = 0;
-      for (q = strtok (p, ";"); q; q = strtok (NULL, ";"))
-	{
-	  if (strncmp (q, "skip=", 5) == 0)
-	    clos->skip = strtoul (q + 5, NULL, 10);
-	  else if (strncmp (q, "hits=", 5) == 0)
-	    clos->hits = strtoul (q + 5, NULL, 10);
-	  else
-	    {
-	      fprintf (stderr, "%s: unknown parameter for hook %s: %s",
-		       progname, id, q);
-	      exit (1);
-	    }
-	}
-    }
-#ifdef GDBM_DEBUG_ENABLE
-  _gdbm_debug_hook_install (id, hookfn, clos);
-#endif
 }
 
 #ifdef GDBM_DEBUG_ENABLE
@@ -195,13 +134,6 @@ main (int argc, char **argv)
 	mapped_size_max = read_size (arg + 8);
       else if (strncmp (arg, "-delim=", 7) == 0)
 	delim = arg[7];
-#if GDBM_DEBUG_ENABLE
-      else if (strncmp (arg, "-hook=", 6) == 0)
-	{
-	  install_hook (arg + 6);
-	  recover = 1;
-	}
-#endif
       else if (strcmp (arg, "-recover") == 0)
 	recover = 1;
       else if (strcmp (arg, "-verbose") == 0)

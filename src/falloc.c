@@ -182,8 +182,7 @@ pop_avail_block (GDBM_FILE dbf)
 			+ sizeof (avail_block));
 
   /* Allocate space for the block. */
-  new_blk = GDBM_DEBUG_ALLOC ("pop_avail_block:malloc-failure",
-				 malloc (new_el.av_size));
+  new_blk = malloc (new_el.av_size);
   if (new_blk == NULL)
     {
       GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
@@ -192,8 +191,7 @@ pop_avail_block (GDBM_FILE dbf)
     }
 
   /* Read the block. */
-  file_pos = GDBM_DEBUG_OVERRIDE ("pop_avail_block:lseek-failure",
-				  __lseek (dbf, new_el.av_adr, SEEK_SET));
+  file_pos = __lseek (dbf, new_el.av_adr, SEEK_SET);
   if (file_pos != new_el.av_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -202,8 +200,7 @@ pop_avail_block (GDBM_FILE dbf)
       return -1;
     }
 
-  rc = GDBM_DEBUG_OVERRIDE ("pop_avail_block:read-failure",
-			    _gdbm_full_read (dbf, new_blk, new_el.av_size));
+  rc = _gdbm_full_read (dbf, new_blk, new_el.av_size);
   if (rc)
     {
       free (new_blk);
@@ -295,8 +292,7 @@ push_avail_block (GDBM_FILE dbf)
   av_adr = new_loc.av_adr;
 
   /* Split the header block. */
-  temp = GDBM_DEBUG_ALLOC ("push_avail_block:malloc-failure",
-			      malloc (av_size));
+  temp = malloc (av_size);
   if (temp == NULL)
     {
       GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
@@ -325,8 +321,7 @@ push_avail_block (GDBM_FILE dbf)
   _gdbm_free (dbf, new_loc.av_adr, new_loc.av_size);
 
   /* Update the disk. */
-  file_pos = GDBM_DEBUG_OVERRIDE ("push_avail_block:lseek-failure",
-				  __lseek (dbf, av_adr, SEEK_SET));
+  file_pos = __lseek (dbf, av_adr, SEEK_SET);
   if (file_pos != av_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -334,8 +329,7 @@ push_avail_block (GDBM_FILE dbf)
       return -1;
     }
 
-  rc = GDBM_DEBUG_OVERRIDE ("push_avail_block:write-failure",
-			    _gdbm_full_write (dbf, temp, av_size));
+  rc = _gdbm_full_write (dbf, temp, av_size);
   if (rc)
     {
       GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,

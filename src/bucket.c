@@ -112,8 +112,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       /* It is not in the cache, read it from the disk. */
 
       /* Position the file pointer */
-      file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:seek-failure",
-				      __lseek (dbf, bucket_adr, SEEK_SET));
+      file_pos = __lseek (dbf, bucket_adr, SEEK_SET);
       if (file_pos != bucket_adr)
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -131,9 +130,8 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       _gdbm_cache_entry_invalidate (dbf, lru);
       
       /* Read the bucket. */
-      rc = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:read-failure",
-		_gdbm_full_read (dbf, dbf->bucket_cache[lru].ca_bucket,
-				 dbf->header->bucket_size));
+      rc = _gdbm_full_read (dbf, dbf->bucket_cache[lru].ca_bucket,
+			    dbf->header->bucket_size);
       if (rc)
 	{
 	  GDBM_DEBUG (GDBM_DEBUG_ERR,
@@ -302,8 +300,7 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  dir_adr  = _gdbm_alloc (dbf, dir_size);
 	  if (dir_adr == 0)
 	    return -1;
-	  new_dir = GDBM_DEBUG_ALLOC ("_gdbm_split_bucket:malloc-failure",
-				      malloc (dir_size));
+	  new_dir = malloc (dir_size);
 	  if (new_dir == NULL)
 	    {
 	      GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
@@ -435,16 +432,14 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
   int rc;
   off_t file_pos;	/* The return value for lseek. */
 
-  file_pos = GDBM_DEBUG_OVERRIDE ("_gdbm_write_bucket:seek-failure",
-				  __lseek (dbf, ca_entry->ca_adr, SEEK_SET));
+  file_pos = __lseek (dbf, ca_entry->ca_adr, SEEK_SET);
   if (file_pos != ca_entry->ca_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
       _gdbm_fatal (dbf, _("lseek error"));
       return -1;
     }
-  rc = GDBM_DEBUG_OVERRIDE ("_gdbm_write_bucket:write-failure",
-        _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size));
+  rc = _gdbm_full_write (dbf, ca_entry->ca_bucket, dbf->header->bucket_size);
   if (rc)
     {
       GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,

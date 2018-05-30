@@ -121,9 +121,7 @@ input_context_push (instream_t input)
 void
 lex_trace (int n)
 {
-#if GDBMTOOL_DEBUG  
   yy_flex_debug = n;
-#endif
 }
     
 int
