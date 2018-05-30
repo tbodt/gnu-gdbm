@@ -143,7 +143,10 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	}
       /* Validate the bucket */
       bucket = dbf->bucket_cache[lru].ca_bucket;
-      if (!(bucket->count >= 0 && bucket->count <= dbf->header->bucket_elems))
+      if (!(bucket->count >= 0
+	    && bucket->count <= dbf->header->bucket_elems
+	    && bucket->bucket_bits >= 0
+	    && bucket->bucket_bits <= GDBM_HASH_BITS))
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_BAD_BUCKET, TRUE);
 	  return -1;

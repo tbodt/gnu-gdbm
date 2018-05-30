@@ -300,7 +300,7 @@ _gdbm_print_avail_list (FILE *fp, GDBM_FILE dbf)
       /* Print the block! */
       fprintf (fp, _("\nblock = %d\nsize  = %d\ncount = %d\n"), temp,
 	       av_stk->size, av_stk->count);
-      if (gdbm_avail_block_validate (dbf, av_stk))
+      if (gdbm_avail_block_validate (dbf, av_stk) == 0)
 	av_table_display (av_stk->av_table, av_stk->count, fp);
       else
 	terror (_("invalid avail_block"));
