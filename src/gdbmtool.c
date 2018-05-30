@@ -753,7 +753,11 @@ print_bucket_begin (struct handler_param *param, size_t *exp_count)
       terror (_("Not a bucket."));
       return 1;
     }
-  _gdbm_get_bucket (gdbm_file, temp);
+  if (_gdbm_get_bucket (gdbm_file, temp))
+    {
+      terror ("%s", gdbm_db_strerror (gdbm_file));
+      return 1;
+    }
   if (exp_count)
     *exp_count = bucket_print_lines (gdbm_file->bucket) + 3;
   return 0;
@@ -1132,7 +1136,7 @@ source_handler (struct handler_param *param)
   char *fname = tildexpand (PARAM_STRING (param, 0));
   instream_t istr = instream_file_create (fname);
   free (fname);
-  if (input_context_push (istr) == 0)
+  if (istr && input_context_push (istr) == 0)
     yyparse ();
 }
 
