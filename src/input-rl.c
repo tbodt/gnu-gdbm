@@ -48,6 +48,7 @@ retrieve_history (char *str)
       return 1;
 
     case 0:
+      free (out);
       break;
 
     case 1:

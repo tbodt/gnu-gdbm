@@ -43,6 +43,18 @@ int open_mode;                /* Default open mode */
 unsigned input_line;
 
 
+static void
+closedb (void)
+{
+  if (gdbm_file)
+    {
+      gdbm_close (gdbm_file);
+      gdbm_file = NULL;
+      free (file_name);
+      file_name = NULL;
+    }
+}
+
 static int
 opendb (char *dbname)
 {
@@ -110,7 +122,7 @@ opendb (char *dbname)
 }
 
 static int
-checkdb ()
+checkdb (void)
 {
   if (!gdbm_file)
     {
@@ -123,6 +135,13 @@ checkdb ()
       return opendb (file_name);
     }
   return 0;
+}
+
+static int
+checkdb_begin (struct handler_param *param GDBM_ARG_UNUSED,
+	       size_t *exp_count GDBM_ARG_UNUSED)
+{
+  return checkdb ();
 }
 
 size_t
@@ -358,14 +377,7 @@ void
 open_handler (struct handler_param *param)
 {
   char *name = tildexpand (PARAM_STRING (param, 0));
-  if (file_name)
-    { 
-      gdbm_close (gdbm_file);
-      gdbm_file = NULL;
-      free (file_name);
-      file_name = NULL;
-    }
-  
+  closedb ();
   if (opendb (name) == 0)
     file_name = name;
   else
@@ -379,12 +391,7 @@ close_handler (struct handler_param *param)
   if (!gdbm_file)
     terror (_("nothing to close"));
   else
-    {
-      gdbm_close (gdbm_file);
-      gdbm_file = NULL;
-      free (file_name);
-      file_name = NULL;
-    }
+    closedb ();
 }
 
 
@@ -928,8 +935,7 @@ list_handler (struct handler_param *param)
 void
 quit_handler (struct handler_param *param GDBM_ARG_UNUSED)
 {
-  if (gdbm_file != NULL)
-    gdbm_close (gdbm_file);
+  closedb ();
   input_done ();
   exit (EXIT_OK);
 }
@@ -1167,19 +1173,19 @@ struct command
 struct command command_tab[] = {
 #define S(s) #s, sizeof (#s) - 1
   { S(count), T_CMD,
-    checkdb, count_handler, NULL,
+    checkdb_begin, count_handler, NULL,
     { { NULL } },
     FALSE,
     REPEAT_NEVER,
     N_("count (number of entries)") },
   { S(delete), T_CMD,
-    checkdb, delete_handler, NULL,
+    checkdb_begin, delete_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },
     FALSE,
     REPEAT_NEVER,
     N_("delete a record") },
   { S(export), T_CMD,
-    checkdb, export_handler, NULL,
+    checkdb_begin, export_handler, NULL,
     { { N_("FILE"), GDBM_ARG_STRING },
       { "[truncate]", GDBM_ARG_STRING },
       { "[binary|ascii]", GDBM_ARG_STRING },
@@ -1188,7 +1194,7 @@ struct command command_tab[] = {
     REPEAT_NEVER,
     N_("export") },
   { S(fetch), T_CMD,
-    checkdb, fetch_handler, NULL,
+    checkdb_begin, fetch_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY }, { NULL } },
     FALSE,
     REPEAT_NEVER,
@@ -1209,14 +1215,14 @@ struct command command_tab[] = {
     REPEAT_NEVER,
     N_("list") },
   { S(next), T_CMD,
-    checkdb, nextkey_handler, NULL,
+    checkdb_begin, nextkey_handler, NULL,
     { { N_("[KEY]"), GDBM_ARG_DATUM, DS_KEY },
       { NULL } },
     FALSE,
     REPEAT_NOARG,
     N_("nextkey") },
   { S(store), T_CMD,
-    checkdb, store_handler, NULL,
+    checkdb_begin, store_handler, NULL,
     { { N_("KEY"), GDBM_ARG_DATUM, DS_KEY },
       { N_("DATA"), GDBM_ARG_DATUM, DS_CONTENT },
       { NULL } },
@@ -1224,19 +1230,19 @@ struct command command_tab[] = {
     REPEAT_NEVER,
     N_("store") },
   { S(first), T_CMD,
-    checkdb, firstkey_handler, NULL,
+    checkdb_begin, firstkey_handler, NULL,
     { { NULL } },
     FALSE,
     REPEAT_NEVER,
     N_("firstkey") },
   { S(reorganize), T_CMD,
-    checkdb, reorganize_handler, NULL,
+    checkdb_begin, reorganize_handler, NULL,
     { { NULL } },
     FALSE,
     REPEAT_NEVER,
     N_("reorganize") },
   { S(recover), T_CMD,
-    checkdb, recover_handler, NULL,
+    checkdb_begin, recover_handler, NULL,
     { { "[verbose]", GDBM_ARG_STRING },
       { "[summary]", GDBM_ARG_STRING },
       { "[backup]",  GDBM_ARG_STRING },
@@ -2162,6 +2168,7 @@ main (int argc, char *argv[])
   if (input_context_push (input))
     exit (EXIT_FATAL);
   res = yyparse ();
+  closedb ();
   input_done ();
   return res;
 }

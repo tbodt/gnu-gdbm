@@ -168,6 +168,7 @@ _gdbm_finish_transfer (GDBM_FILE dbf, GDBM_FILE new_dbf,
    dbf->bucket_changed    = new_dbf->bucket_changed;
    dbf->second_changed    = new_dbf->second_changed;
 
+   free (new_dbf->name);
    free (new_dbf);
    
  #if HAVE_MMAP
