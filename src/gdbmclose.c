@@ -35,7 +35,7 @@ gdbm_close (GDBM_FILE dbf)
     {
       /* Make sure the database is all on disk. */
       if (dbf->read_write != GDBM_READER)
-	__fsync (dbf);
+	gdbm_file_sync (dbf);
 
       /* Close the file and free all malloced memory. */
 #if HAVE_MMAP

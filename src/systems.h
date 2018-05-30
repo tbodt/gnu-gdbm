@@ -63,20 +63,4 @@
 # define STDERR_FILENO 2
 #endif
 
-/* I/O macros. */
-#if HAVE_MMAP
-# define __read(_dbf, _buf, _size)	_gdbm_mapped_read(_dbf, _buf, _size)
-# define __write(_dbf, _buf, _size)	_gdbm_mapped_write(_dbf, _buf, _size)
-# define __lseek(_dbf, _off, _whn)	_gdbm_mapped_lseek(_dbf, _off, _whn)
-# define __fsync(_dbf)			_gdbm_mapped_sync(_dbf)
-#else
-# define __read(_dbf, _buf, _size)	read(_dbf->desc, _buf, _size)
-# define __write(_dbf, _buf, _size)	write(_dbf->desc, _buf, _size)
-# define __lseek(_dbf, _off, _whn)	lseek(_dbf->desc, _off, _whn)
-# if HAVE_FSYNC
-#  define __fsync(_dbf)			fsync(_dbf->desc)
-# else
-#  define __fsync(_dbf)			{ sync(); sync(); }
-# endif
-#endif
 

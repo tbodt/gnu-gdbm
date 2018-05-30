@@ -178,7 +178,7 @@ _gdbm_finish_transfer (GDBM_FILE dbf, GDBM_FILE new_dbf,
  #endif
 
    /* Make sure the new database is all on disk. */
-   __fsync (dbf);
+   gdbm_file_sync (dbf);
 
    /* Force the right stuff for a correct bucket cache. */
    dbf->cache_entry    = &dbf->bucket_cache[0];

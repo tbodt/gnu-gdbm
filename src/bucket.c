@@ -112,7 +112,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       /* It is not in the cache, read it from the disk. */
 
       /* Position the file pointer */
-      file_pos = __lseek (dbf, bucket_adr, SEEK_SET);
+      file_pos = gdbm_file_seek (dbf, bucket_adr, SEEK_SET);
       if (file_pos != bucket_adr)
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -187,7 +187,7 @@ _gdbm_read_bucket_at (GDBM_FILE dbf, off_t off, hash_bucket *bucket,
     }
 
   /* Read the bucket. */
-  file_pos = __lseek (dbf, off, SEEK_SET);
+  file_pos = gdbm_file_seek (dbf, off, SEEK_SET);
   if (file_pos != off)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -432,7 +432,7 @@ _gdbm_write_bucket (GDBM_FILE dbf, cache_elem *ca_entry)
   int rc;
   off_t file_pos;	/* The return value for lseek. */
 
-  file_pos = __lseek (dbf, ca_entry->ca_adr, SEEK_SET);
+  file_pos = gdbm_file_seek (dbf, ca_entry->ca_adr, SEEK_SET);
   if (file_pos != ca_entry->ca_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);

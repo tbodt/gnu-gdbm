@@ -191,7 +191,7 @@ pop_avail_block (GDBM_FILE dbf)
     }
 
   /* Read the block. */
-  file_pos = __lseek (dbf, new_el.av_adr, SEEK_SET);
+  file_pos = gdbm_file_seek (dbf, new_el.av_adr, SEEK_SET);
   if (file_pos != new_el.av_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
@@ -321,7 +321,7 @@ push_avail_block (GDBM_FILE dbf)
   _gdbm_free (dbf, new_loc.av_adr, new_loc.av_size);
 
   /* Update the disk. */
-  file_pos = __lseek (dbf, av_adr, SEEK_SET);
+  file_pos = gdbm_file_seek (dbf, av_adr, SEEK_SET);
   if (file_pos != av_adr)
     {
       GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);

@@ -27,7 +27,7 @@ _gdbm_full_read (GDBM_FILE dbf, void *buffer, size_t size)
   char *ptr = buffer;
   while (size)
     {
-      ssize_t rdbytes = __read (dbf, ptr, size);
+      ssize_t rdbytes = gdbm_file_read (dbf, ptr, size);
       if (rdbytes == -1)
 	{
 	  if (errno == EINTR)
@@ -55,7 +55,7 @@ _gdbm_full_write (GDBM_FILE dbf, void *buffer, size_t size)
   char *ptr = buffer;
   while (size)
     {
-      ssize_t wrbytes = __write (dbf, ptr, size);
+      ssize_t wrbytes = gdbm_file_write (dbf, ptr, size);
       if (wrbytes == -1)
 	{
 	  if (errno == EINTR)

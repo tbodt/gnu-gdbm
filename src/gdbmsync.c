@@ -34,6 +34,6 @@ gdbm_sync (GDBM_FILE dbf)
   gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Do the sync on the file. */
-  __fsync (dbf);
+  gdbm_file_sync (dbf);
 
 }

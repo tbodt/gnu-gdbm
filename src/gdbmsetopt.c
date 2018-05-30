@@ -190,7 +190,7 @@ setopt_gdbm_setmmap (GDBM_FILE dbf, void *optval, int optlen)
       GDBM_SET_ERRNO (dbf, GDBM_OPT_ILLEGAL, FALSE);
       return -1;
     }
-  __fsync (dbf);
+  gdbm_file_sync (dbf);
   if (n == dbf->memory_mapping)
     return 0;
   if (n)

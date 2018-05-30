@@ -429,7 +429,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	}
 
       /* Wait for initial configuration to be written to disk. */
-      __fsync (dbf);
+      gdbm_file_sync (dbf);
 
       free (dbf->bucket);
     }
@@ -508,7 +508,7 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	}
 
       /* Read the hash table directory. */
-      file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
+      file_pos = gdbm_file_seek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
 	  if (!(flags & GDBM_CLOERROR))

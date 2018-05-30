@@ -30,7 +30,7 @@ write_header (GDBM_FILE dbf)
   off_t file_pos;	/* Return value for lseek. */
   int rc;
 
-  file_pos = __lseek (dbf, 0L, SEEK_SET);
+  file_pos = gdbm_file_seek (dbf, 0L, SEEK_SET);
   if (file_pos != 0)
     {
       GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_STORE);
@@ -50,7 +50,7 @@ write_header (GDBM_FILE dbf)
 
   /* Sync the file if fast_write is FALSE. */
   if (dbf->fast_write == FALSE)
-    __fsync (dbf);
+    gdbm_file_sync (dbf);
 
   return 0;
 }
@@ -94,7 +94,7 @@ _gdbm_end_update (GDBM_FILE dbf)
   /* Write the directory. */
   if (dbf->directory_changed)
     {
-      file_pos = __lseek (dbf, dbf->header->dir, SEEK_SET);
+      file_pos = gdbm_file_seek (dbf, dbf->header->dir, SEEK_SET);
       if (file_pos != dbf->header->dir)
 	{
 	  GDBM_SET_ERRNO2 (dbf, GDBM_FILE_SEEK_ERROR, TRUE, GDBM_DEBUG_STORE);
@@ -114,7 +114,7 @@ _gdbm_end_update (GDBM_FILE dbf)
 
       dbf->directory_changed = FALSE;
       if (!dbf->header_changed && dbf->fast_write == FALSE)
-	__fsync (dbf);
+	gdbm_file_sync (dbf);
     }
 
   /* Final write of the header. */

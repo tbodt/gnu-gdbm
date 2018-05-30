@@ -83,4 +83,24 @@ int _gdbm_dump (GDBM_FILE dbf, FILE *fp);
 /* From recover.c */
 int _gdbm_next_bucket_dir (GDBM_FILE dbf, int bucket_dir);
 
+/* I/O macros. */
+#if HAVE_MMAP
+# define gdbm_file_read(_dbf, _buf, _size) \
+  _gdbm_mapped_read(_dbf, _buf, _size)
+# define gdbm_file_write(_dbf, _buf, _size) \
+  _gdbm_mapped_write(_dbf, _buf, _size)
+# define gdbm_file_seek(_dbf, _off, _whn) \
+  _gdbm_mapped_lseek(_dbf, _off, _whn)
+# define gdbm_file_sync(_dbf) \
+  _gdbm_mapped_sync(_dbf)
+#else
+# define gdbm_file_read(_dbf, _buf, _size)	read(_dbf->desc, _buf, _size)
+# define gdbm_file_write(_dbf, _buf, _size)	write(_dbf->desc, _buf, _size)
+# define gdbm_file_seek(_dbf, _off, _whn)	lseek(_dbf->desc, _off, _whn)
+# if HAVE_FSYNC
+#  define gdbm_file_sync(_dbf)			fsync(_dbf->desc)
+# else
+#  define gdbm_file_sync(_dbf)			{ sync(); sync(); }
+# endif
+#endif
 
