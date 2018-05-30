@@ -46,6 +46,7 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
   int rc;
   int key_size;
   int data_size;
+  size_t dsize;
   off_t file_pos;
   data_cache_elem *data_ca;
 
@@ -62,24 +63,44 @@ _gdbm_read_entry (GDBM_FILE dbf, int elem_loc)
   /* Set sizes and pointers. */
   key_size = dbf->bucket->h_table[elem_loc].key_size;
   data_size = dbf->bucket->h_table[elem_loc].data_size;
+  dsize = key_size + data_size;
   data_ca = &dbf->cache_entry->ca_data;
-  
+
   /* Set up the cache. */
-  if (data_ca->dptr != NULL) free (data_ca->dptr);
   data_ca->key_size = key_size;
   data_ca->data_size = data_size;
   data_ca->elem_loc = elem_loc;
   data_ca->hash_val = dbf->bucket->h_table[elem_loc].hash_value;
 
-  if (key_size + data_size == 0)
-    data_ca->dptr = (char *) malloc (1);
-  else
-    data_ca->dptr = (char *) malloc (key_size + data_size);
-  if (data_ca->dptr == NULL)
+  if (dsize <= data_ca->dsize)
     {
-      GDBM_SET_ERRNO2 (dbf, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_LOOKUP);
-      _gdbm_fatal (dbf, _("malloc error"));
-      return NULL;
+      if (data_ca->dsize == 0)
+	{
+	  data_ca->dptr = malloc (1);
+	  if (data_ca->dptr)
+	    data_ca->dsize = 1;
+	  else
+	    {
+	      GDBM_SET_ERRNO2 (dbf, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_LOOKUP);
+	      _gdbm_fatal (dbf, _("malloc error"));
+	      return NULL;
+	    }
+	}
+    }
+  else
+    {
+      char *p = realloc (data_ca->dptr, dsize);
+      if (p)
+	{
+	  data_ca->dptr = p;
+	  data_ca->dsize = dsize;
+	}
+      else
+	{
+	  GDBM_SET_ERRNO2 (dbf, GDBM_MALLOC_ERROR, FALSE, GDBM_DEBUG_LOOKUP);
+	  _gdbm_fatal (dbf, _("malloc error"));
+	  return NULL;
+	}
     }
 
   /* Read into the cache. */

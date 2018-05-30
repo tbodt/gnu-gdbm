@@ -149,11 +149,12 @@ typedef struct
 
 typedef struct
 {
-  int   hash_val;
-  int   data_size;
-  int   key_size;
-  char *dptr;
-  int   elem_loc;
+  int     hash_val;
+  int     data_size;
+  int     key_size;
+  char    *dptr;
+  size_t  dsize;
+  int     elem_loc;
 } data_cache_elem;
 
 typedef struct

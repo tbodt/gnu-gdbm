@@ -88,12 +88,7 @@ gdbm_delete (GDBM_FILE dbf, datum key)
   /* Set the flags. */
   dbf->bucket_changed = TRUE;
 
-  /* Clear out the data cache for the current bucket. */
-  if (dbf->cache_entry->ca_data.dptr != NULL)
-    {
-      free (dbf->cache_entry->ca_data.dptr);
-      dbf->cache_entry->ca_data.dptr = NULL;
-    }
+  /* Invalidate data cache for the current bucket. */
   dbf->cache_entry->ca_data.hash_val = -1;
   dbf->cache_entry->ca_data.key_size = 0;
   dbf->cache_entry->ca_data.elem_loc = -1;

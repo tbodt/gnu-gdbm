@@ -663,6 +663,7 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
 	      return -1;
             }
 	  dbf->bucket_cache[index].ca_data.dptr = NULL;
+	  dbf->bucket_cache[index].ca_data.dsize = 0;
 	  _gdbm_cache_entry_invalidate (dbf, index);
         }
       dbf->bucket = dbf->bucket_cache[0].ca_bucket;
