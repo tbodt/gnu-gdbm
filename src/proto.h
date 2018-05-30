@@ -48,7 +48,7 @@ void _gdbm_fatal	(GDBM_FILE, const char *);
 
 /* From gdbmopen.c */
 int _gdbm_init_cache	(GDBM_FILE, size_t);
-void _gdbm_init_cache_entry (GDBM_FILE, int);
+void _gdbm_cache_entry_invalidate (GDBM_FILE, int);
 
 int gdbm_avail_block_validate (GDBM_FILE dbf, avail_block *avblk);
 int gdbm_bucket_avail_table_validate (GDBM_FILE dbf, hash_bucket *bucket);

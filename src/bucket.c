@@ -128,7 +128,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
 	  if (_gdbm_write_bucket (dbf, &dbf->bucket_cache[lru]))
 	    return -1;
 	}
-      _gdbm_init_cache_entry (dbf, lru);
+      _gdbm_cache_entry_invalidate (dbf, lru);
       
       /* Read the bucket. */
       rc = GDBM_DEBUG_OVERRIDE ("_gdbm_get_bucket:read-failure",

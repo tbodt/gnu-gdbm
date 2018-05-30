@@ -653,7 +653,8 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
               GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
 	      return -1;
             }
-	  _gdbm_init_cache_entry (dbf, index);
+	  dbf->bucket_cache[index].ca_data.dptr = NULL;
+	  _gdbm_cache_entry_invalidate (dbf, index);
         }
       dbf->bucket = dbf->bucket_cache[0].ca_bucket;
       dbf->cache_entry = &dbf->bucket_cache[0];
@@ -662,11 +663,10 @@ _gdbm_init_cache (GDBM_FILE dbf, size_t size)
 }
 
 void
-_gdbm_init_cache_entry (GDBM_FILE dbf, int index)
+_gdbm_cache_entry_invalidate (GDBM_FILE dbf, int index)
 {
   dbf->bucket_cache[index].ca_adr = 0;
   dbf->bucket_cache[index].ca_changed = FALSE;
   dbf->bucket_cache[index].ca_data.hash_val = -1;
   dbf->bucket_cache[index].ca_data.elem_loc = -1;
-  dbf->bucket_cache[index].ca_data.dptr = NULL;
 }
