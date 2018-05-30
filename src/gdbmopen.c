@@ -139,7 +139,7 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
   if (hdr->next_block != st->st_size)
     /* FIXME: Should return GDBM_NEED_RECOVERY instead? */
     return GDBM_BAD_HEADER;
-  
+
   /* Make sure dir and dir + dir_size fall within the file boundary */
   if (!(hdr->dir > 0
 	&& hdr->dir < st->st_size
@@ -427,7 +427,18 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
 	  SAVE_ERRNO (gdbm_close (dbf));
 	  return NULL;
 	}
-
+      
+      if (_gdbm_file_extend (dbf, dbf->header->next_block))
+	{
+	  GDBM_DEBUG (GDBM_DEBUG_OPEN|GDBM_DEBUG_ERR,
+		      "%s: error extending file: %s",
+		      dbf->name, gdbm_db_strerror (dbf));	  
+	  if (!(flags & GDBM_CLOERROR))
+	    dbf->desc = -1;
+	  SAVE_ERRNO (gdbm_close (dbf));
+	  return NULL;
+	}
+	  
       /* Wait for initial configuration to be written to disk. */
       gdbm_file_sync (dbf);
 

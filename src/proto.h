@@ -68,6 +68,7 @@ int _gdbm_lock_file	(GDBM_FILE);
 /* From fullio.c */
 int _gdbm_full_read (GDBM_FILE, void *, size_t);
 int _gdbm_full_write (GDBM_FILE, void *, size_t);
+int _gdbm_file_extend (GDBM_FILE dbf, off_t size);
 
 /* From base64.c */
 int _gdbm_base64_encode (const unsigned char *input, size_t input_len,

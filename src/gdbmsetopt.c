@@ -248,6 +248,7 @@ setopt_gdbm_getmaxmapsize (GDBM_FILE dbf, void *optval, int optlen)
   *(size_t*) optval = dbf->mapped_size_max;
   return 0;
 }
+#endif
 
 static int
 setopt_gdbm_getflags (GDBM_FILE dbf, void *optval, int optlen)
@@ -270,7 +271,6 @@ setopt_gdbm_getflags (GDBM_FILE dbf, void *optval, int optlen)
     }
   return 0;
 }
-#endif
 
 static int
 setopt_gdbm_getdbname (GDBM_FILE dbf, void *optval, int optlen)
@@ -323,8 +323,8 @@ static setopt_handler setopt_handler_tab[] = {
   [GDBM_GETMMAP]         = setopt_gdbm_getmmap,
   [GDBM_SETMAXMAPSIZE]   = setopt_gdbm_setmaxmapsize,
   [GDBM_GETMAXMAPSIZE]   = setopt_gdbm_getmaxmapsize,
-  [GDBM_GETFLAGS]        = setopt_gdbm_getflags,
 #endif
+  [GDBM_GETFLAGS]        = setopt_gdbm_getflags,
   [GDBM_GETDBNAME]       = setopt_gdbm_getdbname,
   [GDBM_GETBLOCKSIZE]    = setopt_gdbm_getblocksize,
 };

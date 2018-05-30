@@ -122,6 +122,8 @@ _gdbm_end_update (GDBM_FILE dbf)
     {
       if (write_header (dbf))
 	return -1;
+      if (_gdbm_file_extend (dbf, dbf->header->next_block))
+	return -1;
       dbf->header_changed = FALSE;
     }
 
