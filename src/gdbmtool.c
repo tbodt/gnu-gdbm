@@ -919,7 +919,7 @@ list_handler (struct handler_param *param)
       data = gdbm_fetch (gdbm_file, key);
       if (!data.dptr)
 	 {
-	   terror (_("cannot fetch data; the key was:"));
+	   terror (_("%s; the key was:"), gdbm_db_strerror (gdbm_file));
 	   datum_format (stderr, &key, dsdef[DS_KEY]);
 	 }
       else

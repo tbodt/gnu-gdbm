@@ -54,13 +54,13 @@ setopt_gdbm_setcachesize (GDBM_FILE dbf, void *optval, int optlen)
 {
   size_t sz;
 
-  /* Optval will point to the new size of the cache. */
   if (dbf->bucket_cache != NULL)
     {
       GDBM_SET_ERRNO (dbf, GDBM_OPT_ALREADY_SET, FALSE);
       return -1;
     }
   
+  /* Optval will point to the new size of the cache. */
   if (get_size (optval, optlen, &sz))
     {     
       GDBM_SET_ERRNO (dbf, GDBM_OPT_ILLEGAL, FALSE);

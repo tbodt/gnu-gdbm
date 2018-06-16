@@ -1,14 +1,21 @@
-GNU dbm NEWS -- history of user-visible changes. 2018-05-25
+GNU dbm NEWS -- history of user-visible changes. 2018-06-16
 Copyright (C) 1990-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
 
-Version 1.14.90
+Version 1.15 - 2018-06-15
 
-FIXME: BUMP VI_MAJOR
+* Extensive database consistency checking
 
-* Implement database consistency checks
+GDBM tries to detect inconsistencies in input database files as
+early as possible. When an inconcistency is detected, a helpful
+diagnostics is returned and the database is marked as needing
+recovery. From this moment on, any GDBM function trying to access
+the database will immediately return error code (instead of
+eventually segfaulting as previous versions did). In order to
+reconstruct the database and return it to healthy state, the
+gdbm_recover function should be used.
 
 Special thanks to Lionel Debroux and Craig Young for investing
 their time and efforts in testing and providing valuable feedback.
@@ -33,7 +40,7 @@ e.g.:
 * New member in the gdbm_recovery structure: duplicate_keys.
 
 Upon return from gdbm_recover, this member holds the number of keys
-that were not recovered, because the same key has already been stored
+that has not been recovered, because the same key had already been stored
 in the database. The actual number of stored keys is thus
 recovered_keys - duplicate_keys.
 

@@ -154,7 +154,7 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
   if (hdr->dir_bits != dir_bits)
     return GDBM_BAD_HEADER;
   
-  if (!(hdr->bucket_size > 0 && hdr->bucket_size > sizeof(hash_bucket)))
+  if (!(hdr->bucket_size > sizeof(hash_bucket)))
     return GDBM_BAD_HEADER;
 
   if (hdr->bucket_elems != bucket_element_count (hdr->bucket_size))

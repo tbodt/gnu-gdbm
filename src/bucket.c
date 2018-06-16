@@ -29,7 +29,7 @@ void
 _gdbm_new_bucket (GDBM_FILE dbf, hash_bucket *bucket, int bits)
 {
   int index;
-  
+
   /* Initialize the avail block. */
   bucket->av_count = 0;
 
@@ -146,7 +146,7 @@ _gdbm_get_bucket (GDBM_FILE dbf, int dir_index)
       if (!(bucket->count >= 0
 	    && bucket->count <= dbf->header->bucket_elems
 	    && bucket->bucket_bits >= 0
-	    && bucket->bucket_bits <= GDBM_HASH_BITS))
+	    && bucket->bucket_bits <= dbf->header->dir_bits))
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_BAD_BUCKET, TRUE);
 	  return -1;

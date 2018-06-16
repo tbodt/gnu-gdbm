@@ -292,7 +292,7 @@ push_avail_block (GDBM_FILE dbf)
   av_adr = new_loc.av_adr;
 
   /* Split the header block. */
-  temp = malloc (av_size);
+  temp = calloc (1, av_size);
   if (temp == NULL)
     {
       GDBM_SET_ERRNO (dbf, GDBM_MALLOC_ERROR, TRUE);
