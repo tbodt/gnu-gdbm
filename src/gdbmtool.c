@@ -2145,7 +2145,7 @@ main (int argc, char *argv[])
 	{
 	  if (input)
 	    {
-	      terror (_("--file and and command cannot be used together"));
+	      terror (_("--file and command cannot be used together"));
 	      exit (EXIT_USAGE);
 	    }
 	  input = instream_argv_create (argc, argv);
