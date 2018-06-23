@@ -92,8 +92,6 @@ _gdbm_alloc (GDBM_FILE dbf, int num_bytes)
   
 }
 
-
-
 /* Free space of size NUM_BYTES in the file DBF at file address FILE_ADR.  Make
    it avaliable for reuse through _gdbm_alloc.  This routine changes the
    avail structure. */
@@ -388,7 +386,7 @@ get_elem (int size, avail_elem av_table[], int *av_count)
 /* This routine inserts a single NEW_EL into the AV_TABLE block.
    This routine does no I/O. */
 
-int
+void
 _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
      		   int can_merge)
 {
@@ -397,7 +395,7 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
 
   /* Is it too small to deal with? */
   if (new_el.av_size <= IGNORE_SIZE)
-    return FALSE;
+    return;
 
   if (can_merge == TRUE)
     {
@@ -440,7 +438,7 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
 	    }
 
 	  /* we're done. */
-	  return TRUE;
+	  return;
 	}
     }
 
@@ -463,9 +461,7 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
   av_table[index] = new_el;
 
   /* Increment the number of elements. */
-  *av_count += 1;
-
-  return TRUE;
+  ++*av_count;
 }
 
 
@@ -516,7 +512,6 @@ adjust_bucket_avail (GDBM_FILE dbf)
     {
       if (dbf->header->avail.count > 0)
 	{
-	  //FIXME: what if _gdbm_put_av_elem return FALSE?
 	  dbf->header->avail.count -= 1;
 	  av_el = dbf->header->avail.av_table[dbf->header->avail.count];
 	  _gdbm_put_av_elem (av_el, dbf->bucket->bucket_avail,
@@ -531,14 +526,14 @@ adjust_bucket_avail (GDBM_FILE dbf)
 	 && dbf->header->avail.count < dbf->header->avail.size)
     {
       av_el = get_elem (0, dbf->bucket->bucket_avail, &dbf->bucket->av_count);
-      if (av_el.av_size == 0
-	  || _gdbm_put_av_elem (av_el, dbf->header->avail.av_table,
-				&dbf->header->avail.count,
-				dbf->coalesce_blocks) == FALSE) 
+      if (av_el.av_size == 0)
 	{
 	  GDBM_SET_ERRNO (dbf, GDBM_BAD_AVAIL, TRUE);
 	  return -1;
 	}
+      _gdbm_put_av_elem (av_el, dbf->header->avail.av_table,
+			 &dbf->header->avail.count,
+			 dbf->coalesce_blocks);
       dbf->bucket_changed = TRUE;
     }
   return 0;

@@ -30,7 +30,7 @@ int _gdbm_write_bucket (GDBM_FILE, cache_elem *);
 /* From falloc.c */
 off_t _gdbm_alloc       (GDBM_FILE, int);
 int  _gdbm_free         (GDBM_FILE, off_t, int);
-int  _gdbm_put_av_elem  (avail_elem, avail_elem [], int *, int);
+void _gdbm_put_av_elem  (avail_elem, avail_elem [], int *, int);
 
 /* From findkey.c */
 char *_gdbm_read_entry  (GDBM_FILE, int);

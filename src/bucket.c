@@ -361,7 +361,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  /* The avail is full, move the first one to bucket[1]. */
 	  _gdbm_put_av_elem (dbf->bucket->bucket_avail[0],
 			     bucket[1]->bucket_avail,
-			     &bucket[1]->av_count, FALSE);
+			     &bucket[1]->av_count, 
+                             dbf->coalesce_blocks);
 	  index = 1;
 	  bucket[0]->av_count--;
 	}
@@ -404,7 +405,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  dbf->cache_entry = &dbf->bucket_cache[cache_0];
 	  _gdbm_put_av_elem (old_bucket,
 			     bucket[1]->bucket_avail,
-			     &bucket[1]->av_count, FALSE);
+			     &bucket[1]->av_count, 
+                             dbf->coalesce_blocks);
 	}
       else
 	{
@@ -412,7 +414,8 @@ _gdbm_split_bucket (GDBM_FILE dbf, int next_insert)
 	  dbf->cache_entry = &dbf->bucket_cache[cache_1];
 	  _gdbm_put_av_elem (old_bucket,
 			     bucket[0]->bucket_avail,
-			     &bucket[0]->av_count, FALSE);
+			     &bucket[0]->av_count, 
+                             dbf->coalesce_blocks);
 	}
       
     }
