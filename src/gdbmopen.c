@@ -69,7 +69,7 @@ avail_comp (void const *a, void const *b)
    As a side effect, ensures the array is sorted by element size
    in increasing order and restores the ordering if necessary.
 
-   The proper ordering could have been clobbered in versions of GDBM<=1.14,
+   The proper ordering could have been clobbered in versions of GDBM<=1.15,
    by a call to _gdbm_put_av_elem with the can_merge parameter set to
    TRUE. This happened in two cases: either because the GDBM_COALESCEBLKS
    was set, and (quite unfortunately) when _gdbm_put_av_elem was called
@@ -84,16 +84,17 @@ gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_elem *av, int count)
   off_t prev = 0;
   int i;
   int needs_sorting = 0;
+  avail_elem *p = av;
   
   prev = 0;
-  for (i = 0; i < count; i++, av++)
+  for (i = 0; i < count; i++, p++)
     {
-      if (!(av->av_adr >= dbf->header->bucket_size
-	    && av->av_adr + av->av_size <= dbf->header->next_block))
+      if (!(p->av_adr >= dbf->header->bucket_size
+	    && p->av_adr + p->av_size <= dbf->header->next_block))
 	return 0;
-      if (av->av_size < prev)
+      if (p->av_size < prev)
 	needs_sorting = 1;
-      prev = av->av_size;
+      prev = p->av_size;
     }
 
   if (needs_sorting && dbf->read_write)
