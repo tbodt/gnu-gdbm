@@ -56,21 +56,52 @@ bucket_element_count (size_t bucket_size)
   return (bucket_size - sizeof (hash_bucket)) / sizeof (bucket_element) + 1;
 }
 
+static int
+avail_comp (void const *a, void const *b)
+{
+  avail_elem const *ava = a;
+  avail_elem const *avb = b;
+  return ava->av_size - avb->av_size;
+}
+
+/* Returns true if the avail array AV[0]@COUNT is valid.
+
+   As a side effect, ensures the array is sorted by element size
+   in increasing order and restores the ordering if necessary.
+
+   The proper ordering could have been clobbered in versions of GDBM<=1.14,
+   by a call to _gdbm_put_av_elem with the can_merge parameter set to
+   TRUE. This happened in two cases: either because the GDBM_COALESCEBLKS
+   was set, and (quite unfortunately) when _gdbm_put_av_elem was called
+   from pop_avail_block in falloc.c. The latter case is quite common,
+   which means that there can be lots of existing databases with broken
+   ordering of avail arrays. Thus, restoring of the proper ordering
+   is essential for people to be able to use their existing databases.
+*/
 int
-gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_elem const *av, int count)
+gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_elem *av, int count)
 {
   off_t prev = 0;
   int i;
-    
+  int needs_sorting = 0;
+  
   prev = 0;
   for (i = 0; i < count; i++, av++)
     {
-      if (!(av->av_size >= prev
-	    && av->av_adr >= dbf->header->bucket_size
+      if (!(av->av_adr >= dbf->header->bucket_size
 	    && av->av_adr + av->av_size <= dbf->header->next_block))
 	return 0;
+      if (av->av_size < prev)
+	needs_sorting = 1;
       prev = av->av_size;
     }
+
+  if (needs_sorting && dbf->read_write)
+    {
+      GDBM_DEBUG (GDBM_DEBUG_ERR, "restoring sort order");
+      qsort (av, count, sizeof av[0], avail_comp);
+    }
+  
   return 1;
 }
 
