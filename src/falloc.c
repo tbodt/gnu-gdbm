@@ -427,9 +427,20 @@ _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
 		index++;
 		continue;
 	      }
-	    
-	    /* If we got here, we're done. */
-	    return TRUE;
+
+	  /* Coalescing breaks the sorting order, so we need to
+	     restore it */
+	  while (index + 1 < *av_count
+		 && av_table[index].av_size > av_table[index + 1].av_size)
+	    {
+	      avail_elem t = av_table[index];
+	      av_table[index] = av_table[index + 1];
+	      av_table[index + 1] = t;
+	      index++;
+	    }
+
+	  /* we're done. */
+	  return TRUE;
 	}
     }
 
