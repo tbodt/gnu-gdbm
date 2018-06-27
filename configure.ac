@@ -16,7 +16,7 @@
 # along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
 
 m4_define([_GDBM_VERSION_MAJOR], 1)
-m4_define([_GDBM_VERSION_MINOR], 15)
+m4_define([_GDBM_VERSION_MINOR], 16)
 dnl m4_define([_GDBM_VERSION_PATCH], 0)
 
 AC_INIT([gdbm],

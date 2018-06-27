@@ -13,19 +13,32 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBMTOOL 1 "July 12, 2016" "GDBM" "GDBM User Reference"
+.TH GDBMTOOL 1 "June 27, 2018" "GDBM" "GDBM User Reference"
 .SH NAME
 gdbmtool \- examine and modify a GDBM database
 .SH SYNOPSIS
-\fBgdbmtool\fR [\fB\-lmNnqrs\fR] [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fISIZE\fR]\
- [\fB\-f\fR \fIFILE\fR] [\fB\-\-block\-size\fR=\fISIZE\fR]
-         [\fB\-\-cache\-size\fR=\fISIZE\fR] [\fB\-\-file\fR \fIFILE\fR]\
-  [\fB\-\-newdb\fR] [\fB\-\-no\-lock\fR]
-         [\fB\-\-no\-mmap\fR] [\fB\-\-norc\fR]
-         [\fB\-\-quiet\fR] [\fB\-\-read\-only\fR] [\fB\-\-synchronize\fR]\
- [\fIDBFILE\fR]
+\fBgdbmtool\fR\
+ [\fB\-lmNnqrs\fR]\
+ [\fB\-b\fR \fISIZE\fR]\
+ [\fB\-c\fR \fISIZE\fR]\
+ [\fB\-f\fR \fIFILE\fR]\
+ [\fB\-\-block\-size\fR=\fISIZE\fR]\
+ [\fB\-\-cache\-size\fR=\fISIZE\fR]\
+ [\fB\-\-file\fR \fIFILE\fR]\
+ [\fB\-\-newdb\fR]\
+ [\fB\-\-no\-lock\fR]\
+ [\fB\-\-no\-mmap\fR]\
+ [\fB\-\-norc\fR]\
+ [\fB\-\-quiet\fR]\
+ [\fB\-\-read\-only\fR]\
+ [\fB\-\-synchronize\fR]\
+ [\fIDBFILE\fR] [\fICOMMAND\fR [; \fICOMMAND\fR...]]
 .sp
-\fBgdbmtool\fR [\fB\-Vh\fR] ][\fB\-\-help\fR] [\fB\-\-usage\fR] [\fB\-\-version\fR]
+\fBgdbmtool\fR\
+ [\fB\-Vh\fR]\
+ [\fB\-\-help\fR]\
+ [\fB\-\-usage\fR]\
+ [\fB\-\-version\fR]
 .SH DESCRIPTION
 The
 .B gdbmtool
@@ -60,6 +73,14 @@ the program runs in interactive mode.
 The program terminates when the
 .B quit
 command is given, or end-of-file is detected on its standard input.
+.PP
+Commands can also be specified in the command line, after the \fIDBFILE\fR
+argument. In this case, they will be interpreted without attempting to
+read more commands from the standard input.
+.PP
+If several commands are supplied, they must be separated by
+semicolons (properly escaped or quoted, in order to prevent them from
+being interpreted by the shell).
 .PP
 A
 .B gdbmtool
@@ -425,12 +446,24 @@ Open the database in read-only mode.  Signal an error if it does not
 exist.
 .RE
 .TP
+.BR filemode ", octal"
+Sets the file mode for newly created database files. Default is 0644.
+.TP
 .BR lock ", boolean"
 Lock the database.  This is the default.
 .TP
 .BR mmap ", boolean"
 Use memory mapping.  This is the default.
-
+.TP
+.BR coalesce ", boolean"
+When set, this option causes adjacent free blocks to be merged which
+allows for more efficient memory management at the expense of a
+certain increase in CPU usage.
+.TP
+.BR centfree ", boolean"
+Enables central free block pool. This causes all free blocks of space
+to be placed in the global pool, thereby speeding up the allocation of
+data space.
 .SH "SEE ALSO"
 .BR gdbm_dump (1),
 .BR gdbm_load (1),
@@ -438,7 +471,7 @@ Use memory mapping.  This is the default.
 .SH "REPORTING BUGS"
 Report bugs to <bug\-gdbm@gnu.org>.
 .SH COPYRIGHT
-Copyright \(co 2013 Free Software Foundation, Inc
+Copyright \(co 2013-2018 Free Software Foundation, Inc
 .br
 .na
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
