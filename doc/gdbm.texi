@@ -2254,7 +2254,7 @@ before invoking it.
 
 @deftypevr {gdbmtool variable} bool centfree
 Set to @samp{true}, enables the use of central free block pool in
-newly opened databases. @xref{Options, GDBM_SETCOALESCEBLKS}.
+newly opened databases. @xref{Options, GDBM_SETCENTFREE}.
 
 This variable affects the @command{open} command and should be set
 before invoking it.
