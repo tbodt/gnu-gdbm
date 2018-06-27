@@ -342,14 +342,13 @@ push_avail_block (GDBM_FILE dbf)
   return 0;
 }
 
-/* Return index of an item from AV_TABLE whose AV_SIZE member is greater
-   than or equal to SIZE. Start search from index START.
-   AV_TABLE contains COUNT entries ordered by ascending AV_SIZE. */
+/* AV_TABLE contains COUNT entries sorted by AV_SIZE in ascending order.
+   Avail_lookup returns index of an item whose AV_SIZE member is greater
+   than or equal to SIZE. */
 static int
-avail_lookup (int size, int start, avail_elem *av_table, int count)
+avail_lookup (int size, avail_elem *av_table, int count)
 {
-  if (count == 0)
-    return 0;
+  int start = 0;
   
   while (count > 0)
     {
@@ -366,14 +365,15 @@ avail_lookup (int size, int start, avail_elem *av_table, int count)
   return start;
 }
 
-/* In array AV_TABLE of COUNT items, move all items from
-   position SRC to DST.
+/* In array AV_TABLE of *AV_COUNT items, move all items from
+   position SRC to DST and update *AV_COUNT accordingly.
 */
 static inline void
-avail_move (avail_elem *av_table, int count, int src, int dst)
+avail_move (avail_elem *av_table, int *av_count, int src, int dst)
 {
   memmove (av_table + dst, av_table + src,
-	   (count - src) * sizeof av_table[0]);
+	   (*av_count - src) * sizeof av_table[0]);
+  *av_count += dst - src;
 }
 
 /* Get_elem returns an element in the AV_TABLE block which is
@@ -394,7 +394,7 @@ get_elem (int size, avail_elem av_table[], int *av_count)
   val.av_size = 0;
 
   /* Search for element.  List is sorted by size. */
-  index = avail_lookup (size, 0, av_table, *av_count);
+  index = avail_lookup (size, av_table, *av_count);
 
   /* Did we find one of the right size? */
   if (index >= *av_count)
@@ -402,8 +402,7 @@ get_elem (int size, avail_elem av_table[], int *av_count)
 
   /* Ok, save that element and move all others up one. */
   val = av_table[index];
-  avail_move (av_table, *av_count, index + 1, index);
-  --*av_count;
+  avail_move (av_table, av_count, index + 1, index);
   return val;
 }
 
@@ -414,74 +413,45 @@ void
 _gdbm_put_av_elem (avail_elem new_el, avail_elem av_table[], int *av_count,
      		   int can_merge)
 {
-  int index = -1;		/* For searching through the avail block. */
+  int index;
 
   /* Is it too small to deal with? */
   if (new_el.av_size <= IGNORE_SIZE)
     return;
 
-  if (*av_count == 0)
-    index = 0;
-  else if (can_merge == TRUE)
+  if (can_merge == TRUE)
     {
       /* Search for blocks to coalesce with this one. */
-      int i = 0;
-
-      while (i < *av_count)
+      int i;
+      
+      for (i = 0; i < *av_count; i++)
 	{
-	  /* Can we merge with the previous block? */
 	  if ((av_table[i].av_adr + av_table[i].av_size) == new_el.av_adr)
 	    {
-	      /* Simply expand the entry. */
-	      av_table[i].av_size += new_el.av_size;
+	      /* Right adjacent */
+	      new_el.av_size += av_table[i].av_size;
+	      new_el.av_adr = av_table[i].av_adr;
+	      avail_move (av_table, av_count, i + 1, i);
+	      --i;
 	    }
-	  /* Can we merge with the next block? */
-	  else if ((new_el.av_adr + new_el.av_size) == av_table[i].av_adr)
+
+	  if ((new_el.av_adr + new_el.av_size) == av_table[i].av_adr)
 	    {
-	      /* Update this entry. */
-	      av_table[i].av_adr = new_el.av_adr;
-	      av_table[i].av_size += new_el.av_size;
+	      /* Left adjacent */
+	      new_el.av_size += av_table[i].av_size;
+	      avail_move (av_table, av_count, i + 1, i);
+	      --i;
 	    }
-	  /* Not contiguous */
-	  else
-	    {
-	      if (av_table[i].av_size < new_el.av_size)
-		index = i;
-	      i++;
-	      continue;
-	    }
-	  
-	  /* Coalescing breaks the sorting order, so we need to restore it */
-	  if (i + 1 < *av_count
-	      && av_table[i].av_size > av_table[i + 1].av_size)
-	    {
-	      avail_elem t = av_table[i];
-	      int idx = avail_lookup (t.av_size, i + 1, av_table, *av_count);
-	      avail_move (av_table, idx, i + 1, i);
-	      av_table[idx-1] = t;
-	    }
-	  /* we're done. */
-	  return;
 	}
     }
 
-  if (index == -1)
-    {
-      /* Search for place to put element.  List is sorted by size. */
-      index = avail_lookup (new_el.av_size, 0, av_table, *av_count);
-      /* Move all others up one. */
-      avail_move (av_table, *av_count, index, index + 1);
-    }
+  /* Search for place to put element.  List is sorted by size. */
+  index = avail_lookup (new_el.av_size, av_table, *av_count);
+  /* Move all others up one. */
+  avail_move (av_table, av_count, index, index + 1);
   /* Add the new element. */
   av_table[index] = new_el;
-
-  /* Increment the number of elements. */
-  ++*av_count;
 }
-
-
-
-
 
 /* Get_block "allocates" new file space and the end of the file.  This is
    done in integral block sizes.  (This helps ensure that data smaller than
