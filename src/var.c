@@ -59,6 +59,8 @@ static struct variable vartab[] = {
   { "lock", VART_BOOL, VARF_INIT, { .bool = 1 } },
   { "mmap", VART_BOOL, VARF_INIT, { .bool = 1 } },
   { "sync", VART_BOOL, VARF_INIT, { .bool = 0 } },
+  { "coalesce", VART_BOOL, VARF_INIT, { .bool = 0 } },
+  { "centfree", VART_BOOL, VARF_INIT, { .bool = 0 } },
   { "filemode", VART_INT, VARF_INIT|VARF_OCTAL|VARF_PROT, { .num = 0644 } },
   { "pager", VART_STRING, VARF_DFL },
   { "quiet", VART_BOOL, VARF_DFL },

@@ -2241,6 +2241,25 @@ Flush all database writes on disk immediately.  Default is false.
 @xref{Open, GDBM_SYNC}.
 @end deftypevr
 
+@deftypevr {gdbmtool variable} bool coalesce
+Enables the @emph{coalesce} mode, i.e. merging of the freed blocks of
+GDBM files with entries in available block lists. This provides for
+effective memory management at the cost of slight increase in
+execution time when calling @code{gdbm_delete}. @xref{Options,
+GDBM_SETCOALESCEBLKS}.
+
+This variable affects the @command{open} command and should be set
+before invoking it.
+@end deftypevr
+
+@deftypevr {gdbmtool variable} bool centfree
+Set to @samp{true}, enables the use of central free block pool in
+newly opened databases. @xref{Options, GDBM_SETCOALESCEBLKS}.
+
+This variable affects the @command{open} command and should be set
+before invoking it.
+@end deftypevr
+
 The following commands are used to list or modify the variables:
 
 @deffn {command verb} set [@var{assignments}]

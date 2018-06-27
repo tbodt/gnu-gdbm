@@ -87,7 +87,7 @@ opendb (char *dbname)
     flags |= GDBM_NOMMAP;
   if (variable_is_true ("sync"))
     flags |= GDBM_SYNC;
-      
+  
   if (open_mode == GDBM_NEWDB)
     {
       if (interactive () && variable_is_true ("confirm") &&
@@ -114,6 +114,19 @@ opendb (char *dbname)
       gdbm_setopt (db, GDBM_CACHESIZE, &cache_size, sizeof (int)) == -1)
     terror (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
 
+  if (variable_is_true ("coalesce"))
+    {
+      int t = 1;
+      if (gdbm_setopt (db, GDBM_SETCOALESCEBLKS, &t, sizeof (t)) == -1)
+	terror (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
+    }
+  if (variable_is_true ("centfree"))
+    {
+      int t = 1;
+      if (gdbm_setopt (db, GDBM_SETCENTFREE, &t, sizeof (t)) == -1)
+	terror (_("gdbm_setopt failed: %s"), gdbm_strerror (gdbm_errno));
+    }
+  
   if (gdbm_file)
     gdbm_close (gdbm_file);
   
