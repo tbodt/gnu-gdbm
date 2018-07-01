@@ -392,12 +392,16 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
 int
 _gdbm_mapped_sync (GDBM_FILE dbf)
 {
+  int rc;
+  
   if (dbf->mapped_region)
-    {
-      return msync (dbf->mapped_region, dbf->mapped_size,
-		    MS_SYNC | MS_INVALIDATE);
-    }
-  return fsync (dbf->desc);
+    rc = msync (dbf->mapped_region, dbf->mapped_size,
+		MS_SYNC | MS_INVALIDATE);
+  else
+    rc = fsync (dbf->desc);
+  if (rc)
+    GDBM_SET_ERRNO (dbf, GDBM_FILE_SYNC_ERROR, TRUE);
+  return rc;
 }
 
 #endif

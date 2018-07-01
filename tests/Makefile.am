@@ -54,6 +54,7 @@ TESTSUITE_AT = \
  cloexec01.at\
  cloexec02.at\
  cloexec03.at\
+ closerr.at\
  dbmcreate00.at\
  dbmdel00.at\
  dbmdel01.at\
@@ -108,6 +109,7 @@ if COMPAT_OPT
 endif 
 
 check_PROGRAMS = \
+ closerr\
  fdop\
  g_open_ce\
  g_reorg_ce\

@@ -115,16 +115,21 @@ gdbm_file_seek (GDBM_FILE dbf, off_t off, int whence)
 #endif
 }
 
-static inline void
+static inline int
 gdbm_file_sync (GDBM_FILE dbf)
 {
 #if HAVE_MMAP
-  _gdbm_mapped_sync (dbf);
+  return _gdbm_mapped_sync (dbf);
 #elif HAVE_FSYNC
-  fsync (dbf->desc);
+  if (fsync (dbf->desc))
+    {
+      GDBM_SET_ERRNO (dbf, GDBM_FILE_SYNC_ERROR, TRUE);
+      return 1;
+    }
 #else
   sync ();
   sync ();
+  return 0;
 #endif
 }
 

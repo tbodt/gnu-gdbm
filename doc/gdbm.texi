@@ -215,14 +215,14 @@ contains a definition of these functions.
 #include <gdbm.h>
 
 GDBM_FILE gdbm_open(name, block_size, flags, mode, fatal_func);
-void gdbm_close(dbf);
+int gdbm_close(dbf);
 int gdbm_store(dbf, key, content, flag);
 datum gdbm_fetch(dbf, key);
 int gdbm_delete(dbf, key);
 datum gdbm_firstkey(dbf);
 datum gdbm_nextkey(dbf, key);
 int gdbm_reorganize(dbf);
-void gdbm_sync(dbf);
+int gdbm_sync(dbf);
 int gdbm_exists(dbf, key);
 char *gdbm_strerror(errno);
 int gdbm_setopt(dbf, option, value, size);
@@ -369,7 +369,7 @@ Copy file ownership and mode from @var{src} to @var{dst}.
 It is important that every file opened is also closed.  This is needed to
 update the reader/writer count on the file:
 
-@deftypefn {gdbm interface} void gdbm_close (GDBM_FILE @var{dbf})
+@deftypefn {gdbm interface} int gdbm_close (GDBM_FILE @var{dbf})
 This function closes the @code{gdbm} file and frees all memory
 associated with it.  The parameter is:
 
@@ -377,6 +377,10 @@ associated with it.  The parameter is:
 @item dbf
 The pointer returned by @code{gdbm_open}.
 @end table
+
+@code{Gdbm_close} returns 0 on success. On error, it sets
+@code{gdbm_errno} and system @code{errno} variables to the codes
+describing the error and returns -1.
 @end deftypefn
 
 @node Count
@@ -678,7 +682,7 @@ abnormal fashion.  The following function allows the programmer to
 make sure the disk version of the database has been completely updated
 with all changes to the current time.
 
-@deftypefn {gdbm interface} void gdbm_sync (GDBM_FILE @var{dbf})
+@deftypefn {gdbm interface} int gdbm_sync (GDBM_FILE @var{dbf})
 Synchronizes the changes in @var{dbf} with its disk file.  The
 parameter is a pointer returned by @code{gdbm_open}.
 
@@ -687,6 +691,10 @@ have been made to the database and before some long waiting time.
 The @code{gdbm_close} function automatically calls the equivalent of
 @code{gdbm_sync} so no call is needed if the database is to be closed
 immediately after the set of changes have been made.
+
+@code{Gdbm_sync} returns 0 on success. On error, it sets
+@code{gdbm_errno} and system @code{errno} variables to the codes
+describing the error and returns -1.
 @end deftypefn
 
 @node Flat files

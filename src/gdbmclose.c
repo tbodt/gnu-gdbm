@@ -26,10 +26,13 @@
    Before freeing members of DBF, check and make sure that they were
    allocated.  */
 
-void
+int
 gdbm_close (GDBM_FILE dbf)
 {
   int index;	/* For freeing the bucket cache. */
+  int syserrno;
+  
+  gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   if (dbf->desc != -1)
     {
@@ -44,9 +47,12 @@ gdbm_close (GDBM_FILE dbf)
       if (dbf->file_locking)
 	_gdbm_unlock_file (dbf);
 
-      close (dbf->desc);
+      if (close (dbf->desc))
+	GDBM_SET_ERRNO (dbf, GDBM_FILE_CLOSE_ERROR, FALSE);
     }
 
+  syserrno = gdbm_last_syserr (dbf);
+  
   gdbm_clear_error (dbf);
   
   free (dbf->name);
@@ -63,4 +69,10 @@ gdbm_close (GDBM_FILE dbf)
     }
   free (dbf->header);
   free (dbf);
+  if (gdbm_errno)
+    {
+      errno = syserrno;
+      return -1;
+    }
+  return 0;
 }

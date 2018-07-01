@@ -24,7 +24,7 @@
 
 /* Make sure the database is all on disk. */
 
-void
+int
 gdbm_sync (GDBM_FILE dbf)
 {
   /* Return immediately if the database needs recovery */	
@@ -34,6 +34,5 @@ gdbm_sync (GDBM_FILE dbf)
   gdbm_set_errno (dbf, GDBM_NO_ERROR, FALSE);
 
   /* Do the sync on the file. */
-  gdbm_file_sync (dbf);
-
+  return gdbm_file_sync (dbf);
 }

@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "gdbm.h"
 #include "progname.h"
 
@@ -130,6 +131,11 @@ main (int argc, char **argv)
       fputc ('\n', stdout);
     }
 
-  gdbm_close (dbf);
+  if (gdbm_close (dbf))
+    {
+      fprintf (stderr, "gdbm_close: %s; %s\n", gdbm_strerror (gdbm_errno),
+	       strerror (errno));
+      rc = 3;
+    }
   exit (rc);
 }

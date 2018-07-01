@@ -406,7 +406,13 @@ main (int argc, char **argv)
 	}
     }
   
-  gdbm_close (dbf);
+  if (gdbm_close (dbf))
+    {
+      fprintf (stderr, "gdbm_close: %s; %s\n", gdbm_strerror (gdbm_errno),
+	       strerror (errno));
+      exit (3);
+    }
+  
   exit (0);
 }
   

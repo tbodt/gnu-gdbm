@@ -13,7 +13,7 @@
 .\"
 .\" You should have received a copy of the GNU General Public License
 .\" along with GDBM. If not, see <http://www.gnu.org/licenses/>. */
-.TH GDBM 3 "July 8, 2016" "GDBM" "GDBM User Reference"
+.TH GDBM 3 "July 1, 2018" "GDBM" "GDBM User Reference"
 .SH NAME
 GDBM \- The GNU database manager.  Includes \fBdbm\fR and \fBndbm\fR
 compatibility.
@@ -31,7 +31,7 @@ compatibility.
 .ti +21
 .BI "void (*" fatal_func ")(const char *))";
 .br
-.BI "void gdbm_close (GDBM_FILE " dbf ");"
+.BI "int gdbm_close (GDBM_FILE " dbf ");"
 .br
 .BI "int gdbm_store (GDBM_FILE " dbf ", datum " key ", datum " content ", int " flag );
 .br
@@ -45,7 +45,7 @@ compatibility.
 .br
 .BI "int gdbm_reorganize (GDBM_FILE " dbf ");"
 .br
-.BI "void gdbm_sync (GDBM_FILE " dbf ");"
+.BI "int gdbm_sync (GDBM_FILE " dbf ");"
 .br
 .BI "int gdbm_exists (GDBM_FILE " dbf ", datum " key );
 .br
@@ -183,7 +183,7 @@ returned from \fBgdbm_open\fR.
 It is important that every file opened is also closed.  This is needed to
 update the reader/writer count on the file.  This is done by:
 
-.BI "void gdbm_close (GDBM_FILE " dbf ");"
+.BI "int gdbm_close (GDBM_FILE " dbf ");"
 
 The database is used by 3 primary routines.  The first stores data in the
 database.
@@ -308,7 +308,7 @@ wait for writes to be flushed to the disk before continuing.
 The following routine can be used to guarantee that the database is
 physically written to the disk file.
 
-.BI "void gdbm_sync (GDBM_FILE " dbf ");"
+.BI "int gdbm_sync (GDBM_FILE " dbf ");"
 
 It will not return until the disk file state is syncronized with the
 in-memory state of the database.

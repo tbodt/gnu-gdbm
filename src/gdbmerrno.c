@@ -136,7 +136,9 @@ const char * const gdbm_errlist[_GDBM_MAX_ERRNO+1] = {
   [GDBM_BAD_HEADER]             = N_("Malformed database file header"),
   [GDBM_BAD_AVAIL]              = N_("Malformed avail_block"),
   [GDBM_BAD_HASH_TABLE]         = N_("Malformed hash table"),
-  [GDBM_BAD_DIR_ENTRY]          = N_("Invalid directory entry")
+  [GDBM_BAD_DIR_ENTRY]          = N_("Invalid directory entry"),
+  [GDBM_FILE_CLOSE_ERROR]       = N_("Error closing file"),
+  [GDBM_FILE_SYNC_ERROR]        = N_("Error synchronizing file")
 };
 
 const char *
@@ -178,7 +180,9 @@ int const gdbm_syserr[_GDBM_MAX_ERRNO+1] = {
   [GDBM_FILE_SEEK_ERROR]        = 1,
   [GDBM_FILE_READ_ERROR]        = 1,
   [GDBM_FILE_STAT_ERROR]        = 1,
-  [GDBM_BACKUP_FAILED]          = 1
+  [GDBM_BACKUP_FAILED]          = 1,
+  [GDBM_FILE_CLOSE_ERROR]       = 1,
+  [GDBM_FILE_SYNC_ERROR]        = 1
 };
 
 /* Returns true if system errno value is meaningful for GDBM error
