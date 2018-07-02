@@ -591,13 +591,16 @@ recover_handler (struct handler_param *param)
 	  rcvr.errfun = err_printer;
 	  flags |= GDBM_RCVR_ERRFUN;
 	}
+      else if (strcmp (arg, "force") == 0)
+	{
+	  flags |= GDBM_RCVR_FORCE;
+	}
       else if (strcmp (arg, "summary") == 0)
 	{
 	  summary = 1;
 	}
       else if (strcmp (arg, "backup") == 0)
 	{
-	  rcvr.errfun = err_printer;
 	  flags |= GDBM_RCVR_BACKUP;
 	}
       else if (strncmp (arg, "max-failures=", 13) == 0)
@@ -1263,6 +1266,7 @@ struct command command_tab[] = {
     { { "[verbose]", GDBM_ARG_STRING },
       { "[summary]", GDBM_ARG_STRING },
       { "[backup]",  GDBM_ARG_STRING },
+      { "[force]",   GDBM_ARG_STRING },
       { "[max-failed-keys=N]", GDBM_ARG_STRING },
       { "[max-failed-buckets=N]", GDBM_ARG_STRING },
       { "[max-failures=N]", GDBM_ARG_STRING },

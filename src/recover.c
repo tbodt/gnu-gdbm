@@ -52,7 +52,7 @@ backup_name (char const *name)
   
 #define INITIAL_SUFFIX ".~1~"
   
-  len = strlen (name + sizeof (INITIAL_SUFFIX));
+  len = strlen (name) + sizeof (INITIAL_SUFFIX);
   buf = malloc (len);
   if (!buf)
     return NULL;
