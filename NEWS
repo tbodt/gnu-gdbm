@@ -1,10 +1,10 @@
-GNU dbm NEWS -- history of user-visible changes. 2018-07-01
+GNU dbm NEWS -- history of user-visible changes. 2018-07-30
 Copyright (C) 1990-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send gdbm bug reports to <bug-gdbm@gnu.org>.
 
-Version 1.16.90 (Git)
+Version 1.17 - 2018-07-30
 
 * int gdbm_close and gdbm_sync
 
