@@ -99,7 +99,7 @@ gdbm_avail_table_valid_p (GDBM_FILE dbf, avail_elem *av, int count)
 
   if (needs_sorting && dbf->read_write)
     {
-      GDBM_DEBUG (GDBM_DEBUG_ERR, "restoring sort order");
+      GDBM_DEBUG (GDBM_DEBUG_ERR, "%s", "restoring sort order");
       qsort (av, count, sizeof av[0], avail_comp);
     }
   
