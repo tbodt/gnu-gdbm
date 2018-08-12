@@ -112,17 +112,23 @@ _gdbm_dump_ascii (GDBM_FILE dbf, FILE *fp)
       count++;
     }
 
-  if (rc == 0 && (rc = gdbm_last_errno (dbf)) == 0)
+  /* FIXME: Something like that won't hurt, although load does not
+     use it currently. */
+  fprintf (fp, "#:count=%lu\n", (unsigned long) count);
+  fprintf (fp, "# End of data\n");
+  
+  if (rc == 0)
     {
-      
-      /* FIXME: Something like that won't hurt, although load does not
-	 use it currently. */
-      fprintf (fp, "#:count=%lu\n", (unsigned long) count);
-      fprintf (fp, "# End of data\n");
+      rc = gdbm_last_errno (dbf);
+      if (rc == GDBM_ITEM_NOT_FOUND)
+	{
+	  gdbm_clear_error (dbf);
+	  gdbm_errno = GDBM_NO_ERROR;
+	  rc = 0;
+	}
     }
   free (buffer);
 
-  
   return rc ? -1 : 0;
 }
 

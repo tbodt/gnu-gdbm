@@ -1,4 +1,4 @@
-GNU dbm NEWS -- history of user-visible changes. 2018-07-30
+GNU dbm NEWS -- history of user-visible changes. 2018-08-12
 Copyright (C) 1990-2018 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -10,6 +10,11 @@ Version 1.17 - 2018-07-30
 
 Both functions now return 0 on success. On error, they return -1
 and set gdbm_errno and errno to the appropriate error codes.
+
+* Fix bug in gdbm_dump function
+
+The function did not clear the GDBM_ITEM_NOT_FOUND error marker, which
+is set upon its normal termination.
 
 
 Version 1.16 - 2018-06-27
@@ -484,7 +489,7 @@ Copyright (C) 1990-2017 Free Software Foundation, Inc.
 Local variables:
 mode: outline
 paragraph-separate: "[ 	]*$"
-eval: (add-hook 'write-file-hooks 'time-stamp)
+eval: (add-hook 'write-file-functions 'time-stamp)
 time-stamp-start: "changes. "
 time-stamp-format: "%:y-%02m-%02d"
 time-stamp-end: "\n"

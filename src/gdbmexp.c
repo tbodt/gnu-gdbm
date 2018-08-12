@@ -83,7 +83,12 @@ gdbm_export_to_file (GDBM_FILE dbf, FILE *fp)
       
       count++;
     }
-  if (gdbm_errno != GDBM_ITEM_NOT_FOUND)
+  if (gdbm_last_errno (dbf) == GDBM_ITEM_NOT_FOUND)
+    {
+      gdbm_clear_error (dbf);
+      gdbm_errno = GDBM_NO_ERROR;
+    }
+  else
     return -1;
   
   return count;
