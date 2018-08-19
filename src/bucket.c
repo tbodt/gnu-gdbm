@@ -54,7 +54,7 @@ gdbm_dir_entry_valid_p (GDBM_FILE dbf, int dir_index)
 {
   return dir_index >= 0
          && dir_index < GDBM_DIR_COUNT (dbf)
-         && dbf->dir[dir_index] >= 2*dbf->header->block_size;
+         && dbf->dir[dir_index] >= dbf->header->block_size;
 }
     
 /* Find a bucket for DBF that is pointed to by the bucket directory from
