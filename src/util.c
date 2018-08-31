@@ -98,8 +98,9 @@ vgetyn (const char *prompt, va_list ap)
 		default:
 		  fprintf (stdout, "%s\n", _("Please, reply 'y' or 'n'"));
 		}
-	      state = 0;
-	    } else
+	      /* fall through */
+	    }
+	  else
 	    break;
 	  
 	case 0:

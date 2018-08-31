@@ -542,6 +542,7 @@ gdbm_load_bdb_dump (struct dump_file *file, GDBM_FILE dbf, int replace)
   memset (&xd, 0, sizeof (xd));
   xs[0] = xs[1] = 0;
   i = 0;
+  rc = 0;
   while ((c = fgetc (file->fp)) == ' ')
     {
       rc = xdatum_read (file->fp, &xd[i], &xs[i]);

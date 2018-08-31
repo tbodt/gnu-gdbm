@@ -367,6 +367,10 @@ _gdbm_mapped_lseek (GDBM_FILE dbf, off_t offset, int whence)
 	    needle = file_size - offset; 
 	    break;
 	  }
+
+	default:
+	  errno = EINVAL;
+	  return -1;
 	}
 
       if (needle < 0)

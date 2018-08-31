@@ -62,7 +62,7 @@ _gdbm_dump_ascii (GDBM_FILE dbf, FILE *fp)
   size_t count = 0;
   unsigned char *buffer = NULL;
   size_t bufsize = 0;
-  int rc;
+  int rc = 0;
 
   fd = gdbm_fdesc (dbf);
   if (fstat (fd, &st))

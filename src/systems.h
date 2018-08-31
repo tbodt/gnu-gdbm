@@ -52,13 +52,6 @@
 # define STATBLKSIZE(st) 1024
 #endif
 
-/* Do we have ftruncate? */
-#if HAVE_FTRUNCATE
-# define TRUNCATE(dbf) ftruncate (dbf->desc, 0)
-#else
-# define TRUNCATE(dbf) close( open (dbf->name, O_RDWR|O_TRUNC, mode));
-#endif
-
 #ifndef STDERR_FILENO
 # define STDERR_FILENO 2
 #endif

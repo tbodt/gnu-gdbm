@@ -313,33 +313,43 @@ push_avail_block (GDBM_FILE dbf)
   /* Update the header avail count to previous size divided by 2. */
   dbf->header->avail.count >>= 1;
 
-  /* Free the unneeded space. */
-  new_loc.av_adr += av_size;
-  new_loc.av_size -= av_size;
-  _gdbm_free (dbf, new_loc.av_adr, new_loc.av_size);
-
-  /* Update the disk. */
-  file_pos = gdbm_file_seek (dbf, av_adr, SEEK_SET);
-  if (file_pos != av_adr)
+  rc = 0;
+  do
     {
-      GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
-      _gdbm_fatal (dbf, _("lseek error"));
-      return -1;
-    }
+      /* Free the unneeded space. */
+      new_loc.av_adr += av_size;
+      new_loc.av_size -= av_size;
+      if (_gdbm_free (dbf, new_loc.av_adr, new_loc.av_size))
+	{
+	  rc = -1;
+	  break;
+	}
+  
+      /* Update the disk. */
+      file_pos = gdbm_file_seek (dbf, av_adr, SEEK_SET);
+      if (file_pos != av_adr)
+	{
+	  GDBM_SET_ERRNO (dbf, GDBM_FILE_SEEK_ERROR, TRUE);
+	  _gdbm_fatal (dbf, _("lseek error"));
+	  rc = -1;
+	  break;
+	}
 
-  rc = _gdbm_full_write (dbf, temp, av_size);
-  if (rc)
-    {
-      GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
-		  "%s: error writing avail data: %s",
-		  dbf->name, gdbm_db_strerror (dbf));	  
-      _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
-      return -1;
+      rc = _gdbm_full_write (dbf, temp, av_size);
+      if (rc)
+	{
+	  GDBM_DEBUG (GDBM_DEBUG_STORE|GDBM_DEBUG_ERR,
+		      "%s: error writing avail data: %s",
+		      dbf->name, gdbm_db_strerror (dbf));	  
+	  _gdbm_fatal (dbf, gdbm_db_strerror (dbf));
+	  rc = -1;
+	}
     }
-
+  while (0);
+  
   free (temp);
 
-  return 0;
+  return rc;
 }
 
 /* AV_TABLE contains COUNT entries sorted by AV_SIZE in ascending order.

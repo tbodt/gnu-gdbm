@@ -199,6 +199,21 @@ validate_header (gdbm_file_header const *hdr, struct stat const *st)
   return 0;
 }
   
+/* Do we have ftruncate? */
+static inline int
+_gdbm_ftruncate (GDBM_FILE dbf)
+{
+#if HAVE_FTRUNCATE
+  return ftruncate (dbf->desc, 0);
+#else
+  int fd;
+  fd = open (dbf->name, O_RDWR|O_TRUNC, mode);
+  if (fd == -1)
+    return -1;
+  return close (fd);
+#endif
+}
+
 GDBM_FILE 
 gdbm_fd_open (int fd, const char *file_name, int block_size,
 	      int flags, void (*fatal_func) (const char *))
@@ -320,14 +335,22 @@ gdbm_fd_open (int fd, const char *file_name, int block_size,
      now time to truncate the file. */
   if ((flags & GDBM_OPENMASK) == GDBM_NEWDB && file_stat.st_size != 0)
     {
-      TRUNCATE (dbf);
-      if (fstat (dbf->desc, &file_stat))
+      if (_gdbm_ftruncate (dbf))
+	{
+	  GDBM_SET_ERRNO2 (dbf, GDBM_FILE_TRUNCATE_ERROR, FALSE,
+			   GDBM_DEBUG_OPEN);
+	}
+      else if (fstat (dbf->desc, &file_stat))
+	{
+	  GDBM_SET_ERRNO2 (dbf, GDBM_FILE_STAT_ERROR, FALSE, GDBM_DEBUG_OPEN);
+	}
+
+      if (gdbm_last_errno (dbf))
 	{
 	  if (flags & GDBM_CLOERROR)
 	    close (dbf->desc);
 	  free (dbf->name);
 	  free (dbf);
-	  GDBM_SET_ERRNO2 (NULL, GDBM_FILE_STAT_ERROR, FALSE, GDBM_DEBUG_OPEN);
 	  return NULL;
 	}
     }

@@ -101,6 +101,7 @@ gdbm_firstkey (GDBM_FILE dbf)
 
   /* Set the default return value for not finding a first entry. */
   return_val.dptr = NULL;
+  return_val.dsize = 0;
 
   GDBM_DEBUG (GDBM_DEBUG_READ, "%s: getting first key", dbf->name);
   

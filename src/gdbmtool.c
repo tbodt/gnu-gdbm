@@ -1435,7 +1435,7 @@ command_generator (const char *text, int state)
       len = strlen (text);
     }
 
-  if (!cmd->name)
+  if (!cmd || !cmd->name)
     return NULL;
 
   /* Return the next name which partially matches from the command list. */

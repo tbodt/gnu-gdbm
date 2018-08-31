@@ -87,7 +87,7 @@ ndbm_open_dir_file0 (const char *file_name, int pagfd, int mode)
 		  if ((mode & GDBM_OPENMASK) == GDBM_READER)
 		    /* Ok, try to cope with it. */
 		    return pagfd;
-		  else
+		  else if (errno != ENOENT)
 		    {
 		      gdbm_set_errno (NULL, GDBM_FILE_OPEN_ERROR, TRUE); 
 		      return -1;
